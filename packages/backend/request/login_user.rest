@@ -1,0 +1,15 @@
+POST http://localhost:3000/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "jace0@gmail.com",
+  "password": "Jace0"
+}
+
+
+# token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE1NzE3MDJiLTJkOGQtNGVhYS05Y2Q1LWFkNDMxOGUyMjIzZCIsImVtYWlsIjoiamFjZTBAZ21haWwuY29tIiwiaWF0IjoxNzM1NDY2MTg5LCJleHAiOjE3MzU1NTI1ODl9.FE2gIFdWdT1CuxlgoGG1Ei1l79PRCa41n7ScONt96w4
+
+
+
+mluukkainen@hesinki.fi
+secret

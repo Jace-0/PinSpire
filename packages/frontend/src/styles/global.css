@@ -1,0 +1,934 @@
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #fff;
+  }
+
+.header {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #fff;
+    border-bottom: 1px solid #ddd;
+}
+
+/* .header .logo {
+    width: 40px;
+    height: 40px;
+    background-color: #0073e6;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 20px;
+} */
+
+.header .search-bar {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    background-color: #f1f1f1;
+    border-radius: 20px;
+    padding: 5px 10px;
+    margin-left: 50px;
+}
+
+.header .search-bar input {
+    border: none;
+    background: none;
+    outline: none;
+    flex-grow: 1;
+    padding: 5px;
+}
+.header .search-bar i {
+            color: #888;
+        }
+        .header .profile {
+            margin-left: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .header .profile i {
+            font-size: 20px;
+            color: #888;
+        }
+
+
+.sidebar {
+    width: 60px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background-color: #fff;
+    border-right: 1px solid #ddd;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 20px;
+}
+
+.sidebar a {
+    margin: 20px 0;
+    color: #000;
+    text-decoration: none;
+    font-size: 20px;
+}
+
+
+.profile-section {
+    text-align: center;
+    margin-top: 50px;
+}
+
+.profile-section img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: #6e4b3a;
+    color: #fff;
+    font-size: 50px;
+    line-height: 100px;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  .profile-section h1 {
+    font-size: 24px;
+    margin: 10px 0;
+  }
+
+  .profile-section p {
+    color: #888;
+    margin: 5px 0;
+  }
+
+.profile-section .buttons {
+    margin: 20px 0;
+}
+
+.profile-section .buttons button {
+    padding: 10px 20px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    background-color: #f5f5f5;
+    margin: 0 10px;
+    cursor: pointer;
+  }
+
+.tabs {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 20px 0;
+}
+.tabs a {
+    margin: 0 20px;
+    text-decoration: none;
+    color: #000;
+    font-weight: 500;
+    padding-bottom: 5px;
+    border-bottom: 2px solid transparent;
+  }
+
+  .tab-button {
+    padding: 8px 16px;
+    border: none;
+    text-decoration: none;
+    background: none;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+  }
+
+  .tab-button:hover {
+    background-color: #eee8e8;
+  }
+
+  .tab-button.active {
+    border-bottom: 2px solid #000;
+  }
+
+
+
+  /* HOME PAGE */
+
+.home-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: white;
+}
+
+.home-header img {
+  height: 40px;
+}
+.header nav {
+  margin-left: 20px;
+}
+
+.home-header nav a {
+  margin: 0 10px;
+  text-decoration: none;
+  color: black;
+  font-weight: 500;
+}
+
+.home-header .auth-buttons a {
+  margin-left: 10px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.home-header .auth-buttons .login {
+  background-color: #E60023;
+  color: white;
+}
+
+.home-header .auth-buttons .signup {
+  background-color: #EFEFEF;
+  color: black;
+}
+
+.main-content {
+  display: flex;
+  justify-content: space-between;
+  padding: 50px 20px;
+  min-height: 90vh;
+}
+
+.main-content .left {
+  max-width: 40%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding-left: 8%;
+
+}
+
+.main-content .left h1 {
+  font-size: 60px;
+  color: #004D40;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.main-content .left p {
+  font-size: 24px;
+  color: #004D40;
+  margin: 20px 0;
+  line-height: 1.4;
+}
+
+.main-content .left .explore-button {
+  background-color: #E60023;
+  color: white;
+  padding: 16px 32px;
+  border-radius: 32px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 18px;
+  transition: background-color 0.3s ease;
+}
+
+.main-content .left .explore-button:hover {
+  background-color: #ad081b;
+}
+
+.main-content .right {
+  width: 60%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 180px);
+  gap: 16px;
+  padding: 20px;
+  align-content: center;
+}
+
+.main-content .right .card {
+  width: 180px;
+  height: 250px;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  transition: transform 0.3s ease;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+/* Create Pinterest-like masonry layout effect */
+.main-content .right .card:nth-child(2n) {
+  transform: translateY(40px);
+}
+
+.main-content .right .card:nth-child(3n) {
+  transform: translateY(-20px);
+}
+
+.main-content .right .card:hover {
+  transform: scale(1.05);
+}
+
+.main-content .right .card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+ .main-content .right .card .overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+  color: white;
+  padding: 20px 15px;
+  font-size: 16px;
+  font-weight: 500;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.main-content .right .card:hover .overlay {
+  opacity: 1;
+}
+
+@media (max-width: 1024px) {
+  .main-content .left {
+    padding-left: 5%;
+  }
+  
+  .main-content .right {
+    grid-template-columns: repeat(auto-fill, 160px);
+  }
+  
+  .main-content .right .card {
+    width: 160px;
+    height: 220px;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    flex-direction: column;
+    align-items: center;
+    padding: 30px 20px;
+  }
+
+  .main-content .left {
+    max-width: 90%;
+    text-align: center;
+    align-items: center;
+    padding-left: 0;
+    margin-bottom: 40px;
+  }
+
+  .main-content .right {
+    width: 100%;
+    justify-content: center;
+  }
+}
+body.home-page {
+  background-color: #E0F7F7
+}
+
+
+/* CREATE PIN PAGE */
+/* styles.css */
+.create-pin-header {
+  background-color: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 16px;
+  padding-left: 80px; 
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.create-pin-header h1 {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.create-pin-header .publish-button {
+  background-color: #E60023;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 70px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+.create-pin-header .publish-button:hover {
+  background-color: #ad081b;
+}
+
+
+/* CREATR PIN CONTENT */
+
+.content-container {
+  flex: 1;
+  padding: 32px;
+  display: flex;
+}
+
+.image-section {
+  width: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.image-wrapper {
+  width: 100%;
+  max-width: 400px;
+  height: 600px;
+  background-color: #f0f0f0;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed #cdcdcd;}
+
+  .upload-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 32px;
+  }
+
+  .upload-icon {
+    font-size: 32px;
+    color: #767676;
+    margin-bottom: 16px;
+  }
+  
+  .primary-text {
+    font-size: 18px;
+    font-weight: 500;
+    color: #111;
+    margin-bottom: 8px;
+  }
+  
+  .secondary-text {
+    font-size: 14px;
+    color: #767676;
+    margin-bottom: 24px;
+    max-width: 260px;
+    line-height: 1.4;
+  }
+
+
+  .url-button {
+    background-color: #efefef;
+    border: none;
+    padding: 12px 16px;
+    border-radius: 24px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #111;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.2s ease;
+  }
+  
+  .url-button:hover {
+    background-color: #e2e2e2;
+  }
+  
+  .url-button i {
+    font-size: 14px;
+  }
+  
+  /* Optional: Add drag and drop highlight effect */
+  .image-wrapper.drag-over {
+    border-color: #0074e8;
+    background-color: #f7f7f7;
+  }
+  
+.pin-image {
+  width: 400px;
+  height: 600px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.edit-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: white;
+  padding: 8px;
+  border-radius: 50%;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+}
+
+
+.form-section {
+  width: 50%;
+  padding-left: 1px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+}
+
+.form-group textarea {
+    height: 96px;
+    resize: vertical;
+}
+
+.helper-text {
+  color: #6b7280;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.add-products-button {
+  background-color: #e5e7eb;
+  color: #374151;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+}
+
+.more-options-button {
+  color: #374151;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+
+/* Hover states */
+.edit-button:hover {
+  background-color: #f3f4f6;
+}
+
+.add-products-button:hover {
+  background-color: #d1d5db;
+}
+
+.more-options-button:hover {
+  color: #111827;
+}
+
+/* Focus states for form elements */
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+
+.edit-profile-container {
+  max-width: 500px;
+  padding: 20px 20px;
+  padding-left: 140px;
+}
+
+.edit-profile-content {
+  background-color: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.edit-profile-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #111;
+  margin-bottom: 8px;
+}
+
+.edit-profile-subtitle {
+  color: #5f5f5f;
+  font-size: 14px;
+  margin-bottom: 32px;
+}
+
+.edit-profile-photo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.profile-image {
+  width: 100px;
+  height: 100px;
+  border-radius: 50px;
+  object-fit: cover;
+}
+
+.change-photo-btn {
+  background-color: #efefef;
+  border: none;
+  padding: 12px 16px;
+  border-radius: 24px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.change-photo-btn:hover {
+  background-color: #e2e2e2;
+}
+
+.edit-profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-field label {
+  font-weight: 500;
+  color: #111;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  padding: 10px;
+  border: 2px solid #efefef;
+  border-radius: 16px;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  outline: none;
+  border-color: #0074e8;
+}
+
+.form-field textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.form-field input[readonly] {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.helper-text {
+  font-size: 14px;
+  color: #767676;
+}
+
+@media (max-width: 768px) {
+  .edit-profile-container {
+    padding: 20px;
+  }
+
+  .edit-profile-content {
+    padding: 20px;
+  }
+
+  .profile-image {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+
+
+/* Pin Details */
+
+.pin-details-container {
+  padding: 24px;
+  margin-left: 100px; /* Adjust based on Navigation width */
+}
+
+.pin-details-wrapper {
+  max-width: 700px;
+  margin: 0 auto;
+  display: flex;
+  background: white;
+  border-radius: 32px;
+  overflow: hidden;
+  box-shadow: 0 1px 20px rgba(0, 0, 0, 0.1);
+}
+
+.pin-details-image-section {
+  flex: 1;
+  max-width: 60%;
+}
+
+.pin-main-image {
+  width: 100%;
+  height: 100%;
+  object-fit: inherit;
+}
+
+.pin-details-content {
+  flex: 1;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  max-width: 40%;
+}
+
+.pin-action-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 24px;
+}
+
+.pin-like-button {
+  background: #efefef;
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.pin-like-button:hover {
+  background: #e2e2e2;
+}
+
+.pin-info {
+  margin-bottom: 24px;
+}
+
+.pin-title {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.pin-hashtags {
+  color: #767676;
+  font-size: 16px;
+}
+
+.pin-comments-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.comments-count {
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+.pin-comments-list {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 24px;
+}
+
+.pin-comment {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.comment-user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.comment-content {
+  flex: 1;
+}
+
+.comment-username {
+  font-weight: 600;
+  margin-right: 8px;
+}
+
+.comment-text {
+  color: #333;
+}
+
+.pin-comment-input-wrapper {
+  position: relative;
+  margin-top: auto;
+}
+
+.pin-comment-input {
+  width: 100%;
+  padding: 12px;
+  padding-right: 48px;
+  border: 2px solid #efefef;
+  border-radius: 24px;
+  font-size: 16px;
+}
+
+.pin-comment-input:focus {
+  outline: none;
+  border-color: #0074e8;
+}
+
+.pin-comment-submit {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #0074e8;
+  cursor: pointer;
+  padding: 8px;
+}
+
+@media (max-width: 768px) {
+  .pin-details-wrapper {
+    flex-direction: column;
+  }
+
+  .pin-details-image-section,
+  .pin-details-content {
+    max-width: 100%;
+  }
+}
+
+
+
+/* User Home Page */
+
+.home-container {
+  padding: 24px;
+  margin-left: 100px; /* Adjust based on your sidebar width */
+}
+
+.pins-grid {
+  columns: 5; /* Creates 5 columns */
+  column-gap: 16px;
+  width: 100%;
+}
+
+.pin-card {
+  break-inside: avoid; /* Prevents pins from breaking across columns */
+  margin-bottom: 16px;
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  background: white;
+}
+
+.pin-image-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.pin-image {
+  width: 100%;
+  display: block;
+  max-height: 400px; /* Reduce this value from your current height */
+  object-fit: cover; /* This ensures images maintain aspect ratio */
+  border-radius: 16px 16px 0 0;
+}
+
+.pin-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.5));
+  padding: 16px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.pin-card:hover .pin-overlay {
+  opacity: 1;
+}
+
+.pin-footer {
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.user-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-name {
+  font-size: 14px;
+  color: #111;
+  font-weight: 500;
+}
+
+.pin-title {
+  color: white;
+  font-size: 16px;
+  margin: 0;
+}
+
+/* Responsive columns */
+@media (max-width: 1600px) {
+  .pins-grid {
+    columns: 4;
+  }
+}
+
+@media (max-width: 1200px) {
+  .pins-grid {
+    columns: 3;
+  }
+}
+
+@media (max-width: 900px) {
+  .pins-grid {
+    columns: 2;
+  }
+}
+
+@media (max-width: 600px) {
+  .pins-grid {
+    columns: 1;
+  }
+}

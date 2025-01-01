@@ -1,0 +1,19 @@
+POST http://localhost:3000/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "email": "jace0@gmail.com",
+  "password": "Jace0",
+  "dob": "2003-06-10"
+}
+
+
+{
+  "email": "mluukkainen@hesinki.fi",
+  "password": "secret",
+  "dob": "2000-01-01"
+}
+
+
+luukkas@youtube.com
+youtuber
