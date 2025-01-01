@@ -3,12 +3,21 @@ const { sequelize } = require('../util/db')
 
 class User extends Model {
     // Class methods
+    static async findById(id) {
+      return await this.findOne({ where: 
+        { id },
+        attributes: { exclude: ['password_hash'] }
+        });
+    }
     static async findByEmail(email) {
-      return await this.findOne({ where: { email } });
+      return await this.findOne({ where: { email }});
     }
   
     static async findByUsername(username) {
-      return await this.findOne({ where: { username } });
+      return await this.findOne({ where: 
+        { username },
+        attributes: { exclude: ['password_hash'] }
+    });
     }
   
     // Instance methods

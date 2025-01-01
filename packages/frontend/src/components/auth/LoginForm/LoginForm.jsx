@@ -47,12 +47,12 @@ const LoginForm = () => {
       // Delay navigation
       setTimeout(() => {
         navigate('/')
-      }, 1000) // 1 second
+      }, 1000) // 1 second delay
 
     } catch (error) {
-      console.error(error.message)
+      console.error(error)
       // setError(error.message)
-      setSnackbarMessage( error.response.data.error || 'Login failed')
+      setSnackbarMessage( error.message || 'Login failed')
       setSnackbarSeverity('error')
       setOpenSnackbar(true)
     }
@@ -119,7 +119,7 @@ const LoginForm = () => {
       </Card>
       <Snackbar
         open={openSnackbar}
-        autoHideDuration={1000}
+        autoHideDuration={5000}
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >

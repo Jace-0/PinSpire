@@ -1,14 +1,29 @@
 import axios from 'axios'
 
+const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api'
+
+// Main API instance for authenticated routes
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL
+  baseURL: BASE_URL,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+})
+
+// Auth API instance (uses same base URL)
+export const authApi = axios.create({
+  baseURL: BASE_URL,
+  headers: {
+    'Content-Type': 'application/json'
+  }
 })
 
 api.interceptors.request.use((config) => {
   const auth = sessionStorage.getItem('auth')
   if (auth) {
-    const { token } = JSON.parse(auth)
-    config.headers.Authorization = `Bearer ${token}`
+    const { accessToken } = JSON.parse(auth)
+    // console.log('Token', accessToken)
+    config.headers.Authorization = `Bearer ${accessToken}`
   }
   return config
 })
@@ -28,7 +43,7 @@ api.interceptors.response.use(
 
         // Call refresh token endpoint with current refresh token
         const response = await axios.post(
-          `${process.env.REACT_APP_API_URL}/refresh-token`,
+          `${authApi}/auth/refresh-token`,
           { refreshToken: auth.refreshToken }
         )
 

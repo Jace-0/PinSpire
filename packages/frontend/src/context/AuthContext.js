@@ -1,6 +1,6 @@
 // context/AuthContext.jsx
 import { createContext, useContext, useEffect, useState } from 'react'
-import { signup, login } from '../services/auth.service'
+import { authService } from '../services/auth.service'
 
 const AuthContext = createContext()
 
@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }) => {
 
 
   const handleSignup = async (credentials) => {
-    const response = await signup(credentials)
+    const response = await authService.signup(credentials)
     const { user, accessToken, refreshToken } = response
 
     sessionStorage.setItem('auth', JSON.stringify({
@@ -40,26 +40,21 @@ export const AuthProvider = ({ children }) => {
 
 
   const handleLogin = async (credentials) => {
-    // eslint-disable-next-line no-useless-catch
-    try {
-      const response = await login(credentials)
-      const { user, accessToken, refreshToken } = response
+    const response = await authService.login(credentials)
+    const { user, accessToken, refreshToken } = response
 
-      // Store in session storage (more secure than localStorage)
-      sessionStorage.setItem('auth', JSON.stringify({
-        user,
-        accessToken,
-        refreshToken
-      }))
+    // Store in session storage (more secure than localStorage)
+    sessionStorage.setItem('auth', JSON.stringify({
+      user,
+      accessToken,
+      refreshToken
+    }))
 
-      setUser(user)
-      setAccessToken(accessToken)
-      setRefreshToken(refreshToken)
+    setUser(user)
+    setAccessToken(accessToken)
+    setRefreshToken(refreshToken)
 
-      return response
-    } catch (error) {
-      throw error
-    }
+
   }
 
   const handleLogout = () => {

@@ -13,7 +13,8 @@ const sessionMiddleware = require('./middleware/session')
 const { errorHandler } = require('./middleware/errorHandler')
 
 // Route imports
-const authRoutes = require('./routes/auth.routes')
+const authRoutes = require('./routes/auth.router')
+const userRoutes = require('./routes/user.router')
 
 // Middleware setup
 app.use(cors())
@@ -21,6 +22,7 @@ app.use(express.json())
 app.use(sessionMiddleware)
 
 app.use('/api/auth', authRoutes)
+app.use('/api/user', userRoutes)
 
 // Error handling
 app.use(errorHandler)

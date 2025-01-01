@@ -1,9 +1,9 @@
-POST http://localhost:3000/api/v1/auth/login
+POST http://localhost:3000/api/auth/login
 Content-Type: application/json
 
 {
-  "email": "jace0@gmail.com",
-  "password": "Jace0"
+  "email": "test@pinspire.com",
+  "password": "test"
 }
 
 
@@ -11,5 +11,9 @@ Content-Type: application/json
 
 
 
-mluukkainen@hesinki.fi
-secret
+# mluukkainen@hesinki.fi
+# secret
+
+
+# test@pinspire.com
+# test

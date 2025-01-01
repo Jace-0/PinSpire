@@ -13,4 +13,4 @@
                 - Built a Pinterest-style home feed with masonry layout
                 - Developed an interactive pin details page with social features |
 
-| 1.1. | 1 | Implemented token refresh functionality and integrated error notifications using Material-UI. Developed backend mechanisms for user data caching and conducted thorough testing to ensure their efficacy. |
+| 1.1. | 10 | Implemented token refresh functionality and integrated error notifications using Material-UI. Developed backend mechanisms for user data caching and conducted thorough testing to ensure their efficacy. |
