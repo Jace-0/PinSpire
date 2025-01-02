@@ -32,6 +32,7 @@ const AppRoutes = () => {
     onShare: () => console.log('Share profile'),
     onEditProfile: () => console.log('Edit profile')
   }
+  console.log('User', user)
 
   return (
     <Routes>
@@ -39,7 +40,7 @@ const AppRoutes = () => {
       <Route path="/login" element={<LoginForm/>} />
       <Route path="/signup" element={<SignupForm/>} />
       <Route
-        path="/profile"
+        path='/:username'
         element={
           user ? (
             <ProfilePage
@@ -53,7 +54,9 @@ const AppRoutes = () => {
           )
         }
       />
+      <Route path="/settings/profile" element={<EditProfile/>} />
       <Route path="/create" element={<CreatePin/>} />
+      <Route path="/user/prof" element={<CreatePin/>} />
     </Routes>
   )
 }
