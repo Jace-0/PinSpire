@@ -14,3 +14,7 @@
                 - Developed an interactive pin details page with social features |
 
 | 1.1. | 10 | Implemented token refresh functionality and integrated error notifications using Material-UI. Developed backend mechanisms for user data caching and conducted thorough testing to ensure their efficacy. |
+
+| 1.2. | 10 | Implemented notification update for the editProfile feature. Created Database models and migrations for pins, boards, followers, likes, comments, and comment replies. Additionally, restructured the models using class-based structures. |
+
+| 1.3. | 12 | added Docs app strucuture, Database model design |

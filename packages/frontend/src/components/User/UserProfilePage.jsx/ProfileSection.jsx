@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom'
 
 const ProfileSection = ({ user , isOwnProfile, profile }) => {
   const navigate = useNavigate()
-  console.log('profile', profile)
 
 
   const handleEditProfile = () => {
@@ -15,17 +14,19 @@ const ProfileSection = ({ user , isOwnProfile, profile }) => {
       })
     }
   }
+  const userr = profile.data
+  console.log('profile user', profile)
 
   return(
     <div className="profile-section">
       <img
-        alt={`${user.name}'s profile`}
+        alt={`${userr.username}'s profile`}
         height="100"
         src={user.profileImage}
         width="100"
       />
-      <h1>{user.name}</h1>
-      <p>@{profile.data.username}</p>
+      <h1>{userr.first_name} {userr.last_name}</h1>
+      <p>@{userr.username}</p>
       <p>{user.followingCount} following</p>
 
 

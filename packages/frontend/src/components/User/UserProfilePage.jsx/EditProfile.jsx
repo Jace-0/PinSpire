@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { TextField, Button, Card, CardContent, Typography, Box, Snackbar, Alert } from '@mui/material'
 import Navigation from '../../common/Navigation'
 import Header from '../../common/Header'
 import { useLocation, Navigate } from 'react-router-dom'
+
 import { useAuth } from '../../../context/AuthContext'
 
 import { userService } from '../../../services/userService'
@@ -11,6 +13,10 @@ import { userService } from '../../../services/userService'
 const EditProfile = ({ user }) => {
   const { state } = useLocation()
   const { profile } = state || {}
+
+  const [openSnackbar, setOpenSnackbar] = useState(false)
+  const [snackbarMessage, setSnackbarMessage] = useState('')
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success')
 
   // Initialize form state with profile data
   const [formData, setFormData] = useState({
@@ -39,16 +45,26 @@ const EditProfile = ({ user }) => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      console.log('Data', formData)
       const response = await userService.updateProfile(profile.data.id, formData)
-      console.log('Update', response.data)
+      setSnackbarMessage('Update successful!')
+      setSnackbarSeverity('success')
+      setOpenSnackbar(true)
       // Handle form submission
     } catch (error) {
       console.error('Error updating profile:', error)
+      setSnackbarMessage( error.message || 'Update failed')
+      setSnackbarSeverity('error')
+      setOpenSnackbar(true)
     }
   }
 
 
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return
+    }
+    setOpenSnackbar(false)
+  }
 
   console.log('PROFILE', profile)
 
@@ -162,6 +178,38 @@ const EditProfile = ({ user }) => {
             </button>
           </form>
         </div>
+        <Snackbar
+          open={openSnackbar}
+          autoHideDuration={6000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert
+            onClose={handleCloseSnackbar}
+            severity={snackbarSeverity}
+            sx={{
+              width: '100%',
+              borderRadius: '16px',
+              fontWeight: 500,
+              '&.MuiAlert-standardSuccess': {
+                backgroundColor: '#E60023',
+                color: 'white',
+                '& .MuiAlert-icon': {
+                  color: 'white'
+                }
+              },
+              '&.MuiAlert-standardError': {
+                backgroundColor: '#cc0000',
+                color: 'white',
+                '& .MuiAlert-icon': {
+                  color: 'white'
+                }
+              }
+            }}
+          >
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
       </div>
     </>
   )}

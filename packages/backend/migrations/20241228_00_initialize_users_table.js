@@ -19,17 +19,21 @@ module.exports = {
             email: {
                 type: DataTypes.STRING(255),
                 unique: true,
-                allowNull: false
+                allowNull: false,
+                validate: {
+                    isEmail: true,
+                    notEmpty: true
+                }
             },
             password_hash: {
                 type: DataTypes.STRING(255),
                 allowNull: false
             },
-            first_name: {
+            firstName: {
                 type: DataTypes.STRING(100),
                 allowNull: true
             },
-            last_name: {
+            lastName: {
                 type: DataTypes.STRING(100),
                 allowNull: true
             },
@@ -37,8 +41,21 @@ module.exports = {
                 type: DataTypes.DATEONLY,
                 allowNull: false,
                 validate: {
-                    isDate: true
+                    isDate: true,
+                    notNull: {
+                        msg: 'Date of birth is required'
+                    },
+                    isDate: true,
+                    isBefore: new Date().toISOString(),
+                    isAfter: new Date('1900-01-01').toISOString(),
+                    customValidator(value) {
+                        const age = Math.floor((new Date() - new Date(value)) / (365.25 * 24 * 60 * 60 * 1000));
+                        if (age < 13) {
+                            throw new Error('User must be at least 13 years old');
+                        }
+                    }
                 }
+                
             },
             gender: {
                 type: DataTypes.ENUM('male', 'female', 'other', 'prefer not to say'),
@@ -75,7 +92,10 @@ module.exports = {
             },
             website_url: {
                 type: DataTypes.STRING(255),
-                allowNull: true
+                allowNull: true,
+                validate: {
+                    isUrl: true
+                }
             },
             location: {
                 type: DataTypes.STRING(100),
@@ -103,10 +123,32 @@ module.exports = {
                 type: DataTypes.BOOLEAN,
                 defaultValue: true
             }
+        
+        });
+         // Add indexes
+         await queryInterface.addIndex('users', ['email'], {
+            unique: true,
+            name: 'idx_users_email'
+        });
+
+        await queryInterface.addIndex('users', ['username'], {
+            unique: true,
+            name: 'idx_users_username'
+        });
+
+        await queryInterface.addIndex('users', ['id'], {
+            unique: true,
+            name: 'idx_users_id'
         });
     },
 
     down: async ({ context: queryInterface }) => {
+        // Remove indexes first
+        await queryInterface.removeIndex('users', 'idx_users_email');
+        await queryInterface.removeIndex('users', 'idx_users_username');
+        await queryInterface.removeIndex('users', 'idx_users_id');
+        
+        // Then drop the table
         await queryInterface.dropTable('users');
     }
 };

@@ -1,20 +1,19 @@
 const express = require('express')
 require('express-async-errors')
 const cors = require('cors')
-const app = express()
-
-// Config imports
 const { PORT } = require('./util/config')
 const { connectToDatabase } = require('./util/db')
-const redisClient = require('./util/redis')
-const sessionMiddleware = require('./middleware/session')
 
 // Middleware imports
+const sessionMiddleware = require('./middleware/session')
 const { errorHandler } = require('./middleware/errorHandler')
 
 // Route imports
 const authRoutes = require('./routes/auth.router')
 const userRoutes = require('./routes/user.router')
+
+const app = express()
+
 
 // Middleware setup
 app.use(cors())
