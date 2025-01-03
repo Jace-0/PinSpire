@@ -49,7 +49,7 @@ const ProfilePage = ({ userData, onSearch, activeTab, onTabChange }) => {
       <Header onSearch={onSearch} />
       <Navigation />
       <div className="container">
-        <ProfileSection user={userData}  isOwnProfile={isOwnProfile} profile={profile} />
+        <ProfileSection  isOwnProfile={isOwnProfile} profile={profile} />
         <Tabs activeTab={activeTab} onTabChange={onTabChange} />
       </div>
     </div>

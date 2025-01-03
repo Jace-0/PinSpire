@@ -11,8 +11,11 @@ import { userService } from '../../../services/userService'
 
 
 const EditProfile = ({ user }) => {
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [previewUrl, setPreviewUrl] = useState(null)
   const { state } = useLocation()
   const { profile } = state || {}
+  const { setUser } = useAuth()
 
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
@@ -34,6 +37,49 @@ const EditProfile = ({ user }) => {
     return <Navigate to={`/${user.username}`} replace />
   }
 
+
+  const handleFileSelect = async (event) => {
+    const file = event.target.files[0]
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setSnackbarMessage('File size too large. Maximum size is 5MB')
+        setSnackbarSeverity('error')
+        setOpenSnackbar(true)
+        return
+      }
+      if (!file.type.startsWith('image/')) {
+        setSnackbarMessage('Only image files are allowed')
+        setSnackbarSeverity('error')
+        setOpenSnackbar(true)
+        return
+      }
+      setSelectedFile(file)
+      setPreviewUrl(URL.createObjectURL(file))
+
+      // Automatically upload after selection
+      try {
+        const formData = new FormData() // Create new FormData object
+        formData.append('avatar', file) // Add file to FormData with field name 'avatar'
+
+        const response = await userService.updateAvatar(profile.data.id, formData)
+
+        if (response.success) {
+          setSnackbarMessage('Profile photo updated successfully')
+          setSnackbarSeverity('success')
+          setOpenSnackbar(true)
+        }
+      } catch (error) {
+        setSnackbarMessage(error.message || 'Failed to update profile photo')
+        setSnackbarSeverity('error')
+        setOpenSnackbar(true)
+      }
+    }
+  }
+
+  const triggerFileInput = () => {
+    document.getElementById('avatar-file').click()
+  }
+
   const handleChange = (e) => {
     const { id, value } = e.target
     setFormData(prev => ({
@@ -46,9 +92,11 @@ const EditProfile = ({ user }) => {
     e.preventDefault()
     try {
       const response = await userService.updateProfile(profile.data.id, formData)
-      setSnackbarMessage('Update successful!')
-      setSnackbarSeverity('success')
-      setOpenSnackbar(true)
+      if (response.sucess){
+        setSnackbarMessage('Update successful!')
+        setSnackbarSeverity('success')
+        setOpenSnackbar(true)
+      }
       // Handle form submission
     } catch (error) {
       console.error('Error updating profile:', error)
@@ -81,11 +129,24 @@ const EditProfile = ({ user }) => {
 
           <div className="edit-profile-photo">
             <img
-              src={profile.profileImage || 'https://storage.googleapis.com/a1aa/image/WhEQI3wRIuoLB1ABcr3JDoedcbaPBhuF780xUIDijocJ3LAKA.jpg'}
+              src={previewUrl ||profile.data.avatar_url }
               alt="Profile photo"
               className="profile-image"
             />
-            <button className="change-photo-btn">Change</button>
+            <input
+              accept="image/*"
+              style={{ display: 'none' }}
+              id="avatar-file"      // This ID is referenced in triggerFileInput
+              type="file"
+              onChange={handleFileSelect}  // This calls handleFileSelect when file is chosen
+            />
+            <button
+              type="button"
+              className="change-photo-btn"
+              onClick={triggerFileInput}  // Add this onClick handler
+            >
+              Change
+            </button>
           </div>
 
           <form onSubmit={handleSubmit} className="edit-profile-form">

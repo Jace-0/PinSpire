@@ -67,8 +67,8 @@ const SignupForm = () => {
       }, 1000) // 1 second
 
     } catch (error) {
-      console.error(error.message)
-      setSnackbarMessage(error.response.data.error || 'Sign up failed')
+      console.error(error)
+      setSnackbarMessage(error.message || 'Sign up failed')
       setSnackbarSeverity('error')
       setOpenSnackbar(true)
       // setError(error.message)

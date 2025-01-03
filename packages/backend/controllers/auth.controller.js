@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const redisClient = require('../util/redis');
 const User = require('../models/user');
+const { generateInitialAvatar } = require('../util/cloudinary');
 
 
 const generateUsername = async (email) => {
@@ -105,6 +106,8 @@ const authController = {
             // Generate unique username from email
             const username = await generateUsername(email);
     
+            const avatarUrl = await generateInitialAvatar(username);
+
     
             // Hash password
             const password_hash = await bcrypt.hash(password, 10);
@@ -115,6 +118,7 @@ const authController = {
                 username,
                 password_hash,
                 dob,
+                avatar_url: avatarUrl,
                 is_active: true
             });
         

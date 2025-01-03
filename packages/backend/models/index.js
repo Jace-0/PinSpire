@@ -18,34 +18,34 @@ const models = {
     CommentReply: CommentReply.init(sequelize)
 }
 
-// Define associations
+// User and Pin associations
 models.Pin.belongsTo(models.User, {
     foreignKey: 'user_id',
     as: 'user'
   })
-  
-  models.Board.belongsTo(models.User, {
-    foreignKey: 'user_id',
-    as: 'user'
-  })
-  
-  models.Pin.belongsTo(models.Board, {
-    foreignKey: 'board_id',
-    as: 'board'
-  })
-  
-  models.User.hasMany(models.Pin, {
+
+models.User.hasMany(models.Pin, {
     foreignKey: 'user_id',
     as: 'pins'
   })
   
-  models.User.hasMany(models.Board, {
+// Board associations
+models.Board.belongsTo(models.User, {
+    foreignKey: 'user_id',
+    as: 'user'
+  })
+
+models.Pin.belongsTo(models.Board, {
+    foreignKey: 'board_id',
+    as: 'board'
+  })
+  
+models.User.hasMany(models.Board, {
     foreignKey: 'user_id',
     as: 'boards'
   })
-  
 
-// Many-to-Many relationship between Board and Pin
+// Board and Pin many-to-many relationship
 models.Board.belongsToMany(models.Pin, {
   through: 'board_pins',
   foreignKey: 'board_id',
@@ -60,8 +60,9 @@ models.Pin.belongsToMany(models.Board, {
   as: 'boards'
 });
 
-  // Add Follower associations
-  // Followers (Self-referential many-to-many for user followers)
+
+
+ // Followers/Following (Self-referential) associations
 models.User.belongsToMany(models.User, {
     through: models.Follower,
     as: 'followers',
@@ -77,7 +78,7 @@ models.User.belongsToMany(models.User, {
 });
 
 
-// Add Comment associations
+// Comment associations
 models.Comment.belongsTo(models.Pin, {
   foreignKey: 'pin_id',
   as: 'pin'
@@ -99,14 +100,28 @@ models.User.hasMany(models.Comment, {
 });
 
 
-
-
-// Add Like and comment associations 
+// Likes associations 
 models.Like.belongsTo(models.User, {
   foreignKey: 'user_id',
   as: 'user'
 });
 
+models.Like.belongsTo(models.Pin, {
+  foreignKey: 'pin_id',
+  as: 'pin',
+});
+
+models.Pin.hasMany(models.Like, {
+  foreignKey: 'pin_id',
+  as: 'likes',
+});
+
+models.User.hasMany(models.Like, {
+  foreignKey: 'user_id',
+  as: 'likes',
+})
+
+// Comment Replies
 models.CommentReply.belongsTo(models.Comment, {
   foreignKey: 'comment_id',
   as: 'comment'

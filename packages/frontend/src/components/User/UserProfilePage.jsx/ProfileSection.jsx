@@ -2,7 +2,7 @@
 
 import { useNavigate } from 'react-router-dom'
 
-const ProfileSection = ({ user , isOwnProfile, profile }) => {
+const ProfileSection = ({ isOwnProfile, profile }) => {
   const navigate = useNavigate()
 
 
@@ -14,20 +14,20 @@ const ProfileSection = ({ user , isOwnProfile, profile }) => {
       })
     }
   }
-  const userr = profile.data
+  const user = profile.data
   console.log('profile user', profile)
 
   return(
     <div className="profile-section">
       <img
-        alt={`${userr.username}'s profile`}
+        alt={`${user.username}'s profile`}
         height="100"
-        src={user.profileImage}
+        src={user.avatar_url}
         width="100"
       />
-      <h1>{userr.first_name} {userr.last_name}</h1>
-      <p>@{userr.username}</p>
-      <p>{user.followingCount} following</p>
+      <h1>{user.first_name} {user.last_name}</h1>
+      <p>@{user.username}</p>
+      <p>1B following</p>
 
 
       <div className="buttons">

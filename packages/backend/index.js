@@ -11,6 +11,7 @@ const { errorHandler } = require('./middleware/errorHandler')
 // Route imports
 const authRoutes = require('./routes/auth.router')
 const userRoutes = require('./routes/user.router')
+const pinRoutes = require('./routes/pin.router')
 
 const app = express()
 
@@ -22,6 +23,7 @@ app.use(sessionMiddleware)
 
 app.use('/api/auth', authRoutes)
 app.use('/api/user', userRoutes)
+app.use('/api/pin', pinRoutes)
 
 // Error handling
 app.use(errorHandler)

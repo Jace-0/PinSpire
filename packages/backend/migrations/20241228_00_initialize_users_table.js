@@ -29,11 +29,11 @@ module.exports = {
                 type: DataTypes.STRING(255),
                 allowNull: false
             },
-            firstName: {
+            first_name: {
                 type: DataTypes.STRING(100),
                 allowNull: true
             },
-            lastName: {
+            last_name: {
                 type: DataTypes.STRING(100),
                 allowNull: true
             },

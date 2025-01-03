@@ -2,6 +2,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const redisClient = require('../util/redis');
+const { uploadImage } = require('../util/cloudinary');
 const { User } = require('../models/index');
 
 const userController = {
@@ -93,6 +94,7 @@ const userController = {
       // Remove sensitive fields from updates
       delete updates.password;
       delete updates.email; // Prevent email changes through this endpoint
+      delete updates.avatar_url;
 
       // Perform update
       const [updated] = await User.update(updates, {
@@ -128,6 +130,61 @@ const userController = {
         success: false,
         message: 'Internal server error'
       });
+    }
+  },
+
+// Separate endpoint for avatar updates
+  updateAvatar: async (req, res) => {
+    try {
+        const userId = req.params.id;        
+        const file = req.file;
+
+        if (!file) {
+            return res.status(400).json({
+                success: false,
+                message: 'No image file provided'
+            });
+        }
+
+
+        // Upload to Cloudinary
+        const imageUrl = await uploadImage(file);
+
+        // Update user's avatar_url
+        const [updated] = await User.update({
+            avatar_url: imageUrl
+        }, {
+            where: { id: userId },
+            returning: true
+        });
+
+        if (!updated) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        // Get updated user data
+        const updatedUser = await User.findByPk(userId, {
+            attributes: { 
+                exclude: ['password_hash'] 
+            }
+        });
+
+        // Invalidate Redis cache
+        await redisClient.del(`user:${userId}`);
+
+        return res.status(200).json({
+            success: true,
+            data: updatedUser
+        });
+    } catch (error) {
+        console.error('Error updating avatar:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Error updating avatar'
+        });
     }
   }
 };

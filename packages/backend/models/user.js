@@ -1,5 +1,5 @@
 const { Model, DataTypes } = require('sequelize')
-
+const { generateInitialAvatar } = require('../util/cloudinary')
 class User extends Model {
     // Class methods
     static async findById(id) {
@@ -54,14 +54,14 @@ class User extends Model {
                     notEmpty: true
                 }
             },
-            firstName: {
+            first_name: {
                 type: DataTypes.STRING(100),
                 allowNull: true,
                 validate: {
                     len: [0, 100]
                 }
             },
-            lastName: {
+            last_name: {
                 type: DataTypes.STRING(100),
                 allowNull: true,
                 validate: {
@@ -116,7 +116,7 @@ class User extends Model {
             },
             avatar_url: {
                 type: DataTypes.STRING(255),
-                allowNull: true
+                allowNull: true,
             },
             website_url: {
                 type: DataTypes.STRING(255),
@@ -157,6 +157,11 @@ class User extends Model {
             timestamps: true,
             tableName: 'users',
             hooks: {
+                // beforeCreate: async (user) => {
+                //     if (!user.avatar_url) {
+                //         user.avatar_url = await generateInitialAvatar(user.username);
+                //     }
+                // },
                 beforeUpdate: (user) => {
                     user.updated_at = new Date();
                 }
