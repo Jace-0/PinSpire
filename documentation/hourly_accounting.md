@@ -17,4 +17,6 @@
 
 | 1.2. | 10 | Implemented notification update for the editProfile feature. Created Database models and migrations for pins, boards, followers, likes, comments, and comment replies. Additionally, restructured the models using class-based structures. |
 
-| 1.3. | 12 | Implement Profile Photo change, with cloudinary and multer |
+| 1.3. | 8 | Implemented profile photo update functionality using Cloudinary and Multer. Developed and integrated an endpoint for pin creation. |
+
+| 1.5. | 12 | Created endpoints for creating and retrieving pins, including functionality to post a pin with image uploads using multer. Implemented infinite scroll on the frontend to dynamically load pins as the user scrolls, utilizing cursor-based pagination for efficient data retrieval. Integrated Redis caching to optimize performance and reduce database load. |

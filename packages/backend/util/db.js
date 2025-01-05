@@ -1,4 +1,4 @@
-const Sequelize = require('sequelize')
+const { Sequelize , Op } = require('sequelize');
 const { DATABASE_URL } = require('./config')
 const { Umzug, SequelizeStorage } = require('umzug')
 
@@ -40,4 +40,4 @@ const sequelize = new Sequelize(DATABASE_URL, {dialectOptions: {
       return null
     }
     
-    module.exports = { connectToDatabase, sequelize }
+    module.exports = { connectToDatabase, sequelize, Op }

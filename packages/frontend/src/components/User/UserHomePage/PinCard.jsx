@@ -10,11 +10,11 @@ const PinCard = ({ image, title, user }) => {
 
       <div className="pin-footer">
         <img
-          src={user.avatar}
-          alt={user.name}
+          src={user.avatar_url}
+          alt={user.username}
           className="user-avatar"
         />
-        <span className="user-name">{user.name}</span>
+        <span className="user-name">{user.username}</span>
       </div>
     </div>
   )

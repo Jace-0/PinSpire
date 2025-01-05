@@ -1,7 +1,8 @@
 const redisClient = require('../util/redis');
-const { sequelize } = require('../util/db');  
+const { sequelize, Op } = require('../util/db');  
 const { validatePinData } = require('../validators/pin.validator');
 const { Pin, Like, Comment, CommentReply, User } = require('../models');
+const { uploadPin } = require('../util/cloudinary');
 
 
 const pinController = {
@@ -23,12 +24,15 @@ const pinController = {
             const pin = await Pin.findOne({
                 where: { id: pinId },
                 attributes: {
+                    exclude: ['created_at', 'updated_at', 'createdAt', 'updatedAt']
+                },
+                attributes: {
                     include: [
                         [
                             sequelize.literal(`(
                                 SELECT COUNT(*)
                                 FROM likes
-                                WHERE likes.pin_id = Pin.id
+                                WHERE likes.likeable_id = "Pin"."id"
                             )`),
                             'like_count'
                         ],
@@ -36,7 +40,7 @@ const pinController = {
                             sequelize.literal(`(
                                 SELECT COUNT(*)
                                 FROM comments
-                                WHERE comments.pin_id = Pin.id
+                                WHERE comments.pin_id = "Pin"."id"
                             )`),
                             'comment_count'
                         ]
@@ -51,7 +55,6 @@ const pinController = {
                     {
                         model: Like,
                         as: 'likes',
-                        separate: true,
                         attributes: ['id', 'user_id'],
                         include: [{
                             model: User,
@@ -62,7 +65,6 @@ const pinController = {
                     {
                         model: Comment,
                         as: 'comments',
-                        separate: true,
                         attributes: ['id', 'user_id', 'content', 'created_at'],
                         include: [{
                             model: User,
@@ -129,8 +131,25 @@ const pinController = {
     },
     createPin: async (req, res) => {
         try {
+            console.log('TRIGGERED')
             const userId = req.user.id;
             const pinData = req.body;
+            const pinImage = req.file;
+
+            console.log('PinData', pinData);
+            
+
+
+            if (!pinImage) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Pin image is required'
+                });
+            }
+
+            const pinUrl = await uploadPin(pinImage);
+
+            console.log('PinUrl', pinUrl);
 
              // Validate pin data
             const { error } = validatePinData(pinData);
@@ -145,6 +164,7 @@ const pinController = {
             // Create new pin
             const pin = await Pin.create({
                 ...pinData,
+                image_url: pinUrl,
                 user_id: userId
             });
 
@@ -156,6 +176,9 @@ const pinController = {
 
             // Get pin with associations
             const pinWithDetails = await Pin.findByPk(pin.id, {
+                attributes: {
+                    exclude: ['created_at', 'updated_at', 'createdAt', 'updatedAt']
+                },
                 include: [{
                     model: User,
                     as: 'user',
@@ -193,6 +216,9 @@ const pinController = {
       
           const userPins = await Pin.findAll({
             where: { user_id: userId },
+            attributes: {
+                exclude: ['created_at', 'updated_at', 'createdAt', 'updatedAt']
+            },
             include: [
               {
                 model: User,
@@ -222,7 +248,62 @@ const pinController = {
             message: `Error: ${error.message || 'Internal server error'}`
           });
         }
-      }
+      },
+
+    getAllPins : async (req, res) => {
+        try {
+            // Get cursor (last pin id from previous fetch)
+            const { cursor, limit = 20 } = req.query;
+
+            console.log('Cusor', cursor)
+
+            // Build query
+            const query = {
+                attributes: {
+                    exclude: ['created_at', 'updated_at', 'createdAt', 'updatedAt']
+                },
+                include: [{
+                    model: User,
+                    as: "user",
+                    attributes: ["id", "username", "avatar_url"],
+                }],
+                order: [["created_at", "DESC"]],
+                limit: parseInt(limit)
+            };
+
+            if (cursor && cursor !== 'null' && cursor !== 'undefined') {
+                const cursorDate = new Date(cursor);
+                if (!isNaN(cursorDate.getTime())) {
+                    query.where = {
+                        created_at: {
+                            [Op.lt]: cursorDate
+                        }
+                    };
+                }
+            }
+
+            const pins = await Pin.findAll(query);
+
+            // Get last pin's timestamp for next cursor
+            const lastPin = pins[pins.length - 1];        // Get last pin from current batch
+            const nextCursor = lastPin ? lastPin.created_at : null;  // Get its timestamp
+
+
+        return res.status(200).json({
+            success: true,
+            data: pins,
+            nextCursor,
+            hasMore: pins.length === parseInt(limit)
+        });
+    } catch (error) {
+        console.error("Error fetching user pins:", error);
+        return res.status(500).json({
+        success: false,
+        message: `Error: ${error.message || 'Internal server error'}`
+        });
+    }
+
+    }
 }
 
 module.exports = pinController;

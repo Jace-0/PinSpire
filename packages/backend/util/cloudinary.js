@@ -8,7 +8,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET 
 });
 
-const uploadImage = async (file) => {
+const uploadProfileImg = async (file) => {
   try {
 
      // Convert buffer to base64
@@ -55,9 +55,27 @@ const generateInitialAvatar = async (username) => {
     return result.secure_url;
   } catch (error) {
     console.error('Error generating initial avatar:', error);
-    // Return a fallback default avatar URL
     throw new Error('Failed to generate default avatar');
   }
 };
-module.exports = { uploadImage, generateInitialAvatar };
+
+
+const uploadPin = async (file) => {
+  try {
+
+     // Convert buffer to base64
+     const b64 = Buffer.from(file.buffer).toString('base64');
+     const dataURI = `data:${file.mimetype};base64,${b64}`;
+
+    const result = await cloudinary.uploader.upload(dataURI, {
+      folder: 'pins',
+      resource_type: 'auto'
+    });
+    return result.secure_url;
+  } catch (error) {
+    console.error('Cloudinary upload error:', error);
+    throw new Error('Image upload failed');
+  }
+};
+module.exports = { uploadProfileImg, generateInitialAvatar, uploadPin };
 

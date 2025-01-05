@@ -385,12 +385,17 @@ body.home-page {
   justify-content: center;
   align-items: center;
   padding: 20px;
+  padding-bottom: 60px;
+  padding-left: 20px;
+
 }
 
 .image-wrapper {
-  width: 100%;
-  max-width: 400px;
-  height: 600px;
+  position: relative;
+  /* width: 100%; */
+  max-width: fit-content;
+  min-height: fit-content;
+  /* height: 600px; */
   background-color: #f0f0f0;
   border-radius: 16px;
   display: flex;
@@ -460,6 +465,7 @@ body.home-page {
 .pin-image {
   width: 400px;
   height: 600px;
+  object-fit: cover;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
@@ -467,13 +473,14 @@ body.home-page {
 .edit-button {
   position: absolute;
   top: 8px;
-  right: 8px;
+  right: 8px; /* Changed from left to right */
   background-color: white;
   padding: 8px;
   border-radius: 50%;
   border: none;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   cursor: pointer;
+  z-index: 2; /* Added to ensure button stays above image */
 }
 
 
@@ -484,7 +491,9 @@ body.home-page {
 
 .form-group {
   margin-bottom: 16px;
+  margin-right: 20px;
 }
+
 
 .form-group label {
   display: block;
@@ -498,7 +507,9 @@ body.home-page {
     width: 100%;
     padding: 8px;
     border: 1px solid #d1d5db;
-    border-radius: 4px;
+    border-radius: 12px;
+    font-size: 14px;
+    transition: border-color 0.2s ease;
 }
 
 .form-group textarea {

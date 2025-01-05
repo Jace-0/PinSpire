@@ -61,7 +61,6 @@ models.Pin.belongsToMany(models.Board, {
 });
 
 
-
  // Followers/Following (Self-referential) associations
 models.User.belongsToMany(models.User, {
     through: models.Follower,
@@ -107,18 +106,38 @@ models.Like.belongsTo(models.User, {
 });
 
 models.Like.belongsTo(models.Pin, {
-  foreignKey: 'pin_id',
+  foreignKey: 'likeable_id',
   as: 'pin',
 });
 
+models.Like.belongsTo(models.Comment, {
+  foreignKey: 'likeable_id',
+  as: 'comment', // comment that was liked 
+});
+
+models.Like.belongsTo(models.CommentReply, {
+  foreignKey: 'likeable_id',
+  as: 'reply',
+});
+
 models.Pin.hasMany(models.Like, {
-  foreignKey: 'pin_id',
-  as: 'likes',
+  foreignKey: 'likeable_id',
+  as: 'likes', // all likes on this pin
 });
 
 models.User.hasMany(models.Like, {
   foreignKey: 'user_id',
-  as: 'likes',
+  as: 'likes', // all likes made by the user
+})
+
+models.Comment.hasMany(models.Like, {
+  foreignKey: "likeable_id",
+  as: 'likes' // all likes on this comment
+})
+
+models.CommentReply.hasMany(models.Like, {
+  foreignKey: "likeable_id",
+  as: 'likes' // all likes on this reply
 })
 
 // Comment Replies

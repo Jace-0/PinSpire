@@ -22,14 +22,14 @@ const pinSchema = Joi.object({
             'string.max': 'Description cannot exceed 500 characters'
         }),
 
-    image_url: Joi.string()
-        .uri()
-        .required()
-        .messages({
-            'string.empty': 'Image URL cannot be empty',
-            'string.uri': 'Invalid image URL format',
-            'any.required': 'Image URL is required'
-        }),
+    // image_url: Joi.string()
+    //     .uri()
+    //     .required()
+    //     .messages({
+    //         'string.empty': 'Image URL cannot be empty',
+    //         'string.uri': 'Invalid image URL format',
+    //         'any.required': 'Image URL is required'
+    //     }),
 
     external_url: Joi.string()
         .max(255)

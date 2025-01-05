@@ -1,9 +1,12 @@
 // Header.jsx
-const Header = () => {
+const Header = ({ onPublish }) => {
   return (
     <div className="create-pin-header">
       <h1>Create Pin</h1>
-      <button className="publish-button">Publish</button>
+      <button
+        className="publish-button"
+        onClick={onPublish}
+      >Publish</button>
     </div>
   )
 }

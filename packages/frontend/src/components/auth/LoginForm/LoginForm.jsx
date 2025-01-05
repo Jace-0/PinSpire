@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { TextField, Button, Card, CardContent, Typography, Box, Snackbar, Alert } from '@mui/material'
+import { TextField, Button, Card, CardContent, Typography, Box } from '@mui/material'
+import CustomSnackbar from '../../common/CustomSnackBar'
 import { useAuth } from '../../../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 
@@ -117,38 +118,12 @@ const LoginForm = () => {
           </form>
         </CardContent>
       </Card>
-      <Snackbar
+      <CustomSnackbar
         open={openSnackbar}
-        autoHideDuration={5000}
+        message={snackbarMessage}
+        severity={snackbarSeverity}
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={handleCloseSnackbar}
-          severity={snackbarSeverity}
-          sx={{
-            width: '100%',
-            borderRadius: '16px',
-            fontWeight: 500,
-            '&.MuiAlert-standardSuccess': {
-              backgroundColor: '#E60023',
-              color: 'white',
-              '& .MuiAlert-icon': {
-                color: 'white'
-              }
-            },
-            '&.MuiAlert-standardError': {
-              backgroundColor: '#cc0000',
-              color: 'white',
-              '& .MuiAlert-icon': {
-                color: 'white'
-              }
-            }
-          }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
+      />
     </Box>
   )
 }

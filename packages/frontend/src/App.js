@@ -5,7 +5,7 @@ import HomePage from './components/Home/HomePage'
 import CreatePin from './components/pins/CreatePin/CreatePin'
 import EditProfile from './components/User/UserProfilePage.jsx/EditProfile'
 import PinDetails from './components/pins/PinDetails/PinDetails'
-import UserHomePage from './components/User/UserHomePage/UserHomePage'
+import PinFeed from './components/User/UserHomePage/PinFeed'
 import ProfilePage from './components/User/UserProfilePage.jsx/ProfilePage'
 import { useAuth } from './context/AuthContext'
 
@@ -36,7 +36,7 @@ const AppRoutes = () => {
 
   return (
     <Routes>
-      <Route path="/" element={user ? <UserHomePage/> : <HomePage/>} />
+      <Route path="/" element={user ? <PinFeed/> : <HomePage/>} />
       <Route path="/login" element={<LoginForm/>} />
       <Route path="/signup" element={<SignupForm/>} />
       <Route
@@ -55,7 +55,7 @@ const AppRoutes = () => {
         }
       />
       <Route path="/settings/profile" element={<EditProfile/>} />
-      <Route path="/create" element={<CreatePin/>} />
+      <Route path="/pin-creation-tool" element={<CreatePin/>} />
       <Route path="/user/prof" element={<CreatePin/>} />
     </Routes>
   )
@@ -99,11 +99,11 @@ export default App
 //         {/* <CreatePin/> */}
 //         {/* <EditProfile/> */}
 //         {/* <PinDetails /> */}
-//         {/* <UserHomePage /> */}
+//         {/* <PinFeed /> */}
 
 
 //         <Routes>
-//           <Route path="/" element={user ? <UserHomePage/> :<HomePage/>} />
+//           <Route path="/" element={user ? <PinFeed/> :<HomePage/>} />
 //           <Route path="/login" element={<LoginForm/>} />
 //           <Route path="/signup" element={<SignupForm/>} />
 //           <Route path="/profile" element={user ? <ProfilePage
