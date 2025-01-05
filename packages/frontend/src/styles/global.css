@@ -922,13 +922,13 @@ body.home-page {
 /* Responsive columns */
 @media (max-width: 1600px) {
   .pins-grid {
-    columns: 4;
+    columns: 5;
   }
 }
 
 @media (max-width: 1200px) {
   .pins-grid {
-    columns: 3;
+    columns: 5;
   }
 }
 
