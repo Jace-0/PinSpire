@@ -13,6 +13,8 @@ router.get('/:id', authentication, pinController.getPinById);
 router.post('/', authentication, upload.single('image') ,pinController.createPin);
 router.get('/user/:id', authentication, pinController.getUserPins);
 router.get('/', authentication, pinController.getAllPins )
+router.post('/:id/comment', authentication, pinController.addComment )
+router.post('/:id/like', authentication, pinController.likePin )
 
 
 module.exports = router;

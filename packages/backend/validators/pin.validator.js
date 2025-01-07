@@ -15,12 +15,9 @@ const pinSchema = Joi.object({
         }),
 
     description: Joi.string()
-        .max(500)
         .allow('')
-        .trim()
-        .messages({
-            'string.max': 'Description cannot exceed 500 characters'
-        }),
+        .trim(),
+
 
     // image_url: Joi.string()
     //     .uri()

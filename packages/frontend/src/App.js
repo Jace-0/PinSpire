@@ -56,7 +56,7 @@ const AppRoutes = () => {
       />
       <Route path="/settings/profile" element={<EditProfile/>} />
       <Route path="/pin-creation-tool" element={<CreatePin/>} />
-      <Route path="/user/prof" element={<CreatePin/>} />
+      <Route path="/pin/:id" element={<PinDetails/>} />
     </Routes>
   )
 }

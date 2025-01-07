@@ -19,4 +19,13 @@
 
 | 1.3. | 8 | Implemented profile photo update functionality using Cloudinary and Multer. Developed and integrated an endpoint for pin creation. |
 
-| 1.5. | 12 | Created endpoints for creating and retrieving pins, including functionality to post a pin with image uploads using multer. Implemented infinite scroll on the frontend to dynamically load pins as the user scrolls, utilizing cursor-based pagination for efficient data retrieval. Integrated Redis caching to optimize performance and reduce database load. |
+| 1.5. | 11 | Created endpoints for creating and retrieving pins, including functionality to post a pin with image uploads using multer. Implemented infinite scroll on the frontend to dynamically load pins as the user scrolls, utilizing cursor-based pagination for efficient data retrieval. Integrated Redis caching to optimize performance and reduce database load. |
+
+| 12.6. | 13 | Enhance pin details view with like and comment functionality |
+
+            - Implemented detailed view for individual pins
+            - Added functionality to like and unlike pins
+            - Integrated comment section with add and display features
+            - Styled pin details page to match Pinterest aesthetics
+            - Improved user interaction with dynamic updates for likes and comments
+            - Ensured seamless navigation from pin feed to pin details |

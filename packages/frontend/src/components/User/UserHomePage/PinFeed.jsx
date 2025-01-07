@@ -78,8 +78,7 @@ const PinFeed = () => {
               key={pin.id}
               ref={index === pins.length - 1 ? lastPinRef : null}
             >
-              {console.log('PIN STATE',pins)}
-              <PinCard image={pin.image_url} title={pin.title} user={ pin.user } />
+              <PinCard image={pin.image_url} title={pin.title} user={ pin.user } id={pin.id}/>
 
             </div>
           ))}

@@ -7,7 +7,7 @@ const Navigation = () => {
   return (<div className="sidebar">
     {[
       { icon: 'fa-home', to: '/' },
-      { icon: 'fa-bell', to: '/notifications' },
+      { icon: 'fa-bell', to: '/pin' },
       { icon: 'fa-plus', to: '/pin-creation-tool' },
       { icon: 'fa-comment-dots', to: '/messages' },
       { icon: 'fa-user', to: `/${loggedInUser.username}` }

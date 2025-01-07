@@ -303,6 +303,131 @@ const pinController = {
         });
     }
 
+    },
+
+    addComment : async (req, res) => {
+        
+    try{
+        const userId = req.user.id
+        const pinId = req.params.id
+        const { content } = req.body
+
+         // Validate content
+         if (!content || content.trim().length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Comment content is required'
+            });
+        }
+
+        // Check if pin exists
+        const pin = await Pin.findByPk(pinId);
+        if (!pin) {
+            return res.status(404).json({
+                success: false,
+                message: 'Pin not found'
+            });
+        }
+
+        // Create comment 
+        const comment = await Comment.create({
+            pin_id: pinId,
+            user_id: userId,
+            content: content.trim()
+        });
+        
+        // Invalidate related Redis caches
+        await Promise.all([
+            redisClient.del(`pin:${pinId}`),
+            redisClient.del(`pin:${pinId}:comments`)
+        ]);
+
+        // Get comment with user details
+        const commentWithUser = await Comment.findOne({
+            where: { id: comment.id },
+            include: [{
+                model: User,
+                as: 'user',
+                attributes: ['id', 'username', 'avatar_url']
+            }]
+        });
+
+
+        return res.status(201).json({
+            success: true,
+            data: commentWithUser,
+            message: 'Comment added '
+        })
+
+
+        } catch (error) {
+            console.error('Error adding comment:', error);
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to add comment'
+            })
+        }
+    },
+
+    likePin: async (req, res) => {
+        try {
+            const userId = req.user.id;
+            const pinId = req.params.id;
+    
+            // Check if pin exists
+            const pin = await Pin.findByPk(pinId);
+            if (!pin) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Pin not found'
+                });
+            }
+    
+            // Check if user already liked the pin
+            const existingLike = await Like.findOne({
+                where: {
+                    user_id: userId,
+                    likeable_id: pinId
+                }
+            });
+    
+            if (existingLike) {
+                // Unlike if already liked
+                await existingLike.destroy();
+                
+                // Invalidate cache
+                await redisClient.del(`pin:${pinId}`);
+    
+                return res.status(200).json({
+                    success: true,
+                    liked: false,
+                    message: 'Pin unliked successfully'
+                });
+            }
+    
+            // Create new like
+            await Like.create({
+                user_id: userId,
+                likeable_id: pinId,
+                likeable_type: 'pin'
+            });
+    
+            // Invalidate cache
+            await redisClient.del(`pin:${pinId}`);
+    
+            return res.status(200).json({
+                success: true,
+                liked: true,
+                message: 'Pin liked successfully'
+            });
+    
+        } catch (error) {
+            console.error('Error liking pin:', error);
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to like pin'
+            });
+        }
     }
 }
 

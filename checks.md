@@ -10,3 +10,9 @@ add country to Edit profile, country , Language
 deactivate account, delete acount
 
 Consider caching generated avatars to improve performance
+
+fix error handling for pin creation,
+
+understand this
+
+fas fa-chevron

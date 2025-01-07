@@ -1,6 +1,17 @@
-const PinCard = ({ image, title, user }) => {
+import { useNavigate } from 'react-router-dom'
+const PinCard = ({ image, title, user, id }) => {
+  const navigate = useNavigate()
+
+  const handleClick = () => {
+    navigate(`/pin/${id}`)
+  }
+
   return (
-    <div className="pin-card">
+    <div
+      className="pin-card"
+      onClick={handleClick}
+      style={{ cursor: 'pointer' }}
+    >
       <div className="pin-image-container">
         <img src={image} alt={title} className="pin-image" />
         <div className="pin-overlay">
