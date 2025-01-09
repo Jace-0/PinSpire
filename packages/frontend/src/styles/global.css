@@ -795,7 +795,7 @@ body.home-page {
 
 
 .pin-info {
-  margin-top: 24px;
+  margin-top: 2px;
 
 }
 
@@ -876,10 +876,16 @@ body.home-page {
   margin-bottom: 16px;
 }
 
+.comment-main {
+  display: flex;
+  gap: 12px;
+}
+
 .comment-user-avatar {
   width: 32px;
   height: 32px;
   border-radius: 50%;
+  object-fit: cover;
 }
 
 .comment-content {
@@ -893,6 +899,68 @@ body.home-page {
 
 .comment-text {
   color: #333;
+  line-height: 1.4;
+}
+
+.comment-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 4px;
+}
+
+.comment-time {
+  font-size: 17px;
+  color: #767676;
+}
+
+
+.reply-button, .like-button {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  color: #767676;
+  cursor: pointer;
+}
+
+
+.reply-button:hover, .like-button:hover {
+  color: #e60023;
+}
+
+
+.reply-input-container {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  align-items: center;
+}
+.reply-input {
+  flex: 1;
+  padding: 8px 16px;
+  border: 2px solid #efefef;
+  border-radius: 24px;
+  font-size: 14px;
+}
+
+.reply-submit {
+  background: #e60023;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+
+.reply-submit:disabled {
+  background: #efefef;
+  cursor: not-allowed;
 }
 
 .pin-comment-input-wrapper {
@@ -924,6 +992,53 @@ body.home-page {
   color: #0074e8;
   cursor: pointer;
   padding: 8px;
+}
+
+.replies-section {
+  margin-left: 40px;
+  margin-top: 8px;
+}
+
+.show-replies-btn {
+  background: none;
+  border: none;
+  color: #767676;
+  font-size: 14px;
+  padding: 4px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s ease;
+}
+
+.show-replies-btn:hover {
+  color: #111;
+}
+
+.show-replies-btn.active {
+  color: #e60023;
+}
+
+.replies-container {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+}
+
+.replies-container.show {
+  max-height: 1000px;
+  transition: max-height 0.3s ease-in;
+}
+
+.fa-chevron-down,
+.fa-chevron-up {
+  font-size: 12px;
+  transition: transform 0.3s ease;
+}
+
+.show-replies-btn.active .fa-chevron-up {
+  transform: rotate(180deg);
 }
 
 @media (max-width: 768px) {

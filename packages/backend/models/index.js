@@ -131,16 +131,20 @@ models.User.hasMany(models.Like, {
 })
 
 models.Comment.hasMany(models.Like, {
-  foreignKey: "likeable_id",
-  as: 'likes' // all likes on this comment
+  foreignKey: 'likeable_id',
+  constraints: false,
+  scope: {
+    likeable_type: 'comment'
+  },
+  as: 'likes'
 })
 
+// Comment Replies
 models.CommentReply.hasMany(models.Like, {
   foreignKey: "likeable_id",
   as: 'likes' // all likes on this reply
 })
 
-// Comment Replies
 models.CommentReply.belongsTo(models.Comment, {
   foreignKey: 'comment_id',
   as: 'comment'

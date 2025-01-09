@@ -4,19 +4,33 @@ const { validatePinData } = require('../validators/pin.validator');
 const { Pin, Like, Comment, CommentReply, User } = require('../models');
 const { uploadPin } = require('../util/cloudinary');
 
+const CACHE_KEYS = {
+    pin: (id) => `pin:${id}`,
+    userPins: (userId) => `user:${userId}:pins`,
+    allPins : (cursor, limit) =>  `pins:${cursor || 'latest'}:${limit}`,
+    recentPins: 'pins:recent'
+  }
+
+const CACHE_TTL = {
+    PIN: 3600,          // 1 hour
+    USER_PINS: 3600,    // 1 hour
+    RECENT_PINS: 1800   // 30 minutes
+}
 
 const pinController = {
     // pin controller
     getPinById: async (req, res) => {
         try {
             const pinId = req.params.id;
+            const cacheKey = CACHE_KEYS.pin(pinId)
 
             // Check Redis cache
-            const cachedPin = await redisClient.get(`pin:${pinId}`);
-            if (cachedPin) {
+            const cachedData = await redisClient.get(`pin:${cacheKey}`);
+            if (cachedData) {
                 return res.status(200).json({
                     success: true,
-                    data: JSON.parse(cachedPin)
+                    data: JSON.parse(cachedData),
+                    source: 'cache'
                 });
             }
 
@@ -24,23 +38,20 @@ const pinController = {
             const pin = await Pin.findOne({
                 where: { id: pinId },
                 attributes: {
-                    exclude: ['created_at', 'updated_at', 'createdAt', 'updatedAt']
-                },
-                attributes: {
                     include: [
                         [
                             sequelize.literal(`(
                                 SELECT COUNT(*)
-                                FROM likes
-                                WHERE likes.likeable_id = "Pin"."id"
+                                FROM "likes"
+                                WHERE "likeable_id" = "Pin"."id"
                             )`),
                             'like_count'
                         ],
                         [
                             sequelize.literal(`(
                                 SELECT COUNT(*)
-                                FROM comments
-                                WHERE comments.pin_id = "Pin"."id"
+                                FROM "comments"
+                                WHERE "pin_id" = "Pin"."id"
                             )`),
                             'comment_count'
                         ]
@@ -65,7 +76,19 @@ const pinController = {
                     {
                         model: Comment,
                         as: 'comments',
-                        attributes: ['id', 'user_id', 'content', 'created_at'],
+                        attributes: {
+                            include: [
+                                [
+                                    sequelize.literal(`(
+                                        SELECT COUNT(*)
+                                        FROM "likes"
+                                        WHERE "likeable_id" = "comments"."id" 
+                                        AND "likeable_type" = 'comment'
+                                    )`),
+                                    'likes_count'
+                                ]
+                            ]
+                        },
                         include: [{
                             model: User,
                             as: 'user',
@@ -92,6 +115,8 @@ const pinController = {
             });
 
             if (!pin) {
+                // Cache negative result with shorter TTL
+                await redisClient.setEx(cacheKey, 300, JSON.stringify(null))
                 return res.status(404).json({
                     success: false,
                     message: 'No Pin found'
@@ -101,20 +126,21 @@ const pinController = {
             // Transform data before caching
             const pinData = pin.toJSON();
 
-            // Not Needed for now
 
-            // // Add additional metadata
-            // pinData.metadata = {
-            //     cached_at: new Date().toISOString(),
-            //     last_updated: pin.updated_at
-            // };
+            // Cache with metadata, NOT USED NOW 
+            const cacheData = {
+                data: pinData,
+                metadata: {
+                    cached_at: new Date().toISOString(),
+                    expires_at: new Date(Date.now() + CACHE_TTL.PIN * 1000).toISOString()
+                }
+            }
 
-            // Cache the transformed data
             await redisClient.setEx(
-                `pin:${pinId}`, 
-                3600, // 1 hour cache
-                JSON.stringify(pinData)
-            );
+                cacheKey,
+                CACHE_TTL.PIN,
+                JSON.stringify(cacheData)
+            )
 
             return res.status(200).json({
                 success: true,
@@ -131,13 +157,9 @@ const pinController = {
     },
     createPin: async (req, res) => {
         try {
-            console.log('TRIGGERED')
             const userId = req.user.id;
             const pinData = req.body;
             const pinImage = req.file;
-
-            console.log('PinData', pinData);
-            
 
 
             if (!pinImage) {
@@ -148,8 +170,6 @@ const pinController = {
             }
 
             const pinUrl = await uploadPin(pinImage);
-
-            console.log('PinUrl', pinUrl);
 
              // Validate pin data
             const { error } = validatePinData(pinData);
@@ -204,13 +224,15 @@ const pinController = {
     getUserPins : async (req, res) => {
         try {
             const userId = req.user.id;
+            const cacheKey = CACHE_KEYS.userPins(userId)
 
             // Check cache
-            const cachedPins = await redisClient.get(`user:${userId}:pins`);
-            if (cachedPins) {
+            const cachedData = await redisClient.get(cacheKey);
+            if (cachedData) {
                 return res.status(200).json({
                     success: true,
-                    data: JSON.parse(cachedPins)
+                    data: JSON.parse(cachedData),
+                    source: 'cache'
                 });
             }
       
@@ -231,8 +253,8 @@ const pinController = {
 
           // Cache the results
             await redisClient.setEx(
-                `user:${userId}:pins`,
-                3600,
+                cacheKey,
+                CACHE_TTL.USER_PINS,
                 JSON.stringify(userPins)
             );
       
@@ -254,8 +276,19 @@ const pinController = {
         try {
             // Get cursor (last pin id from previous fetch)
             const { cursor, limit = 20 } = req.query;
+            const cacheKey = CACHE_KEYS.allPins(cursor, limit)
 
-            console.log('Cusor', cursor)
+            //Check catch 
+            const cachedData = await redisClient.get(cacheKey)
+            if (cachedData) {
+                const parsed = JSON.parse(cachedData)
+                return res.status(200).json({
+                    success: true,
+                    ...parsed.data,
+                    metadata: parsed.metadata,
+                    source: 'cache'
+                })
+            }
 
             // Build query
             const query = {
@@ -288,20 +321,38 @@ const pinController = {
             const lastPin = pins[pins.length - 1];        // Get last pin from current batch
             const nextCursor = lastPin ? lastPin.created_at : null;  // Get its timestamp
 
+            const responseData = {
+                pins,
+                nextCursor,
+                hasMore: pins.length === parseInt(limit)
+            }
 
-        return res.status(200).json({
-            success: true,
-            data: pins,
-            nextCursor,
-            hasMore: pins.length === parseInt(limit)
-        });
-    } catch (error) {
-        console.error("Error fetching user pins:", error);
-        return res.status(500).json({
-        success: false,
-        message: `Error: ${error.message || 'Internal server error'}`
-        });
-    }
+
+            // Cache with metadata
+            const cacheData = {
+                data: responseData,
+                metadata: {
+                    cached_at: new Date().toISOString(),
+                    expires_at: new Date(Date.now() + 900 * 1000).toISOString() // 15 minutes
+                }
+            }
+
+             // Shorter TTL for paginated data
+            await redisClient.setEx(cacheKey, 900, JSON.stringify(cacheData))
+
+            return res.status(200).json({
+                success: true,
+                ...responseData,
+                source: 'database'
+            });
+
+        } catch (error) {
+            console.error("Error fetching user pins:", error);
+            return res.status(500).json({
+            success: false,
+            message: `Error: ${error.message || 'Internal server error'}`
+            });
+        }
 
     },
 
@@ -338,8 +389,8 @@ const pinController = {
         
         // Invalidate related Redis caches
         await Promise.all([
-            redisClient.del(`pin:${pinId}`),
-            redisClient.del(`pin:${pinId}:comments`)
+            redisClient.del(`pin:${pinId}`)
+            // redisClient.del(`pin:${pinId}:comments`)
         ]);
 
         // Get comment with user details
@@ -426,6 +477,127 @@ const pinController = {
             return res.status(500).json({
                 success: false,
                 message: 'Failed to like pin'
+            });
+        }
+    },
+
+    replyComment: async (req, res) => {
+        try {
+            const userId = req.user.id;
+            const commentId = req.params.commentId; // From URL params
+            const { content } = req.body;
+    
+            // Validate content
+            if (!content?.trim()) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Reply content is required'
+                });
+            }
+    
+            // Check if comment exists
+            const comment = await Comment.findByPk(commentId);
+            if (!comment) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Comment not found'
+                });
+            }
+    
+            // Create reply
+            const reply = await CommentReply.create({
+                comment_id: commentId,
+                user_id: userId,
+                content: content.trim()
+            });
+    
+            // Invalidate cache
+            await redisClient.del(`pin:${comment.pin_id}`);
+    
+            // Get reply with user details
+            const replyWithUser = await CommentReply.findOne({
+                where: { id: reply.id },
+                include: [{
+                    model: User,
+                    as: 'user',
+                    attributes: ['id', 'username', 'avatar_url']
+                }]
+            });
+    
+            return res.status(201).json({
+                success: true,
+                data: replyWithUser,
+                message: 'Reply added successfully'
+            });
+    
+        } catch (error) {
+            console.error('Error adding reply:', error);
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to add reply'
+            });
+        }
+    },
+
+    likeComment: async (req, res) => {
+        try {
+            const userId = req.user.id
+            const commentId = req.params.commentId;
+    
+            // Check if comment exists
+            const comment = await Comment.findByPk(commentId);
+            if (!comment) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Comment not found'
+                });
+            }
+    
+            // Check if user already liked the comment
+            const existingLike = await Like.findOne({
+                where: {
+                    user_id: userId,
+                    likeable_id: commentId,
+                    likeable_type: 'comment'
+                }
+            });
+    
+            if (existingLike) {
+                // Unlike if already liked
+                await existingLike.destroy();
+                
+                // Invalidate cache
+                await redisClient.del(`pin:${comment.pin_id}`)
+    
+                return res.status(200).json({
+                    success: true,
+                    liked: false,
+                    message: 'Pin unliked successfully'
+                });
+            }
+    
+            // Create new like
+            await Like.create({
+                user_id: userId,
+                likeable_id: commentId,
+                likeable_type: 'comment'
+            });
+    
+            // Invalidate cache
+            await redisClient.del(`pin:${comment.pin_id}`)
+;
+    
+            return res.status(200).json({
+                success: true,
+                liked: true,
+                message: 'Comment liked successfully'
+            });
+    
+        } catch (error) {
+            console.error('Error liking Comment:', error);
+            return res.status(500).json({
+                success: false,
+                message: `Error: ${error.message || 'Internal server error'}`
             });
         }
     }

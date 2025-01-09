@@ -7,6 +7,8 @@ export const PinProvider = ({ children }) => {
   const [pin, setPin] = useState(null)
   const [loading, setLoading] = useState(true)
   const [comment, setComment] = useState('')
+  const [replyComment, setReplyComment] = useState('')
+  const [commentId, setCommentId] = useState('')
 
   const getPin = async (pinId) => {
     try {
@@ -35,10 +37,37 @@ export const PinProvider = ({ children }) => {
 
   const handleLike = async () => {
     try {
-      const response = await pinService.likePin(pin.id)
+      await pinService.likePin(pin.id)
       // Refresh pin data to get updated like count
       const updatedPin = await pinService.getPinById(pin.id)
       setPin(updatedPin.data)
+    } catch (error) {
+      console.error('Error liking pin:', error)
+    }
+  }
+
+  const handleCommentReply = async () => {
+    console.log('commentId', commentId)
+    console.log('Content', replyComment)
+    try {
+      if (!commentId || !replyComment.trim()) return
+
+      await pinService.replyComment(commentId, { content: replyComment })
+      setReplyComment('')
+      // Refresh pin data
+      await getPin(pin.id)
+    } catch (error) {
+      console.error('Error adding comment:', error)
+    }
+  }
+
+
+  const handleCommentLike = async (commentId) => {
+    try {
+      console.log('CommentId =>', commentId)
+      await pinService.likeComment(commentId)
+      // Refresh pin data to get updated like count
+      await getPin(pin.id)
     } catch (error) {
       console.error('Error liking pin:', error)
     }
@@ -51,7 +80,12 @@ export const PinProvider = ({ children }) => {
     setComment,
     getPin,
     handleComment,
-    handleLike
+    handleLike,
+    replyComment,
+    setReplyComment,
+    handleCommentReply,
+    setCommentId,
+    handleCommentLike
   }
 
   return <PinContext.Provider value={value}>{children}</PinContext.Provider>

@@ -15,6 +15,8 @@ router.get('/user/:id', authentication, pinController.getUserPins);
 router.get('/', authentication, pinController.getAllPins )
 router.post('/:id/comment', authentication, pinController.addComment )
 router.post('/:id/like', authentication, pinController.likePin )
+router.post('/comments/:commentId/replies', authentication, pinController.replyComment);
+router.post('/comments/:commentId/like', authentication, pinController.likeComment);
 
 
 module.exports = router;

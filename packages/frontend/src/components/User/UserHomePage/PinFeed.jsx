@@ -27,7 +27,7 @@ const PinFeed = () => {
       const response = await pinService.getAllPins(cursor)
 
       if (!cursor) {
-        setPins(response.data)
+        setPins(response.pins)
       } else {
         setPins(prevPins => [...prevPins, ...response.data])
       }

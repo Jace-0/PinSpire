@@ -13,6 +13,7 @@ export const pinService = {
 
   getAllPins : async (cursor) => {
     const response = await api.get(`/pin?cursor=${cursor}&limit=20`)
+    console.log('RESPONSE', response.data)
     return response.data
   },
 
@@ -30,6 +31,18 @@ export const pinService = {
   likePin : async (pinId) => {
     const response = await api.post(`/pin/${pinId}/like`)
     console.log(response.data)
+    return response.data
+  },
+
+  replyComment : async (commentId, content) => {
+    const response = await api.post(`/pin/comments/${commentId}/replies`, content )
+    console.log('Comment Data', response.data)
+    return response.data
+  },
+
+  likeComment : async (commentId) => {
+    const response = await api.post(`/pin/comments/${commentId}/like`)
+    console.log('Like Data', response.data)
     return response.data
   }
 

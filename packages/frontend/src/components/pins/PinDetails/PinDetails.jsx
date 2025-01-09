@@ -1,9 +1,10 @@
 import Header from '../../common/Header'
 import Navigation from '../../common/Navigation'
 import { pinService } from '../../../services/pinService'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { usePin } from '../../../context/PinContext'
 import { useParams } from 'react-router-dom'
+
 const PinDetails = () => {
   const { id } = useParams()
   const { pin, loading, getPin } = usePin()
@@ -150,34 +151,174 @@ const PinCommentsSection = () => {
 
 const PinCommentsList = () => {
   const { pin } = usePin()
+  console.log('PIN COMMENT', pin.comments)
   return (
     <div className="pin-comments-list">
       {pin.comments && pin.comments.map((comment) => (
-        <PinComment
+        <CommentSection
           key={comment.id}
-          avatarUrl={comment.user.avatar_url}
-          username={comment.user.username}
-          text={comment.content}
+          comment={comment}
         />
       ))}
     </div>)
 }
 
-const PinComment = ({ avatarUrl, username, text }) => (
-  <div className="pin-comment">
-    <img
-      src={avatarUrl}
-      alt="User profile"
-      className="comment-user-avatar"
-    />
-    <div className="comment-content">
-      <span className="comment-username">{username}</span>
-      <span className="comment-text">{text}</span>
+const CommentSection = ({ comment }) => {
+
+  const [showReplyInput, setShowReplyInput] = useState(false)
+  const { replyComment, setReplyComment , handleCommentReply, setCommentId, handleCommentLike } = usePin()
+  const inputRef = useRef(null)
+  const [showReplies, setShowReplies] = useState(false)
+  const hasReplies = comment.replies && comment.replies.length > 0
+
+  console.log('COMMENT Details', comment)
+
+  const handleSubmitReply = async () => {
+    if (!replyComment.trim()) return
+
+    try {
+      setCommentId(comment.id)
+      await handleCommentReply()
+      setShowReplyInput(false)
+    } catch (error) {
+      console.error('Error submitting reply:', error)
+    }
+  }
+
+  const formatTimeAgo = (date) => {
+    const seconds = Math.floor((new Date() - new Date(date)) / 1000)
+    const days = Math.floor(seconds / 86400)
+
+    if (days === 0) return 'today'
+    if (days === 1) return 'yesterday'
+    if (days < 7) return `${days} days ago`
+    if (days < 30) return `${Math.floor(days / 7)} weeks ago`
+    if (days < 365) return `${Math.floor(days / 30)} months ago`
+    return `${Math.floor(days / 365)} years ago`
+  }
+
+
+  // comment Replies
+  const CommentReplies = ({ replies }) => {
+    return (
+      <div className="pin-comment">
+        <div className="comment-main">
+          <img
+            src={replies.user.avatar_url}
+            alt="User profile"
+            className="comment-user-avatar"
+          />
+          <div className="comment-content">
+            <span className="comment-username">{replies.user.username}</span>
+            <span className="comment-text">{replies.content}</span>
+
+            <div className="comment-actions">
+              <span className="comment-time">
+                {formatTimeAgo(replies.created_at)}
+              </span>
+
+              <button className="reply-button" > reply</button>
+              <button className="like-button">
+                <i className="fas fa-heart"></i>
+              </button>
+            </div>
+            {/* {showReplyInput && <InputCommentReply />} */}
+
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+
+  // Reply to comments
+  const InputCommentReply = () => {
+
+    return (
+      <div className="reply-input-container">
+        <input
+          ref={inputRef}
+          type="text"
+          value={replyComment}
+          onChange={(e) => setReplyComment(e.target.value)}
+          placeholder="Reply"
+          className="reply-input"
+          autoFocus
+        />
+        <button
+          className="reply-submit"
+          onClick={handleSubmitReply}
+          disabled={!replyComment.trim()}
+        >
+          <i className="fas fa-paper-plane"></i>
+        </button>
+      </div>)
+  }
+
+  const handleLikeComment = async (e) => {
+    e.preventDefault()
+    await handleCommentLike(comment.id)
+  }
+
+
+
+
+
+  return(
+    <div className="pin-comment">
+      <div className="comment-main">
+        <img
+          src={comment.user.avatar_url}
+          alt="User profile"
+          className="comment-user-avatar"
+        />
+        <div className="comment-content">
+          <span className="comment-username">{comment.user.username}</span>
+          <span className="comment-text">{comment.content}</span>
+
+          <div className="comment-actions">
+            <span className="comment-time">
+              {formatTimeAgo(comment.created_at)}
+            </span>
+
+            <button className="reply-button" onClick={() => setShowReplyInput(!showReplyInput)}> reply</button>
+            <button className="like-button" onClick={handleLikeComment}>
+              <i className="fas fa-heart"></i>
+            </button>
+            {comment.likes_count > 0 && <h2 className="like-count">{comment.likes_count}</h2>}
+
+          </div>
+
+          {hasReplies && (
+            <div className="replies-section">
+              <button
+                className={`show-replies-btn ${showReplies ? 'active' : ''}`}
+                onClick={() => setShowReplies(!showReplies)}
+              >
+                <i className={`fas fa-chevron-${showReplies ? 'up' : 'down'}`}></i>
+                {`${comment.replies.length} ${comment.replies.length === 1 ? 'reply' : 'replies'}`}
+              </button>
+
+              <div className={`replies-container ${showReplies ? 'show' : ''}`}>
+                {comment.replies.map((replies) => (
+                  <CommentReplies
+                    key={replies.id}
+                    replies={replies}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {showReplyInput && <InputCommentReply />}
+
+        </div>
+      </div>
     </div>
-  </div>
-)
+  )
+}
 
-
+// Comment on a pin
 const PinCommentInput = () => {
 
   const { comment, setComment, handleComment } = usePin()
