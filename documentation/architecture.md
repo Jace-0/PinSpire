@@ -2,6 +2,61 @@
 
 ## App Structure
 
+The structure of the program follows a three-level layer architecture:
+
+1. Frontend
+2. Backend (Business Logic)
+3. Data Layer (Database)
+
+````mermaid
+    graph TD
+    subgraph "Frontend"
+        UI[UI Components] --> CTX[Context API]
+        CTX --> SERV[Services]
+        SERV --> AX[Axios Interceptors]
+    end
+
+    subgraph "Backend"
+        RT[Routes] --> CTRL[Controllers]
+        CTRL --> BL[Business Logic]
+        BL --> CACHE[Redis Cache]
+    end
+
+    subgraph "Data Layer"
+        MOD[Models] --> DB[(Database)]
+        DB --> CACHE
+    end
+
+    AX -->|API Requests| RT
+    BL -->|Query| MOD
+
+### Frontend
+
+- **Purpose**: Responsible for interacting with the user, handling inputs, and displaying outputs.
+
+- **Components**: Contains all UI components and services.
+- **Technologies**: Utilizes the ReactJS framework for building the user interface and Nginx for serving the application.
+
+- **Key Features**:
+  - **Responsive Design**: Responsive design for optimal use on various devices.
+  - **State Management** : React Context API for efficient state management, allowing for a centralized and consistent state across the application.
+  - **API Communication**: Uses Axios to manage API requests and responses through well-defined services and interceptors, ensuring secure and efficient data exchange with the backend.
+
+### Backend
+
+- **Purpose**: Manages the server-side logic, including database interactions, authentication, and API definitions.
+- **Components**:
+  - **Database Models and Migrations**: Defines the structure of the database and handles schema changes using Sequelize.
+  - **Controllers**: Contains the business logic for handling requests and responses, ensuring separation of concerns.
+  - **Authentication**: Manages user authentication and authorization using JWT for secure access control.
+  - **Routes**: Defines the API endpoints and their corresponding handlers.
+- **Technologies**: Node.js with Express for server-side logic, Redis for caching, and PostgreSQL for relational data storage.
+- **Key Features**:
+  - **RESTful API Design** : RESTful API design for clear and consistent endpoints for client-server communication, adhering to REST principles..
+  - **Secure Authentication**: Utilizes JWT for secure user authentication and authorization, ensuring data protection
+  - **Data Validation and Error Handling** : Implements comprehensive validation and error management to ensure robust API interactions.
+  - **Efficient Data Caching**: Uses Redis for caching frequently accessed data, improving response times and reducing database load.
+
 ## Database Model Design
 
 ## Core Models
@@ -32,7 +87,7 @@
     is_verified: BOOLEAN,
     is_active: BOOLEAN
 }
-```
+````
 
 ### Pin
 

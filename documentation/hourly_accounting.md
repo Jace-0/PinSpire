@@ -21,7 +21,7 @@
 
 | 1.5. | 11 | Created endpoints for creating and retrieving pins, including functionality to post a pin with image uploads using multer. Implemented infinite scroll on the frontend to dynamically load pins as the user scrolls, utilizing cursor-based pagination for efficient data retrieval. Integrated Redis caching to optimize performance and reduce database load. |
 
-| 12.6. | 13 | Enhance pin details view with like and comment functionality |
+| 1.6. | 13 | Enhance pin details view with like and comment functionality |
 
             - Implemented detailed view for individual pins
             - Added functionality to like and unlike pins
@@ -29,3 +29,13 @@
             - Styled pin details page to match Pinterest aesthetics
             - Improved user interaction with dynamic updates for likes and comments
             - Ensured seamless navigation from pin feed to pin details |
+
+
+| 1.8 - 9 | 16 | Enhance comment interaction and optimize Redis caching |
+
+            - Implement functionality to like and reply to comments
+            - Improve state management for comment interactions
+            - Optimize Redis caching with metadata for efficient data retrieval
+            - Simplify response structure for consistent API responses
+            |
+
