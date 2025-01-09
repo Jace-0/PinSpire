@@ -2,6 +2,10 @@
 
 ## App Structure
 
+# Architecture Description
+
+## App Structure
+
 The structure of the program follows a three-level layer architecture:
 
 1. Frontend
@@ -9,7 +13,7 @@ The structure of the program follows a three-level layer architecture:
 3. Data Layer (Database)
 
 ````mermaid
-    graph TD
+graph TD
     subgraph "Frontend"
         UI[UI Components] --> CTX[Context API]
         CTX --> SERV[Services]
@@ -29,6 +33,8 @@ The structure of the program follows a three-level layer architecture:
 
     AX -->|API Requests| RT
     BL -->|Query| MOD
+
+
 
 ### Frontend
 
