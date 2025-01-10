@@ -2,43 +2,20 @@
 
 ## App Structure
 
-# Architecture Description
+The structure of the program follows a multiple-level layer architecture, and the code compression structure is as follows:
 
-## App Structure
+1. Frontend Layer
+2. API Gateway Layer
+3. Service Layer
+4. Background Processing
+5. Data Layer
+6. Infrastructure
 
-The structure of the program follows a three-level layer architecture:
+![System Architecture](./pictures/PinSpire-2025-01-10-064324.png)
 
-1. Frontend
-2. Backend (Business Logic)
-3. Data Layer (Database)
+---
 
-````mermaid
-graph TD
-    subgraph "Frontend"
-        UI[UI Components] --> CTX[Context API]
-        CTX --> SERV[Services]
-        SERV --> AX[Axios Interceptors]
-    end
-
-    subgraph "Backend"
-        RT[Routes] --> CTRL[Controllers]
-        CTRL --> BL[Business Logic]
-        BL --> CACHE[Redis Cache]
-    end
-
-    subgraph "Data Layer"
-        MOD[Models] --> DB[(Database)]
-        DB --> CACHE
-    end
-
-    AX -->|API Requests| RT
-    BL -->|Query| MOD
-
-
-
-### Frontend
-
-- **Purpose**: Responsible for interacting with the user, handling inputs, and displaying outputs.
+**Frontend Layer** is responsible for interacting with the user, handling inputs, and displaying outputs.
 
 - **Components**: Contains all UI components and services.
 - **Technologies**: Utilizes the ReactJS framework for building the user interface and Nginx for serving the application.
@@ -46,22 +23,55 @@ graph TD
 - **Key Features**:
   - **Responsive Design**: Responsive design for optimal use on various devices.
   - **State Management** : React Context API for efficient state management, allowing for a centralized and consistent state across the application.
-  - **API Communication**: Uses Axios to manage API requests and responses through well-defined services and interceptors, ensuring secure and efficient data exchange with the backend.
 
-### Backend
+---
+
+**API Gateway Layer** Uses Axios to manage API requests and responses through well-defined services, ensuring secure and efficient data exchange with the server
+
+- **Request Validator**:
+
+  - Validates JWT Authorization tokens in request headers
+  - Ensures request payload matches required schema
+  - Sanitizes input data to prevent injection attacks
+  - Manages CORS (Cross-Origin Resource Sharing) policies
+  - Logs incoming requests for monitoring and debugging
+
+- **Authentication**:
+  - Manages user authentication and authorization using JWT
+  - Handles token refresh mechanism
+  <!-- - Implements role-based access control -->
+  - Provides secure session management
+  - Tracks authentication attempts and implements security measures
+
+---
+
+**Service Layer** : reponsible for handling request , Business logic and job queues.
+
+- **Routes**: Defines the API endpoints and their corresponding handlers.
+- **Controllers**: Contains the business logic for handling requests and responses, ensuring separation of concerns.
 
 - **Purpose**: Manages the server-side logic, including database interactions, authentication, and API definitions.
 - **Components**:
+
   - **Database Models and Migrations**: Defines the structure of the database and handles schema changes using Sequelize.
-  - **Controllers**: Contains the business logic for handling requests and responses, ensuring separation of concerns.
-  - **Authentication**: Manages user authentication and authorization using JWT for secure access control.
-  - **Routes**: Defines the API endpoints and their corresponding handlers.
-- **Technologies**: Node.js with Express for server-side logic, Redis for caching, and PostgreSQL for relational data storage.
+
 - **Key Features**:
   - **RESTful API Design** : RESTful API design for clear and consistent endpoints for client-server communication, adhering to REST principles..
   - **Secure Authentication**: Utilizes JWT for secure user authentication and authorization, ensuring data protection
   - **Data Validation and Error Handling** : Implements comprehensive validation and error management to ensure robust API interactions.
   - **Efficient Data Caching**: Uses Redis for caching frequently accessed data, improving response times and reducing database load.
+
+---
+
+**Data Layer** : Multiple specialized storage systems:
+
+- PostgreSQL for relational data
+- Redis for caching and real-time features
+- Cloudinary for media storage
+
+---
+
+- **Technologies**: Node.js with Express for server-side logic, Redis for caching, and PostgreSQL for relational data storage.
 
 ## Database Model Design
 
@@ -93,7 +103,7 @@ graph TD
     is_verified: BOOLEAN,
     is_active: BOOLEAN
 }
-````
+```
 
 ### Pin
 
