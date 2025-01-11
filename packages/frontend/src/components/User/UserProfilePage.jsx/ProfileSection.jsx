@@ -32,7 +32,7 @@ const ProfileSection = ({ isOwnProfile, profile, updateProfile }) => {
     if (!isOwnProfile && user.id) {
       followStatus()
     }
-  }, [user.id, isOwnProfile])
+  }, [user.id, isOwnProfile, checkFollowStatus])
 
 
 
@@ -87,7 +87,9 @@ const ProfileSection = ({ isOwnProfile, profile, updateProfile }) => {
       <div className="buttons">
         {isOwnProfile ? (
           // Show edit button for own profile
-          <button onClick={handleEditProfile}>
+          <button
+            className="edit-btn"
+            onClick={handleEditProfile}>
             Edit profile
           </button>
         ) : (
@@ -100,27 +102,14 @@ const ProfileSection = ({ isOwnProfile, profile, updateProfile }) => {
               {isFollowed ? 'Following' : 'Follow'}
             </button>
             <button
-              className="share-btn"
+              className="msg-btn"
               onClick={() => handleShare(profile.data.username)}
             >
-              Share
+              Message
             </button>
           </>
         )}
       </div>
-
-      {/* Different views based on ownership */}
-      {/* {isOwnProfile ? (
-    <UserPins pins={profile.pins} editable={true} />
-  ) : (
-    <UserPins pins={profile.pins} editable={false} />
-  )} */}
-
-
-      {/* <div className="buttons">
-    <button onClick={user.onShare}>Share</button>
-    <button onClick={user.onEditProfile}>Edit profile</button>
-  </div> */}
     </div><CustomSnackbar
       open={openSnackbar}
       message={snackbarMessage}

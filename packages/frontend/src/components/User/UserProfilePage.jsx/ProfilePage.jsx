@@ -6,43 +6,43 @@ import Navigation from '../../common/Navigation'
 import ProfileSection from './ProfileSection'
 import Tabs from './Tabs'
 import { useAuth } from '../../../context/AuthContext'
+import { UserCnxt } from '../../../context/UserContext'
 import { userService } from '../../../services/userService'
 import LoadingSpinner from '../../common/LoadingSpinner'
 
-const ProfilePage = ({ onSearch, activeTab, onTabChange }) => {
+const ProfilePage = ({ onSearch }) => {
   const navigate = useNavigate()
   const { user: loggedInUser } = useAuth()
+  const { profile, setProfile } = UserCnxt()
   const { username } = useParams()
-  const [profile, setProfile] = useState(null)
+  // const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
 
-
-
-  const fetchProfile = async () => {
+  const fetchProfile = React.useCallback(async () => {
     try {
       const profileData = await userService.getProfileByUsername(username)
       setProfile(profileData)
-    }catch (error) {
+    } catch (error) {
       console.error(error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [username, setProfile]) // username is the only dependency needed
 
-  const updateUserProfile = async () => {
+
+  const updateUserProfile = React.useCallback(async () => {
     try {
       const profileData = await userService.getProfileByUsername(username)
       setProfile(profileData)
     } catch (error) {
       console.error('Error updating profile:', error)
     }
-  }
+  }, [username, setProfile])
 
   React.useEffect(() => {
     fetchProfile()
-  }, [username]) // Re-fetch when username changes
-
+  }, [fetchProfile])
 
   if (loading) return <LoadingSpinner/>
   if (!profile) return <div>Profile not found</div>
@@ -59,7 +59,7 @@ const ProfilePage = ({ onSearch, activeTab, onTabChange }) => {
       <Navigation />
       <div className="container">
         <ProfileSection  isOwnProfile={isOwnProfile} profile={profile} updateProfile={updateUserProfile} />
-        <Tabs activeTab={activeTab} onTabChange={onTabChange} />
+        <Tabs />
       </div>
     </div>
   )

@@ -1,9 +1,13 @@
 import { createContext, useContext, useState } from 'react'
 import { handleApiError } from '../utils/errorHandler'
 import { userService } from '../services/userService'
+import { pinService } from '../services/pinService'
+
 const UserContext = createContext()
 
 export const UserProvider = ({ children }) => {
+  const [profile, setProfile] = useState(null)
+
 
   const handleFollowing = async (profileId) => {
     try {
@@ -19,9 +23,17 @@ export const UserProvider = ({ children }) => {
     const response = await userService.checkFollowStatus(userId)
     return response
   }
+
+  const getUserPins = async (username) => {
+    const response = await pinService.getUserPins(username)
+    return response
+  }
   const value = {
     handleFollowing,
     checkFollowStatus,
+    getUserPins,
+    profile,
+    setProfile
   }
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>

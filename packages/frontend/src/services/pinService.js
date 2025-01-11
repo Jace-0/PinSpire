@@ -40,6 +40,11 @@ export const pinService = {
   likeComment : async (commentId) => {
     const response = await api.post(`/pin/comments/${commentId}/like`)
     return response.data
+  },
+  getUserPins : async (userId) => {
+    const response = await api.get(`pin/user/${userId}`)
+    console.log('Response', response.data)
+    return response.data.data
   }
 }
 

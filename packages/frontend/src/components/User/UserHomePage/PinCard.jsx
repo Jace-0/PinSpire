@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router-dom'
-const PinCard = ({ image, title, user, id }) => {
+const PinCard = ({ pin }) => {
   const navigate = useNavigate()
 
   const handleClick = () => {
-    navigate(`/pin/${id}`)
+    navigate(`/pin/${pin.id}`)
   }
 
   return (
@@ -13,19 +13,19 @@ const PinCard = ({ image, title, user, id }) => {
       style={{ cursor: 'pointer' }}
     >
       <div className="pin-image-container">
-        <img src={image} alt={title} className="pin-image" />
+        <img src={pin.image_url} alt={pin.title} className="pin-image" />
         <div className="pin-overlay">
-          <h3 className="pin-title">{title}</h3>
+          <h3 className="pin-title">{pin.title}</h3>
         </div>
       </div>
 
       <div className="pin-footer">
         <img
-          src={user.avatar_url}
-          alt={user.username}
+          src={pin.user.avatar_url}
+          alt={pin.user.username}
           className="user-avatar"
         />
-        <span className="user-name">{user.username}</span>
+        <span className="user-name">{pin.user.username}</span>
       </div>
     </div>
   )

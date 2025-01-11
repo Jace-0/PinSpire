@@ -6,17 +6,11 @@ import Header from '../../common/Header'
 import Navigation from '../../common/Navigation'
 
 
-import bahamas from './bahamas.jpeg'
 const PinFeed = () => {
   const [pins, setPins] = useState([])
   const [loading, setLoading] = useState(false)
   const [cursor, setCursor] = useState(null)
   const [hasMore, setHasMore] = useState(true)
-
-
-  useEffect(() => {
-    fetchMorePins()
-  }, [])
 
 
   const fetchMorePins = async () => {
@@ -40,6 +34,10 @@ const PinFeed = () => {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    fetchMorePins()
+  }, [])
 
   // Infinite scroll using Intersection Observer
   // Create a mutable ref to store the observer
@@ -78,7 +76,7 @@ const PinFeed = () => {
               key={pin.id}
               ref={index === pins.length - 1 ? lastPinRef : null}
             >
-              <PinCard image={pin.image_url} title={pin.title} user={ pin.user } id={pin.id}/>
+              <PinCard pin={pin}/>
 
             </div>
           ))}

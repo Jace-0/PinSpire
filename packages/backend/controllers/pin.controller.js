@@ -223,15 +223,16 @@ const pinController = {
 
     getUserPins : async (req, res) => {
         try {
-            const userId = req.user.id;
+            const userId = req.params.id;
             const cacheKey = CACHE_KEYS.userPins(userId)
 
             // Check cache
             const cachedData = await redisClient.get(cacheKey);
             if (cachedData) {
+                const parsed = JSON.parse(cachedData)
                 return res.status(200).json({
                     success: true,
-                    data: JSON.parse(cachedData),
+                    data: parsed,
                     source: 'cache'
                 });
             }
@@ -245,7 +246,7 @@ const pinController = {
               {
                 model: User,
                 as: "user",
-                attributes: ["username", "avatar_url"],
+                attributes: ["id", "username", "avatar_url"],
               },
             ],
             order: [["created_at", "DESC"]]
@@ -260,7 +261,7 @@ const pinController = {
       
           return res.status(200).json({
             success: true,
-            data: userPins
+            ...userPins
         });
 
         } catch (error) {
