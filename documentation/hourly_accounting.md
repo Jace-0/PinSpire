@@ -30,7 +30,6 @@
             - Improved user interaction with dynamic updates for likes and comments
             - Ensured seamless navigation from pin feed to pin details |
 
-
 | 1.8 - 9 | 16 | Enhance comment interaction and optimize Redis caching |
 
             - Implement functionality to like and reply to comments
@@ -39,3 +38,11 @@
             - Simplify response structure for consistent API responses
             |
 
+| 1.10 | 6 | implement user profile and follow system |
+
+            - Add user profile functionality with different views for own/other profiles
+            - Implement follow/unfollow system with database relationships
+            - Add follower and following count display
+            - Include profile statistics and bio section
+            - Add notification system for follow events
+            |

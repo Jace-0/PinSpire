@@ -21,18 +21,10 @@ import {
 } from 'react-router-dom'
 
 
+import LoadingSpinner from './components/common/LoadingSpinner'
 
 const AppRoutes = () => {
-  const { user } = useAuth()
-  const userData = {
-    name: 'Jace Sam',
-    username: 'jacesam0',
-    followingCount: 2,
-    profileImage: 'https://storage.googleapis.com/a1aa/image/guR6S4VOgGrvIReIavThKwp5wccDdkmGFRlWCrn3IR4uMDAKA.jpg',
-    onShare: () => console.log('Share profile'),
-    onEditProfile: () => console.log('Edit profile')
-  }
-  console.log('User', user)
+  const { user, loading } = useAuth()
 
   return (
     <Routes>
@@ -42,15 +34,14 @@ const AppRoutes = () => {
       <Route
         path='/:username'
         element={
-          user ? (
+          loading ? (
+            <LoadingSpinner/>
+          ) : (
             <ProfilePage
-              userData={userData}
               onSearch={(e) => console.log(e.target.value)}
               activeTab="saved"
               onTabChange={(tab) => console.log(`Switching to ${tab} tab`)}
             />
-          ) : (
-            <Navigate to="/" replace />
           )
         }
       />

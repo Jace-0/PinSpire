@@ -29,6 +29,17 @@ export const userService = {
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Failed to update avatar')
     }
+  },
+
+  followUser : async (profileId) => {
+    console.log('PPPP', profileId)
+    const response = await api.post(`/user/${profileId}/followers`)
+    return response.data
+  },
+
+  checkFollowStatus: async (profileId) => {
+    const response = await api.get(`/user/followers/check/${profileId}`)
+    return response.data
   }
 }
 

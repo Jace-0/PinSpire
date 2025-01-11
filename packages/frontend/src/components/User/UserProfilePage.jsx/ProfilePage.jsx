@@ -7,8 +7,9 @@ import ProfileSection from './ProfileSection'
 import Tabs from './Tabs'
 import { useAuth } from '../../../context/AuthContext'
 import { userService } from '../../../services/userService'
+import LoadingSpinner from '../../common/LoadingSpinner'
 
-const ProfilePage = ({ userData, onSearch, activeTab, onTabChange }) => {
+const ProfilePage = ({ onSearch, activeTab, onTabChange }) => {
   const navigate = useNavigate()
   const { user: loggedInUser } = useAuth()
   const { username } = useParams()
@@ -20,12 +21,21 @@ const ProfilePage = ({ userData, onSearch, activeTab, onTabChange }) => {
 
   const fetchProfile = async () => {
     try {
-      const profile = await userService.getProfileByUsername(username)
-      setProfile(profile)
+      const profileData = await userService.getProfileByUsername(username)
+      setProfile(profileData)
     }catch (error) {
       console.error(error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const updateUserProfile = async () => {
+    try {
+      const profileData = await userService.getProfileByUsername(username)
+      setProfile(profileData)
+    } catch (error) {
+      console.error('Error updating profile:', error)
     }
   }
 
@@ -34,11 +44,10 @@ const ProfilePage = ({ userData, onSearch, activeTab, onTabChange }) => {
   }, [username]) // Re-fetch when username changes
 
 
-  if (loading) return <div>Loading...</div>
+  if (loading) return <LoadingSpinner/>
   if (!profile) return <div>Profile not found</div>
-  console.log('userData', profile)
 
-
+  console.log('Params ', username)
   // This determines if we're viewing our own profile
   const isOwnProfile = loggedInUser?.username === username
 
@@ -49,7 +58,7 @@ const ProfilePage = ({ userData, onSearch, activeTab, onTabChange }) => {
       <Header onSearch={onSearch} />
       <Navigation />
       <div className="container">
-        <ProfileSection  isOwnProfile={isOwnProfile} profile={profile} />
+        <ProfileSection  isOwnProfile={isOwnProfile} profile={profile} updateProfile={updateUserProfile} />
         <Tabs activeTab={activeTab} onTabChange={onTabChange} />
       </div>
     </div>

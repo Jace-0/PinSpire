@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const redisClient = require('../util/redis');
 const { uploadImage } = require('../util/cloudinary');
-const { User } = require('../models/index');
+const { User, Follower } = require('../models/index');
 
 const userController = {
     // user controller
@@ -186,8 +186,55 @@ const userController = {
             message: 'Error updating avatar'
         });
     }
+  },
+
+  followUser: async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const followingId = req.params.id; // ID of user to follow
+  
+      const existingFollow = await Follower.findOne({
+        where: {
+          follower_id: userId, 
+          following_id: followingId
+        }
+      });
+      
+  
+      if (existingFollow) {
+        // unfollow if already followed
+        await existingFollow.destroy()
+        return res.status(200).json({ message: 'Successfully unfollowed ' });
+      }
+  
+      await Follower.create({
+        follower_id: userId, // ID of the user who is following (the current user)
+        following_id: followingId //  ID of the user being followed
+      });
+  
+      res.status(200).json({ message: 'Successfully followed ' });
+    } catch (error) {
+      res.status(500).json({ message: 'Error following user', error: error.message });
+    }
+  },
+  checkFollowStatus: async (req, res) => {
+    try {
+      const userId = req.user.id
+      const profileId = req.params.id
+
+      const existingFollow = await Follower.findOne({
+        where: {
+          follower_id: userId,
+          following_id: profileId
+        }
+      })
+
+      res.json({ isFollowing: !!existingFollow })
+    } catch (error) {
+      res.status(500).json({ message: 'Error checking follow status', error: error.message })
+    }
   }
-};
+}
 
 
 module.exports = userController;

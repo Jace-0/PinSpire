@@ -1,5 +1,6 @@
 const { Model, DataTypes } = require('sequelize')
 const { generateInitialAvatar } = require('../util/cloudinary')
+const { sequelize, Op } = require('../util/db'); 
 class User extends Model {
     // Class methods
     static async findById(id) {
@@ -16,7 +17,27 @@ class User extends Model {
     static async findByUsername(username) {
         return await this.findOne({
             where: { username },
-            attributes: { exclude: ['password_hash'] }
+            attributes: { 
+                exclude: ['password_hash'],
+                include: [
+                    [
+                        sequelize.literal(`(
+                            SELECT COUNT(*)
+                            FROM "followers"
+                            WHERE "followers"."follower_id" = "User"."id"
+                        )`),
+                        'following_count'
+                    ],
+                    [
+                        sequelize.literal(`(
+                            SELECT COUNT(*)
+                            FROM "followers"
+                            WHERE "followers"."following_id" = "User"."id"
+                        )`),
+                        'followers_count'
+                    ]
+                ]
+            }
         });
     }
 

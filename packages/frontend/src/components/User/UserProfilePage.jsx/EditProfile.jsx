@@ -25,9 +25,9 @@ const EditProfile = ({ user }) => {
   const [formData, setFormData] = useState({
     first_name: profile.data.first_name || '',
     last_name: profile.data.last_name || '',
-    bio: profile.data.bio || '',
+    bio: profile.data.bio || undefined,
     pronouns: profile.data.pronouns || '',
-    website_url: profile.data.website_url || '',
+    website_url: profile.data.website_url || undefined,
     username: profile.data.username || '',
     gender: profile.data.gender || 'male'
   })

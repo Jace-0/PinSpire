@@ -31,4 +31,9 @@ router.get('/profile/username/:username', authentication, userController.getUser
 router.put('/profile/settings/:id', authentication, sanitizeInput,  userController.updateUser);
 router.put('/profile/settings/:id/avatar', authentication, upload.single('avatar'), userController.updateAvatar);
 
+// Follow
+router.post('/:id/followers', authentication, sanitizeInput, userController.followUser)
+router.get('/followers/check/:id', authentication, userController.checkFollowStatus)
+
+
 module.exports = router;

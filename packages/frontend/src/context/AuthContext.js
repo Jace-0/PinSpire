@@ -8,6 +8,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [accessToken, setAccessToken] = useState(null)
   const [refreshToken, setRefreshToken] = useState(null)
+  const [laoding, setLoading] = useState(true)
 
   // Persist auth state in session storage
   useEffect(() => {
@@ -19,6 +20,7 @@ export const AuthProvider = ({ children }) => {
       setRefreshToken(refreshToken)
 
     }
+    setLoading(false)
   }, [])
 
 
@@ -72,6 +74,7 @@ export const AuthProvider = ({ children }) => {
         setUser,
         accessToken,
         refreshToken,
+        laoding,
         isAuthenticated: !!accessToken,
         login: handleLogin,
         logout: handleLogout,

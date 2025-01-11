@@ -7,13 +7,11 @@ export const pinService = {
         'Content-Type': 'multipart/form-data'
       }
     })
-    console.log('Response Data', response.data)
     return response.data
   },
 
   getAllPins : async (cursor) => {
     const response = await api.get(`/pin?cursor=${cursor}&limit=20`)
-    console.log('RESPONSE', response.data)
     return response.data
   },
 
@@ -36,16 +34,13 @@ export const pinService = {
 
   replyComment : async (commentId, content) => {
     const response = await api.post(`/pin/comments/${commentId}/replies`, content )
-    console.log('Comment Data', response.data)
     return response.data
   },
 
   likeComment : async (commentId) => {
     const response = await api.post(`/pin/comments/${commentId}/like`)
-    console.log('Like Data', response.data)
     return response.data
   }
-
 }
 
 
