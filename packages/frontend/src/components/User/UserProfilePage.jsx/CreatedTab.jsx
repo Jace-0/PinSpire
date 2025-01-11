@@ -31,7 +31,7 @@ const CreatedTab  = () => {
 
   if (loading) return <LoadingSpinner />
   if (error) return <div>Error loading pins: {error}</div>
-  if (!pins.length) return <div>No pins created yet</div>
+  if (!pins?.length) return <div>No pins created yet</div>
 
   return (
     <div className="p-grid">
