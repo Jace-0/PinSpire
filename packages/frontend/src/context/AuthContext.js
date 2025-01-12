@@ -56,8 +56,13 @@ export const AuthProvider = ({ children }) => {
     setAccessToken(accessToken)
     setRefreshToken(refreshToken)
 
-
   }
+
+  // useEffect(() => {
+  //   if (!user && !accessToken) {
+  //     sessionStorage.removeItem('auth')
+  //   }
+  // }, [user, accessToken])
 
   const handleLogout = () => {
     sessionStorage.removeItem('auth')
@@ -78,7 +83,8 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: !!accessToken,
         login: handleLogin,
         logout: handleLogout,
-        signup : handleSignup
+        signup : handleSignup,
+        handleLogout
       }}
     >
       {children}

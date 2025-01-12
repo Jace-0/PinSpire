@@ -20,15 +20,16 @@ import {
   useMatch
 } from 'react-router-dom'
 
-
 import LoadingSpinner from './components/common/LoadingSpinner'
 
 const AppRoutes = () => {
   const { user, loading } = useAuth()
 
+  if (loading) return <LoadingSpinner/>
+
   return (
     <Routes>
-      <Route path="/" element={user ? <PinFeed/> : <HomePage/>} />
+      <Route path="/" element={ user ? ( <PinFeed /> ) : ( <HomePage />)}/>
       <Route path="/login" element={<LoginForm/>} />
       <Route path="/signup" element={<SignupForm/>} />
       <Route

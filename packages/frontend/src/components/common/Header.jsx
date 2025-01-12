@@ -1,17 +1,34 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 
-const Header = ({ onSearch }) => (
-  <div className="header">
-    <div className="search-bar">
-      <input type="text" placeholder="Search..." onChange={onSearch} />
-      <i className="fas fa-search"></i>
+import { useAuth } from '../../context/AuthContext'
+
+const Header = ({ onSearch }) => {
+  const { user: loggedInUser } = useAuth()
+
+  console.log('Logged in user ', loggedInUser )
+
+  return (
+    <div className="header">
+      <div className="search-bar">
+        <input type="text" placeholder="Search..." onChange={onSearch} />
+        <i className="fas fa-search"></i>
+      </div>
+      <div className="profile">
+        <Link to={`/${loggedInUser?.username}`}>
+          {loggedInUser?.avatar_url ? (
+            <img
+              src={loggedInUser.avatar_url}
+              alt="Profile"
+              className="profile-avatar"
+            />
+          ) : (
+            <i className="fas fa-user-circle"></i>
+          )}
+        </Link>
+      </div>
     </div>
-    <div className="profile">
-      <Link to="/profile"></Link>
-      <i className="fas fa-user-circle"></i>
-    </div>
-  </div>
-)
+  )
+}
 
 export default Header
