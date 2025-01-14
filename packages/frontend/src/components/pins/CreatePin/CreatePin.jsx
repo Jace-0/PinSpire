@@ -5,6 +5,7 @@ import Navigation from '../../common/Navigation'
 import Content from './Content'
 import { pinService } from '../../../services/pinService'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../../context/AuthContext'
 
 const CreatePin = () => {
   const navigate = useNavigate()

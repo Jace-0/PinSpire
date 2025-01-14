@@ -211,6 +211,20 @@ const userController = {
         follower_id: userId, // ID of the user who is following (the current user)
         following_id: followingId //  ID of the user being followed
       });
+
+      
+      // Follow Notification
+      if (followingId && followingId !== userId && req.app.ws) {
+        req.app.ws.sendNotification(followingId, {
+            type: 'notification',
+            data: {
+                type: 'Follow',
+                content: {
+                    username: req.user.username,
+                }
+            }
+        });
+    }
   
       res.status(200).json({ message: 'Successfully followed ' });
     } catch (error) {

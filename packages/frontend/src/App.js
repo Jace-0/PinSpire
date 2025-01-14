@@ -21,6 +21,7 @@ import {
 } from 'react-router-dom'
 
 import LoadingSpinner from './components/common/LoadingSpinner'
+import NotificationSystem from './components/notification/NotificationSystem'
 
 const AppRoutes = () => {
   const { user, loading } = useAuth()

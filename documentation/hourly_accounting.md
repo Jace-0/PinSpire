@@ -85,3 +85,33 @@
             - Add conditional routing based on authentication state
             - Handle auth state transitions during logout
             |
+
+| 1.13-14 | 13 | Implemented WebSocket support for enhanced notifications |
+
+            - Utilized the `ws` WebSocket library for Node.js
+            - Set up WebSocket for backend and frontend notifications
+
+            **Technical Details:**
+
+            Backend:
+            - Configured secure WebSocket server using `ws`
+            - Managed connection lifecycle (connect, disconnect, error handling)
+
+            Client:
+            - Managed WebSocket connections with automatic reconnection
+            - Implemented heartbeat mechanism
+            - Developed message handlers for various notifications
+
+            UI Components:
+            - Added notification indicator in the sidebar
+            - Enabled real-time status updates
+            - Implemented visual logout indicator
+            - Integrated toast notifications for key events
+
+            Dependencies:
+            - `ws` WebSocket library for Node.js
+            - Frontend WebSocket client
+            - UI components for notifications
+            - Authentication integration
+
+

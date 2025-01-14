@@ -27,7 +27,8 @@
     "pg": "^8.13.1",
     "redis": "^4.7.0",
     "sequelize": "^6.37.5",
-    "umzug": "^3.8.2"
+    "umzug": "^3.8.2",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "eslint": "^9.17.0",

@@ -387,6 +387,22 @@ const pinController = {
             user_id: userId,
             content: content.trim()
         });
+
+
+        if (pin.user_id && pin.user_id !== comment.userId && req.app.ws) {
+            //  the WebSocket server instance from app
+            req.app.ws.sendNotification(pin.user_id, {
+                type: 'notification',
+                data: {
+                    type: 'Comment',
+                    content: {
+                        username: req.user.username,
+                        comment: comment.content,
+                        pinId: comment.pinId
+                    }
+                }
+            });
+        }
         
         // Invalidate related Redis caches
         await Promise.all([
@@ -426,8 +442,16 @@ const pinController = {
             const userId = req.user.id;
             const pinId = req.params.id;
     
-            // Check if pin exists
-            const pin = await Pin.findByPk(pinId);
+            // Check if pin exists with user association
+            const pin = await Pin.findOne({
+                where: { id: pinId },
+                include: [{
+                    model: User,
+                    as: 'user',
+                    attributes: ['id', 'username']
+                }]
+            });
+
             if (!pin) {
                 return res.status(404).json({
                     success: false,
@@ -463,7 +487,23 @@ const pinController = {
                 likeable_id: pinId,
                 likeable_type: 'pin'
             });
-    
+
+            // Send notification if the pin owner is not the liker
+            if (pin.user && pin.user.id !== userId && req.app.ws) {
+                //  the WebSocket server instance from app
+                req.app.ws.sendNotification(pin.user.id, {
+                    type: 'notification',
+                    data: {
+                        type: 'Like',
+                        content: {
+                            username: req.user.username,
+                            pinTitle: pin.title,
+                            pinId: pin.id
+                        }
+                    }
+                });
+            }
+
             // Invalidate cache
             await redisClient.del(`pin:${pinId}`);
     
@@ -504,6 +544,8 @@ const pinController = {
                     message: 'Comment not found'
                 });
             }
+
+            console.log('Comment', comment)
     
             // Create reply
             const reply = await CommentReply.create({
@@ -524,6 +566,25 @@ const pinController = {
                     attributes: ['id', 'username', 'avatar_url']
                 }]
             });
+
+            console.log('Reply with user', replyWithUser)
+
+
+            // Notification to the Comment owner
+            if (comment.user_id && comment.user_id !== replyWithUser.user.id && req.app.ws) {
+                //  the WebSocket server instance from app
+                req.app.ws.sendNotification(comment.user_id, {
+                    type: 'notification',
+                    data: {
+                        type: 'ReplyComment',
+                        content: {
+                            username: req.user.username,
+                            CommentReply: replyWithUser.content,
+                            pinId: comment.pin_id
+                        }
+                    }
+                });
+            }
     
             return res.status(201).json({
                 success: true,
@@ -583,6 +644,22 @@ const pinController = {
                 likeable_id: commentId,
                 likeable_type: 'comment'
             });
+
+            // Notification to the Comment owner            
+            if (comment.user_id && comment.user_id !== userId && req.app.ws) {
+                //  the WebSocket server instance from app
+                req.app.ws.sendNotification(comment.user_id, {
+                    type: 'notification',
+                    data: {
+                        type: 'LikeComment',
+                        content: {
+                            username: req.user.username,
+                            comment: comment.content,
+                            pinId: comment.pin_id
+                        }
+                    }
+                });
+            }
     
             // Invalidate cache
             await redisClient.del(`pin:${comment.pin_id}`)

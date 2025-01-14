@@ -13,16 +13,6 @@ body {
     border-bottom: 1px solid #ddd;
 }
 
-/* .header .logo {
-    width: 40px;
-    height: 40px;
-    background-color: #0073e6;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 20px;
-} */
 
 .header .search-bar {
     flex-grow: 1;
@@ -487,7 +477,6 @@ body.home-page {
 
 
 /* CREATR PIN CONTENT */
-
 .content-container {
   flex: 1;
   padding: 32px;
@@ -502,11 +491,12 @@ body.home-page {
   padding: 20px;
   padding-bottom: 60px;
   padding-left: 20px;
+  z-index: 1;
 
 }
 
 .image-wrapper {
-  position: relative;
+  position: absolute;
   /* width: 100%; */
   max-width: fit-content;
   min-height: fit-content;
@@ -516,7 +506,8 @@ body.home-page {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px dashed #cdcdcd;}
+  border: 2px dashed #cdcdcd;
+}
 
   .upload-container {
     display: flex;
@@ -680,11 +671,10 @@ body.home-page {
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
 }
 
-
+/* Edit Profile Page  */
 .edit-profile-container {
   max-width: 500px;
-  padding: 20px 20px;
-  padding-left: 140px;
+  padding: 20px 180px;
 }
 
 .edit-profile-content {
@@ -812,11 +802,11 @@ body.home-page {
 
 .pin-details-container {
   padding: 24px;
-  margin-left: 100px; /* Adjust based on Navigation width */
+  margin-left: 100px; 
 }
 
 .pin-details-wrapper {
-  max-width: 1000px;
+  max-width: 930px;
   margin: 0 auto;
   display: flex;
   background: white;
@@ -838,7 +828,7 @@ body.home-page {
 
 .pin-details-content {
   flex: 1;
-  padding: 32px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   max-width: 40%;
@@ -849,7 +839,7 @@ body.home-page {
   align-items: center;
   justify-content: flex-start;
   gap: 8px;
-  margin-bottom: 70px;
+  margin-bottom: 50px;
 }
 
 .user-info .profile-image {
@@ -1173,36 +1163,38 @@ body.home-page {
 
 .home-container {
   padding: 24px;
-  margin-left: 50px; /* Adjust based on your sidebar width */
+  margin-left: 50px; 
+  z-index: 1; 
 }
 
 .pins-grid {
   columns: 6; /* Creates 6 columns */
   column-gap: 12px;
   max-width: fit-content;
-  /* width: 100%; */
 }
 
 .pin-card {
-  break-inside: avoid; /* Prevents pins from breaking across columns */
+  break-inside: avoid; 
   margin-bottom: 16px;
   position: relative;
   border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
   background: white;
+  z-index: 1; 
 }
 
 .pin-image-container {
   position: relative;
   overflow: hidden;
+  z-index: 1; 
 }
 
 .pin-image {
   width: 100%;
   display: block;
-  max-height: 400px; /* Reduce this value from your current height */
-  object-fit: cover; /* This ensures images maintain aspect ratio */
+  max-height: 400px; 
+  object-fit: cover; 
   border-radius: 16px 16px 0 0;
 }
 
@@ -1215,6 +1207,7 @@ body.home-page {
   padding: 16px;
   opacity: 0;
   transition: opacity 0.2s ease;
+  z-index: 2; 
 }
 
 .pin-card:hover .pin-overlay {
@@ -1226,6 +1219,7 @@ body.home-page {
   display: flex;
   align-items: center;
   gap: 8px;
+  z-index: 1; 
 }
 .user-avatar {
   width: 24px;
@@ -1299,3 +1293,130 @@ body.home-page {
   text-decoration: none;
 }
 ` */
+
+
+
+
+
+
+/* Notification System  */
+/* Container for the entire notification system */
+.notification-system {
+  position: fixed;
+  left: 100px;
+  top: 0;
+  height: 100vh;
+  z-index: 9999;
+  pointer-events: none;
+}
+/* The main notification panel */
+.notification-panel {
+  background: white;
+  border-radius: 13px;
+  margin-left: 350px;
+  margin-top: 10px;
+  width: 380px;
+  height: 95vh;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.15);
+  transform: translateX(-100%); /* Start hidden */
+  transition: transform 0.3s ease-in-out;
+  pointer-events: auto; 
+  display: flex;
+  flex-direction: column;
+  z-index: 10000;
+} 
+
+.notification-header {
+  padding: 0px 18px;
+  border-bottom: 1px solid #e9e9e9;
+  display: flex;
+
+}
+
+
+.notification-header h3 {
+  font-size: 20px;
+  font-weight: 600;
+} 
+
+/* Container for notification items */
+.notification-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+} 
+
+/* Empty state styling */
+.notification-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #767676;
+  padding: 20px;
+} 
+
+/* Individual notification item */
+.notification-item {
+  padding: 16px 24px;
+  border-bottom: 1px solid #f0f0f0;
+  /* cursor: pointer; */
+  transition: background-color 0.2s ease;
+}
+
+
+.notification-item:hover {
+  background-color: hsla(0, 0%, 94%, 0.959);
+}
+
+.notification-message {
+  font-size: 15px;
+  color: #111;
+  margin-bottom: 2px;
+  line-height: 1.4;
+}
+
+.notification-time {
+  font-size: 14px;
+  color: #767676;
+}
+
+
+
+/* Notification badge on bell icon */
+/* .notification-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background-color: #e60023;
+  color: white;
+  font-size: 12px;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  font-weight: 600;
+} */
+
+/* Sidebar bell icon container */
+/* .nav-icons a {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+} */
+
+/* Animation for new notifications */
+/* @keyframes notification-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+} */
+
+/* .notification-item.new {
+  animation: notification-pulse 0.3s ease-in-out;
+}*/
