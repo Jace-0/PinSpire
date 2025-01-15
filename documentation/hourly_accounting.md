@@ -114,4 +114,4 @@
             - UI components for notifications
             - Authentication integration
 
-
+| 1.14 | 6 | Resolved stacking context issue to ensure notifications appear above other elements |
