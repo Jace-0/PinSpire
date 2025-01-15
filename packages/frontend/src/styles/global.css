@@ -57,6 +57,7 @@ body {
     flex-direction: column;
     align-items: center;
     padding-top: 20px 0;
+    z-index: 10000;
 }
 
 .sidebar a {
@@ -70,6 +71,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  z-index: 10000;
 }
 
 .logout-wrapper {
@@ -1306,7 +1308,7 @@ body.home-page {
   left: 100px;
   top: 0;
   height: 100vh;
-  z-index: 9999;
+  /* z-index: 10000; */
   pointer-events: none;
 }
 /* The main notification panel */
@@ -1323,7 +1325,7 @@ body.home-page {
   pointer-events: auto; 
   display: flex;
   flex-direction: column;
-  z-index: 10000;
+  /* z-index: 10000; */
 } 
 
 .notification-header {
