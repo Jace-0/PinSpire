@@ -6,6 +6,7 @@ import reportWebVitals from './reportWebVitals'
 import { AuthProvider } from './context/AuthContext'
 import { PinProvider } from './context/PinContext'
 import { UserProvider } from './context/UserContext'
+import { NotificationProvider } from './context/NotificationContext'
 
 const root = ReactDOM.createRoot(document.getElementById('root'))
 root.render(
@@ -13,7 +14,9 @@ root.render(
     <AuthProvider>
       <PinProvider>
         <UserProvider>
-          <App />
+          <NotificationProvider>
+            <App />
+          </NotificationProvider>
         </UserProvider>
       </PinProvider>
     </AuthProvider>
