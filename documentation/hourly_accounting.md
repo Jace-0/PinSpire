@@ -116,4 +116,37 @@
 
 | 1.14 | 6 | Resolved stacking context issue to ensure notifications appear above other elements |
 
-| Total | undefined |
+| 1.21-22-23-24-25-26-27 (1week)| 56 | implement real-time messaging system with ws WebSocket NodeJS Library
+
+            Implementations:
+            - Created Chat and Message database models with migrations and API endpoints
+            - Created Chat and Message database models and migrations
+            - Implemented chat controllers and routes
+
+            - Implement real-time message send/receive functionality
+            - Added WebSocket message event listeners
+            - Implemented message handling logic
+            - refactor(websocket):
+                - Restructured WebSocket client code
+                - Added WebSocket connection manager
+                - integrate WebSocket with ChatContext
+                - implemeneted WebSocket message handling in ChatContext
+                - TODO: Improve design structure
+
+            - Add chat UI components and message display
+            - implemented pinterest -style like chat UI,
+            - implemented functionality to start a new message
+                - allows user to search and select other users you want to send message to
+
+            - Set up auto-scroll behavior for message history
+                - Implemented smart scroll behavior for message history
+                - TODO: needs improvement
+
+            - Implemented new tab for viewing liked pins on User Profile Page
+            - Added UI for displaying liked pins collection
+
+            - Moved storage from render.io to supabase
+
+|
+
+| Total | null |

@@ -1,0 +1,40 @@
+# Create Chats
+
+# POST http://localhost:3000/api/chat/
+# Content-Type: application/json
+# Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjNlM2ZlMjEyLTU4N2EtNDA3MC1iYzMzLTM0NmE3YmU1Nzk3MyIsImVtYWlsIjoibWx1dWtrYWluZW5AaGVzaW5raS5maWkiLCJ1c2VybmFtZSI6Im1sdXVra2FpbmVuMSIsImlhdCI6MTczNzYzMzk1NiwiZXhwIjoxNzM3NjM3NTU2fQ.Zq1TbROUcdA_ZXwu53FlEn7H0VVJolLFwB5PiZMmmIM
+
+# {
+#     "otherUserId":"b6bed5a9-fc00-4253-9ee2-9b70bd4452f4"
+# }
+
+
+
+
+
+GET http://localhost:3000/api/chat/7e2c40ea-e3a5-4225-b62d-dd0b4c441811/messages
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjNlM2ZlMjEyLTU4N2EtNDA3MC1iYzMzLTM0NmE3YmU1Nzk3MyIsImVtYWlsIjoibWx1dWtrYWluZW5AaGVzaW5raS5maWkiLCJ1c2VybmFtZSI6Im1sdXVra2FpbmVuMSIsImlhdCI6MTczNzY0NDc3NywiZXhwIjoxNzM3NjQ4Mzc3fQ.-WnlFwHWlh0NaGKCUMnQ_DuU2tupfVFrH3OrO9ykQuw
+
+
+
+# get ChatByUser
+
+# GET http://localhost:3000/api/chat/
+# Content-Type: application/json
+# Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjNlM2ZlMjEyLTU4N2EtNDA3MC1iYzMzLTM0NmE3YmU1Nzk3MyIsImVtYWlsIjoibWx1dWtrYWluZW5AaGVzaW5raS5maWkiLCJ1c2VybmFtZSI6Im1sdXVra2FpbmVuMSIsImlhdCI6MTczNzYzMzk1NiwiZXhwIjoxNzM3NjM3NTU2fQ.Zq1TbROUcdA_ZXwu53FlEn7H0VVJolLFwB5PiZMmmIM
+
+
+
+
+# Send message
+# mluukkainen1 && test profiles 
+
+# POST http://localhost:3000/api/chat/message
+# Content-Type: application/json
+# Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjcyOTJmYThmLTMwOWMtNDExNS1iZDA5LTZlYTQ3MTYxZTI3YSIsImVtYWlsIjoidGVzdEBwaW5zcGlyZS5jb20iLCJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mzc1NDg4MDEsImV4cCI6MTczNzU1MjQwMX0.dJUFc0qLfFTZ6XTZju5BAxiHpgNTbcWHUxmJbM_b3Ag
+
+# {
+#     "chat_id":"7e2c40ea-e3a5-4225-b62d-dd0b4c441811",
+#     "content": "Love your garden pins!"
+# }
