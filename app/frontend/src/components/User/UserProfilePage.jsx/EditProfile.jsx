@@ -65,6 +65,7 @@ const EditProfile = ({ user }) => {
         const response = await userService.updateAvatar(profile.data.id, formData)
 
         if (response.success) {
+          console.log('RESPONSE', response)
           setSnackbarMessage('Profile photo updated successfully')
           setSnackbarSeverity('success')
           setOpenSnackbar(true)

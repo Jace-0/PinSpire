@@ -149,4 +149,31 @@
 
 |
 
+| 1.30-31-1-2-3 | 32 | Implemented Integration Testing on the Backend using Supertest and Node.js Test Module
+
+    Implementations:
+    - Created an isolated testing environment in Docker
+    - Improved error handling
+
+    User Management & Social Features Integration Tests:
+    - Authentication
+    - Profile Operations
+    - Follow Relationships and Notifications
+    - WebSocket Communications
+    - Integration Tests for Pin Management, Social Interaction Features & Notifications
+
+    Pin Management Integration Tests:
+    - Pin Creation and Validation
+    - Pin Update Operations
+    - Pin Deletion and Cleanup
+
+    Social Interactions:
+    - Pin Likes/Unlikes
+    - Comment Operations
+        - Adding Comments
+        - Editing Comments
+        - Nested Replies
+
+|
+
 | Total | null |

@@ -10,6 +10,7 @@ export const authService = {
       console.log('It came', response.data)
       return response.data
     } catch (error) {
+      console.error('ERROR', error)
       throw handleApiError(error)
     }
   },

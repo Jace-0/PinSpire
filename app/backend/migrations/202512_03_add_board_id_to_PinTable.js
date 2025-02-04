@@ -1,25 +1,25 @@
-const { DataTypes } = require('sequelize');
+const { DataTypes } = require('sequelize')
 
 module.exports = {
-    up: async ({ context: queryInterface }) => {
-        await queryInterface.addColumn('pins', 'board_id', {
-            type: DataTypes.UUID,
-            allowNull: true,  
-            references: {
-                model: 'boards',
-                key: 'id'
-            },
-            onDelete: 'SET NULL'  
-        });
-    },
+  up: async ({ context: queryInterface }) => {
+    await queryInterface.addColumn('pins', 'board_id', {
+      type: DataTypes.UUID,
+      allowNull: true,
+      references: {
+        model: 'boards',
+        key: 'id'
+      },
+      onDelete: 'SET NULL'
+    })
+  },
 
-    down: async ({ context: queryInterface }) => {
-        await queryInterface.removeColumn('pins', 'board_id');
-    }
-};
+  down: async ({ context: queryInterface }) => {
+    await queryInterface.removeColumn('pins', 'board_id')
+  }
+}
 
 
-/* 
+/*
 This new structure:
 
 Allows pins to exist without being assigned to a board

@@ -1,0 +1,35 @@
+services:
+  redis:
+    image: redis:latest
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+
+  postgres_test:
+    image: postgres:latest
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: test_db
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+
+  # test:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.test
+  #   environment:
+  #     - NODE_ENV=test
+  #     - REDIS_URL=redis://redis:6380
+  #     - TEST_POSTGRES_URL=postgresql://postgres:postgres@postgres_test:5432/test_db
+  #   depends_on:
+  #     - redis
+  #     - postgres_test
+  #   command: npm run test
+
+volumes:
+  redis_data:
+  postgres_test_data:
