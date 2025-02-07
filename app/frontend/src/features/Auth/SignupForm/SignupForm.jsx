@@ -1,10 +1,8 @@
 import { useState } from 'react'
-import { TextField, Button, Card, CardContent, Typography, Box } from '@mui/material'
-import CustomSnackbar from '../../common/CustomSnackBar'
-import { useAuth } from '../../../context/AuthContext'
+import { TextField, Button, Card, CardContent, Typography, Box, Snackbar, Alert } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
-
-const LoginForm = () => {
+import { useAuth } from '../../../context/AuthContext'
+const SignupForm = () => {
   const navigate = useNavigate()
 
   const [openSnackbar, setOpenSnackbar] = useState(false)
@@ -13,12 +11,20 @@ const LoginForm = () => {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [date, setDate] = useState('')
   const [error, setError] = useState('')
-  const { login } = useAuth() // Access the signup function from context
+  const { signup } = useAuth() // Access the signup function from context
 
   const validateEmail = (email) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     return re.test(email)
+  }
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return
+    }
+    setOpenSnackbar(false)
   }
 
   const handleSubmit = async (e) => {
@@ -30,6 +36,7 @@ const LoginForm = () => {
       setOpenSnackbar(true)
       return
     }
+
     if (!password) {
       setError('Password cannot be empty.')
       setSnackbarMessage('Password cannot be empty.')
@@ -38,32 +45,34 @@ const LoginForm = () => {
       return
     }
 
+    if (!date) {
+      setError('Date cannot be empty.')
+      setSnackbarMessage('Date cannot be empty.')
+      setSnackbarSeverity('error')
+      setOpenSnackbar(true)
+      return
+    }
+
+
     try {
-      const userData = { email, password }
-      await login(userData)
-      setSnackbarMessage('Login successful!')
+      const userData = { email, password, dob: date }
+      await signup(userData)
+      setSnackbarMessage('Signup successful!')
       setSnackbarSeverity('success')
       setOpenSnackbar(true)
 
       // Delay navigation
       setTimeout(() => {
         navigate('/')
-      }, 1000) // 1 second delay
+      }, 1000) // 1 second
 
     } catch (error) {
       console.error(error)
-      // setError(error.message)
-      setSnackbarMessage( error.message || 'Login failed')
+      setSnackbarMessage(error.message || 'Sign up failed')
       setSnackbarSeverity('error')
       setOpenSnackbar(true)
+      // setError(error.message)
     }
-  }
-
-  const handleCloseSnackbar = (event, reason) => {
-    if (reason === 'clickaway') {
-      return
-    }
-    setOpenSnackbar(false)
   }
 
   return (
@@ -90,7 +99,7 @@ const LoginForm = () => {
             <TextField
               fullWidth
               margin='normal'
-              label='Email'
+              label="Email"
               type="email"
               placeholder="Email"
               value={email}
@@ -100,11 +109,22 @@ const LoginForm = () => {
             <TextField
               fullWidth
               margin='normal'
-              label='Password'
+              label="Password"
               type="password"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              sx={{ borderRadius: '20px', '& .MuiOutlinedInput-root': { borderRadius: '20px' , maxHeight: 50 } }}
+            />
+
+            <TextField
+              fullWidth
+              margin='normal'
+              label="Date"
+              type="date"
+              InputLabelProps={{ shrink : true }}
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
               sx={{ borderRadius: '20px', '& .MuiOutlinedInput-root': { borderRadius: '20px' , maxHeight: 50 } }}
             />
             <Button type="submit" variant='contained' fullWidth  sx={{
@@ -114,18 +134,48 @@ const LoginForm = () => {
               '&:hover': {
                 backgroundColor: '#E60023',
               },
-            }}>Log in</Button>
+            }}>Sign Up</Button>
           </form>
+
+          <Typography variant="body2" sx={{ mt: 2, textAlign: 'center', color: 'rgb(22, 17, 17)' , marginTop: 4 }}>
+            Already a member? <a href="/login" style={{ color: 'inherit', textDecoration: 'none' }}>Log in</a>
+          </Typography>
         </CardContent>
       </Card>
-      <CustomSnackbar
+      <Snackbar
         open={openSnackbar}
-        message={snackbarMessage}
-        severity={snackbarSeverity}
+        autoHideDuration={6000}
         onClose={handleCloseSnackbar}
-      />
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbarSeverity}
+          sx={{
+            width: '100%',
+            borderRadius: '16px',
+            fontWeight: 500,
+            '&.MuiAlert-standardSuccess': {
+              backgroundColor: '#E60023',
+              color: 'white',
+              '& .MuiAlert-icon': {
+                color: 'white'
+              }
+            },
+            '&.MuiAlert-standardError': {
+              backgroundColor: '#cc0000',
+              color: 'white',
+              '& .MuiAlert-icon': {
+                color: 'white'
+              }
+            }
+          }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   )
 }
 
-export default LoginForm
+export default SignupForm

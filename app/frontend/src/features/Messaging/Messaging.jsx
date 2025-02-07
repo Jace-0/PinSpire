@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import NewMessaging from './NewMessaging'
 import { chatService } from '../../services/chatService'
-import LoadingSpinner from '../common/LoadingSpinner'
+import LoadingSpinner from '../../components/common/LoadingSpinner'
 import ChatSystem from './ChatSystem'
 import { ChatContexts } from '../../context/ChatContext'
 const Messaging = () => {

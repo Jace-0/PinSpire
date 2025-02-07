@@ -7,7 +7,7 @@ const Header = ({ onSearch }) => {
   const { user: loggedInUser } = useAuth()
 
   return (
-    <div className="header">
+    <div className="header" data-testId="header-search">
       <div className="search-bar">
         <input type="text" placeholder="Search..." onChange={onSearch} />
         <i className="fas fa-search"></i>

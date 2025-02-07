@@ -1,10 +1,10 @@
 import React from 'react'
-import SignupForm from './components/auth/SignupForm/SignupForm'
-import LoginForm from './components/auth/LoginForm/LoginForm'
+import SignupForm from './features/Auth/SignupForm/SignupForm'
+import LoginForm from './features/Auth/LoginForm/LoginForm'
 import HomePage from './components/Home/HomePage'
-import CreatePin from './components/pins/CreatePin/CreatePin'
+import CreatePin from './features/Pins/CreatePin/CreatePin'
 import EditProfile from './components/User/UserProfilePage.jsx/EditProfile'
-import PinDetails from './components/pins/PinDetails/PinDetails'
+import PinDetails from './features/Pins/PinDetails/PinDetails'
 import PinFeed from './components/User/UserHomePage/PinFeed'
 import ProfilePage from './components/User/UserProfilePage.jsx/ProfilePage'
 import { useAuth } from './context/AuthContext'
@@ -21,7 +21,7 @@ import {
 } from 'react-router-dom'
 
 import LoadingSpinner from './components/common/LoadingSpinner'
-import NotificationSystem from './components/notification/NotificationSystem'
+// import NotificationSystem from './features/notification/NotificationSystem'
 
 const AppRoutes = () => {
   const { user, loading } = useAuth()
@@ -34,7 +34,7 @@ const AppRoutes = () => {
       <Route path="/login" element={<LoginForm/>} />
       <Route path="/signup" element={<SignupForm/>} />
       <Route
-        path='/:username'
+        path='/profile/:username'
         element={
           loading ? (
             <LoadingSpinner/>

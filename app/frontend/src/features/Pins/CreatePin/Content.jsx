@@ -70,6 +70,7 @@ const Content = ({ pinData, setPinData }) => {
             <input
               ref={fileInputRef}
               type="file"
+              data-testid="file-input"
               hidden
               accept="image/*"
               onChange={handleImageUpload}
@@ -108,7 +109,7 @@ const Content = ({ pinData, setPinData }) => {
         {/* Form Section */}
         <div className="form-section">
           <div className="form-group">
-            <label>Title</label>
+            <label htmlFor="title">Title</label>
             <input
               type="text"
               id="title"
@@ -120,7 +121,7 @@ const Content = ({ pinData, setPinData }) => {
           </div>
 
           <div className="form-group">
-            <label>Description</label>
+            <label htmlFor="description">Description</label>
             <textarea
               id="description"
               name="description"
@@ -131,7 +132,7 @@ const Content = ({ pinData, setPinData }) => {
           </div>
 
           <div className="form-group">
-            <label>Link</label>
+            <label htmlFor="link">Link</label>
             <input
               type="url"
               id="link"
@@ -143,7 +144,7 @@ const Content = ({ pinData, setPinData }) => {
           </div>
 
           <div className="form-group">
-            <label>Board</label>
+            <label htmlFor="board">Board</label>
             <select
               id="board"
               name="board"

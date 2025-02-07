@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react'
-import LoadingSpinner from '../common/LoadingSpinner'
+import LoadingSpinner from '../../components/common/LoadingSpinner'
 import { userService } from '../../services/userService'
 import { chatService } from '../../services/chatService'
 import { ChatContexts } from '../../context/ChatContext'

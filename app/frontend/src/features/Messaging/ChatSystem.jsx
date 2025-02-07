@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { chatService } from '../../services/chatService'
 import { useAuth } from '../../context/AuthContext'
 import { ChatContexts } from '../../context/ChatContext'
-import LoadingSpinner from '../common/LoadingSpinner'
+import LoadingSpinner from '../../components/common/LoadingSpinner'
 
 const ChatSystem = () => {
   const { user: currentUser } = useAuth()

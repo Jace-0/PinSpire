@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import CustomSnackbar from '../../common/CustomSnackBar'
+import CustomSnackbar from '../../../components/common/CustomSnackBar'
 import Header from './Header'
-import Navigation from '../../common/Navigation'
+import Navigation from '../../../components/common/Navigation'
 import Content from './Content'
 import { pinService } from '../../../services/pinService'
 import { useNavigate } from 'react-router-dom'
@@ -38,8 +38,6 @@ const CreatePin = () => {
         setOpenSnackbar(true)
         return
       }
-
-      console.log('PinData', pinData)
 
       const formData = new FormData()
       formData.append('title', pinData.title)

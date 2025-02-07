@@ -16,7 +16,6 @@ const ProfileSection = ({ isOwnProfile, profile, updateProfile }) => {
   const [snackbarSeverity, setSnackbarSeverity] = useState('success')
 
   const user = profile.data
-  console.log('User', user)
 
   // Check initial follow state when component mounts
   useEffect(() => {

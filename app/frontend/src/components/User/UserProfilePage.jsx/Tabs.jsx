@@ -18,7 +18,7 @@ const Tabs = () => {
   }
 
   return (
-    <div className="tabs-container">
+    <div className="tabs-container" data-testId="tabs-container">
       <div className="tab-navigation">
         <button
           className={`tab-button ${activeTab === 'created' ? 'active' : ''}`}

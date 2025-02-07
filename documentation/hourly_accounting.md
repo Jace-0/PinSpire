@@ -172,7 +172,15 @@
     - Comment Operations
         - Adding Comments
         - Editing Comments
-        - Nested Replies
+        - Nested Replies4
+
+| 2.4-5-6-7 | 25 | Frontend Component Testing Implementation with Jest and React Testing Library
+
+    Test Coverage Implementation:
+    - Login Form Testing
+    - Signup Form Testing
+    - Pin Creation Testing
+    - Profile Page Testing
 
 |
 

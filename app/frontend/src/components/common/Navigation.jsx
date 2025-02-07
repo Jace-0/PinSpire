@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useNotifications } from '../../context/NotificationContext'
-import NotificationSystem from '../notification/NotificationSystem'
-import Messaging from '../messaging/Messaging'
+import NotificationSystem from '../../features/Notification/NotificationSystem'
+import Messaging from '../../features/Messaging/Messaging'
 import LoadingSpinner from './LoadingSpinner'
 
 const Navigation = () => {
@@ -37,7 +37,7 @@ const Navigation = () => {
   }
 
   return (
-    <div className="sidebar">
+    <div className="sidebar" data-testid='sidebar-nav' >
       <div className="nav-icons">
         {[
           { icon: 'fa-home', to: '/' },
@@ -51,7 +51,7 @@ const Navigation = () => {
             to: '#',
             onClick: handleMessageClick
           },
-          { icon: 'fa-user', to: `/${loggedInUser.username}` },
+          { icon: 'fa-user', to: `/profile/${loggedInUser.username}` },
         ].map(({ icon, to, onClick, showBadge }) => (
           <Link key={icon} to={to} onClick={onClick}>
             <i className={`fas ${icon}`}>
@@ -82,6 +82,7 @@ const Navigation = () => {
       <div
         onClick={handleLogout}
         className="logout-wrapper"
+        data-testid="logout-wrapper"
       >
         <i className="fas fa-sign-out-alt"></i>
         <span className="logout-text">Logout</span>

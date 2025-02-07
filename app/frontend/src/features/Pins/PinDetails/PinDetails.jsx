@@ -1,5 +1,5 @@
-import Header from '../../common/Header'
-import Navigation from '../../common/Navigation'
+import Header from '../../../components/common/Header'
+import Navigation from '../../../components/common/Navigation'
 import { pinService } from '../../../services/pinService'
 import { useEffect, useState, useRef } from 'react'
 import { usePin } from '../../../context/PinContext'

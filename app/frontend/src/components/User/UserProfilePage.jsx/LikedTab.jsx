@@ -3,7 +3,8 @@ import { UserCnxt } from '../../../context/UserContext'
 import { useAuth } from '../../../context/AuthContext'
 import { userService } from '../../../services/userService'
 import PinCard from '../UserHomePage/PinCard'
-import LoadingSpinner from '../../common/LoadingSpinner'
+import LoadingSpinner from '../../../components/common/LoadingSpinner'
+
 const LkedTab  = () => {
 //   const { user: loggedInUser } = useAuth()
   const { getLikedPins, profile } = UserCnxt()

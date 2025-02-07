@@ -47,7 +47,6 @@ const ProfilePage = ({ onSearch }) => {
   if (loading) return <LoadingSpinner/>
   if (!profile) return <div>Profile not found</div>
 
-  console.log('Params ', username)
   // This determines if we're viewing our own profile
   const isOwnProfile = loggedInUser?.username === username
 
@@ -57,7 +56,7 @@ const ProfilePage = ({ onSearch }) => {
     <div className="layout">
       <Header onSearch={onSearch} />
       <Navigation />
-      <div className="container">
+      <div className="container" data-testId="profileSection-container">
         <ProfileSection  isOwnProfile={isOwnProfile} profile={profile} updateProfile={updateUserProfile} />
         <Tabs />
       </div>
