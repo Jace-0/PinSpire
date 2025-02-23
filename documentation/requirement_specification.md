@@ -12,10 +12,14 @@ Before a user can use the application, they must first register.
 
 ## Functionality Offered by the App
 
-### Before You Sign In:
+### Sign Up:
 
 - Users can create an account in the system using their email and password.
 - A unique username is automatically generated from the user's email, similar to Pinterest's style. This username cannot be changed.
+- A unique profile avatar is automatically generated from the user's email first initial, similar to Pinterest's style.
+
+### Log In:
+
 - Users can log in to the system by entering their existing email and password on the login form.
 - If the user does not exist, the system will notify them accordingly.
 
@@ -31,5 +35,3 @@ Before a user can use the application, they must first register.
 
 - Passwords are stored securely using industry-standard encryption.
 - The system includes measures to prevent unauthorized access and protect user data.
-
-## Additional Features:

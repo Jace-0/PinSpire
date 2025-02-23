@@ -17,19 +17,16 @@ export const pinService = {
 
   getPinById: async (pinId) => {
     const response = await api.get(`/pin/${pinId}`)
-    console.log('RESPONSE', response)
     return response.data
   },
 
   addComment : async (pinId, content) => {
     const response = await api.post(`/pin/${pinId}/comment`, content)
-    console.log(response.data)
     return response.data
   },
 
   likePin : async (pinId) => {
     const response = await api.post(`/pin/${pinId}/like`)
-    console.log(response.data)
     return response.data
   },
 
@@ -44,12 +41,10 @@ export const pinService = {
   },
   getUserPins : async (userId) => {
     const response = await api.get(`pin/user/${userId}`)
-    console.log('Response', response.data)
     return response.data.data
   },
   getLikedPins: async () => {
     const response = await api.get('pin/liked-pins/user')
-    console.log('Response LIkedPins', response)
     return response.data
   }
 }

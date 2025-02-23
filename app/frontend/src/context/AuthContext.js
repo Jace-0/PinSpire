@@ -10,8 +10,7 @@ export const AuthProvider = ({ children }) => {
   const [accessToken, setAccessToken] = useState(null)
   const [refreshToken, setRefreshToken] = useState(null)
   const [laoding, setLoading] = useState(true)
-  const [isConnected, setIsConnected] = useState(false)
-
+  const [isWebsocketConnected, setIsWebsocketConnected] = useState(false)
   // Persist auth state in session storage
   useEffect(() => {
     const storedAuth = sessionStorage.getItem('auth')
@@ -25,6 +24,8 @@ export const AuthProvider = ({ children }) => {
     setLoading(false)
   }, [])
 
+  const isAuthenticated = Boolean(user)
+
 
   // Websocket Connection Management
   useEffect(() => {
@@ -37,7 +38,7 @@ export const AuthProvider = ({ children }) => {
     } else {
       WebSocketManager.disconnect()
     }
-    setIsConnected(true)
+    setIsWebsocketConnected(true)
   }, [accessToken])
 
 
@@ -54,16 +55,11 @@ export const AuthProvider = ({ children }) => {
     setUser(user)
     setAccessToken(accessToken)
     setRefreshToken(refreshToken)
-
   }
-
 
   const handleLogin = async (credentials) => {
     const response = await authService.login(credentials)
-    console.log('Response', response)
     const { user, accessToken, refreshToken } = response
-
-    // Store in session storage (more secure than localStorage)
     sessionStorage.setItem('auth', JSON.stringify({
       user,
       accessToken,
@@ -73,21 +69,19 @@ export const AuthProvider = ({ children }) => {
     setUser(user)
     setAccessToken(accessToken)
     setRefreshToken(refreshToken)
-
   }
 
-  // useEffect(() => {
-  //   if (!user && !accessToken) {
-  //     sessionStorage.removeItem('auth')
-  //   }
-  // }, [user, accessToken])
-
-  const handleLogout = () => {
-    WebSocketManager.disconnect()
-    sessionStorage.removeItem('auth')
-    setUser(null)
-    setAccessToken(null)
-    setRefreshToken(null)
+  const handleLogout = async () => {
+    try {
+      await authService.logout()
+      WebSocketManager.disconnect()
+      sessionStorage.removeItem('auth')
+      setUser(null)
+      setAccessToken(null)
+      setRefreshToken(null)
+    } catch(error) {
+      console.error('Logout Error:',error )
+    }
   }
 
 
@@ -99,12 +93,12 @@ export const AuthProvider = ({ children }) => {
         accessToken,
         refreshToken,
         laoding,
-        isAuthenticated: !!accessToken,
         login: handleLogin,
         logout: handleLogout,
         signup : handleSignup,
         handleLogout,
-        isConnected,
+        isWebsocketConnected,
+        isAuthenticated
       }}
     >
       {children}

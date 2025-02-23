@@ -75,9 +75,6 @@ const errorHandler = (err, req, res, next) => {
       type: 'AUTH_ERROR'
     })
   }
-
-
-
 }
 
 

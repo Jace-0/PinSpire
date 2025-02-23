@@ -3,6 +3,8 @@ import { useNotifications } from '../../context/NotificationContext'
 const NotificationSystem = () => {
   const { notifications } = useNotifications()
 
+  console.log('Notification', notifications)
+
   return (
     <div className="notification-system">
       <div className={'notification-panel'}>
@@ -11,7 +13,7 @@ const NotificationSystem = () => {
         </div>
 
         <div className="notification-content">
-          {notifications.length === 0 ? (
+          {notifications.size === 0 ? (
             <div className="notification-empty">
               <p>No notifications yet</p>
             </div>

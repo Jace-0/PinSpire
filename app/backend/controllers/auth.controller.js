@@ -6,6 +6,7 @@ const redisClient = require('../util/redis')
 const User = require('../models/user')
 const { generateInitialAvatar } = require('../util/cloudinary')
 const { v4: uuidv4 } = require('uuid')
+const { CACHE_KEYS, } = require('../util/cache_KEY_TTL')
 
 const generateUsername = async (email) => {
   // Get base username from email (before @)
@@ -42,7 +43,7 @@ const authController = {
       const accessToken = jwt.sign(
         { id: user.id, email: user.email, username: user.username },
         process.env.JWT_SECRET,
-        { expiresIn: '1h' }  // Short lived
+        { expiresIn: '5h' }  // Short lived
       )
 
       const refreshToken = jwt.sign(
@@ -51,21 +52,15 @@ const authController = {
         { expiresIn: '7d' }  // Longer lived
       )
 
-      // Cache user data
-      await redisClient.set(
-        `user_${user.id}`,
-        JSON.stringify(user),
-        { EX: 3600 } // expires in 1 hour
-      )
-
       // Update last login
       await user.updateLastLogin()
 
       res.status(200).json({
         user: {
           id: user.id,
-          email: user.email,
-          username: user.username
+          username: user.username,
+          avatar_url: user.avatar_url
+
         },
         accessToken,
         refreshToken
@@ -127,26 +122,18 @@ const authController = {
       const accessToken = jwt.sign(
         { id: user.id, email: user.email, username: user.username },
         process.env.JWT_SECRET,
-        { expiresIn: '1h' }  // Short lived
+        { expiresIn: '3h' }
       )
 
       const refreshToken = jwt.sign(
         { id: user.id },
         process.env.REFRESH_SECRET,
-        { expiresIn: '7d' }  // Longer lived
-      )
-
-      // Cache user data
-      await redisClient.set(
-        `user_${user.id}`,
-        JSON.stringify(user),
-        { EX: 3600 }
+        { expiresIn: '7d' }
       )
 
       res.status(201).json({
         user: {
           id: user.id,
-          email: user.email,
           username: user.username,
           avatar_url: user.avatar_url
         },
@@ -183,7 +170,7 @@ const authController = {
       const newAccessToken = jwt.sign(
         { id: decoded.id },
         process.env.JWT_SECRET,
-        { expiresIn: '1h' }
+        { expiresIn: '3h' }
       )
       const now = Math.floor(Date.now() / 1000) // Current time in seconds
 
@@ -218,6 +205,13 @@ const authController = {
   logout: async (req, res, next) => {
     try {
       const token = req.header('Authorization').replace('Bearer ', '')
+
+      // Clear user cache
+      await Promise.all([
+        redisClient.del(CACHE_KEYS.user(req.user.username)),
+        redisClient.del(CACHE_KEYS.userPins(req.user.id)),
+        redisClient.del(CACHE_KEYS.userLikedPins(req.user.id)),
+      ])
 
       // Blacklist the token
       await redisClient.set(

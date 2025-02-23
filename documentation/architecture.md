@@ -4,74 +4,214 @@
 
 The structure of the program follows a multiple-level layer architecture, and the code compression structure is as follows:
 
-1. Frontend Layer
-2. API Gateway Layer
-3. Service Layer
-4. Background Processing
-5. Data Layer
-6. Infrastructure
+1. Frontend Architecture
+2. Backend Architecture
 
-![System Architecture](./pictures/PinSpire-2025-01-10-064324.png)
+![System Architecture](./assets/PinSpire-2025-02-23-215833.png)
 
 ---
 
-**Frontend Layer** is responsible for interacting with the user, handling inputs, and displaying outputs.
+# Frontend Architecture
 
-- **Components**: Contains all UI components and services.
-- **Technologies**: Utilizes the ReactJS framework for building the user interface and Nginx for serving the application.
+## Overview
 
-- **Key Features**:
-  - **Responsive Design**: Responsive design for optimal use on various devices.
-  - **State Management** : React Context API for efficient state management, allowing for a centralized and consistent state across the application.
+The Frontend Layer handles user interactions, state management, and UI rendering while ensuring responsive and efficient communication with the backend services.
+
+## Core Technologies
+
+- **ReactJS**
+
+  - Primary UI framework
+  - Component-based architecture
+  - Virtual DOM management
+  - JSX templating
+
+- **Material UI**
+
+  - UI components
+
+- **Axios**
+
+  - HTTP client
+  - Request/response interceptors
+  - API integration
+  - Error handling
+
+- **WebSocket**
+
+  - Real-time communications
+  - Event-driven updates
+  - Bi-directional data flow
+
+- **Nginx**
+
+  - Application serving
+  - Static file handling
+  <!-- - Reverse proxy -->
+
+- **React Router**
+  - Route management
+  - Navigation handling
+  - Route guards
+  - Dynamic routing
+
+## Architecture Components
+
+### 1. Component Layer
+
+#### Core Components
+
+- Reusable UI elements
+- Component composition
+- Props management
+- Event handling
+
+#### Page Components
+
+- Route-specific views
+- Layout management
+- Page-level state
+- Navigation handling
+
+### 2. State Management
+
+#### Context API Implementation
+
+- Global state containers
+- State providers
+- Custom hooks
+- State selectors
+
+#### WebSocket Client
+
+- Connection management
+- Event listeners
+- Notification handling
+- Message handling
+- Reconnection strategy
+
+### 3. Service Layer
+
+#### API Services
+
+- RESTful API integration
+- Request/response handling
+- Error management
 
 ---
 
-**API Gateway Layer** Uses Axios to manage API requests and responses through well-defined services, ensuring secure and efficient data exchange with the server
+# Backend Architecture
 
-- **Request Validator**:
+## Overview
 
-  - Validates JWT Authorization tokens in request headers
-  - Ensures request payload matches required schema
-  - Sanitizes input data to prevent injection attacks
-  - Manages CORS (Cross-Origin Resource Sharing) policies
-  - Logs incoming requests for monitoring and debugging
+The Backend Layer serves as the server-side component responsible for processing client requests, implementing business logic, and managing data operations.
 
-- **Authentication**:
-  - Manages user authentication and authorization using JWT
-  - Handles token refresh mechanism
-  <!-- - Implements role-based access control -->
-  - Provides secure session management
-  - Tracks authentication attempts and implements security measures
+## Core Technologies
+
+- **ExpressJS**
+  - Primary web framework for handling HTTP requests and responses
+  - Middleware management and routing
+- **WebSocket (ws)**
+  - Enables real-time bidirectional communication
+  - Handles live updates and notifications
+
+## Architecture Components
+
+### 1. Request Processing Pipeline
+
+#### Request Validator
+
+- JWT Authorization token validation
+- Schema validation for request payloads
+- Input sanitization for security
+- CORS policy management
+- Request logging and monitoring
+
+#### Authentication System
+
+- JWT-based authentication and authorization
+
+### 2. API Layer
+
+#### Routes
+
+- Defined API endpoints
+- HTTP method handlers
+- Middleware integration
+
+#### Controllers
+
+- Business logic implementation
+- Request/response handling
+- Service orchestration
+- Error management
+
+### 3. Data Management
+
+#### Database Integration
+
+- Sequelize ORM integration
+- Database models and schemas
+- Migration management
+- Data validation
+
+#### Caching System
+
+- Redis implementation
+- Cache invalidation strategies
+- Performance optimization
+- Frequently accessed data management
+
+### 4. Data Layer
+
+#### PostgreSQL (Primary Database)
+
+- Relational data storage
+- Complex queries and relationships
+- Data integrity and constraints
+- Structured data management
+
+#### Redis (Caching & Real-time)
+
+- Cache storage
+- Real-time data handling
+- Performance optimization
+
+#### Cloudinary (Media Storage)
+
+- Image storage
+- Secure media delivery
+
+## Key Features
+
+### 1. RESTful API Design
+
+- Consistent endpoint naming
+- Standard HTTP methods usage
+- Resource-oriented architecture
+- Clear request/response formats
+
+### 2. Security Implementation
+
+- Comprehensive authentication flow
+- Authorization mechanisms
+- Data encryption
+- Security best practices
+
+### 3. Data Handling
+
+- Input validation
+- Error handling
+- Response formatting
+- Data transformation
+
+### 4. Performance Optimization
+
+- Caching strategies
+- Query optimization
+- Response compression
 
 ---
-
-**Service Layer** : reponsible for handling request , Business logic and job queues.
-
-- **Routes**: Defines the API endpoints and their corresponding handlers.
-- **Controllers**: Contains the business logic for handling requests and responses, ensuring separation of concerns.
-
-- **Purpose**: Manages the server-side logic, including database interactions, authentication, and API definitions.
-- **Components**:
-
-  - **Database Models and Migrations**: Defines the structure of the database and handles schema changes using Sequelize.
-
-- **Key Features**:
-  - **RESTful API Design** : RESTful API design for clear and consistent endpoints for client-server communication, adhering to REST principles..
-  - **Secure Authentication**: Utilizes JWT for secure user authentication and authorization, ensuring data protection
-  - **Data Validation and Error Handling** : Implements comprehensive validation and error management to ensure robust API interactions.
-  - **Efficient Data Caching**: Uses Redis for caching frequently accessed data, improving response times and reducing database load.
-
----
-
-**Data Layer** : Multiple specialized storage systems:
-
-- PostgreSQL for relational data
-- Redis for caching and real-time features
-- Cloudinary for media storage
-
----
-
-- **Technologies**: Node.js with Express for server-side logic, Redis for caching, and PostgreSQL for relational data storage.
 
 ## Database Model Design
 

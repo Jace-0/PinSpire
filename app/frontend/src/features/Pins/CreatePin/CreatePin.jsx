@@ -46,7 +46,6 @@ const CreatePin = () => {
       formData.append('board', pinData.board)
       formData.append('image', pinData.image)
 
-      console.log('FormData', formData)
       // for (let [key, value] of formData.entries()) {
       //   console.log(`${key}:`, value instanceof File ? {
       //     name: value.name,
@@ -58,7 +57,7 @@ const CreatePin = () => {
       const response = await pinService.createPin(formData)
 
       if (response.success) {
-        setSnackbarMessage(' Pin created successfully ')
+        setSnackbarMessage('Pin created successfully')
         setSnackbarSeverity('success')
         setOpenSnackbar(true)
         setTimeout(() => {

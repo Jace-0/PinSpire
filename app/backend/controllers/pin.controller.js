@@ -4,21 +4,7 @@ const { sequelize, Op } = require('../util/db')
 const { validatePinData } = require('../validators/pin.validator')
 const { Pin, Like, Comment, CommentReply, User } = require('../models')
 const { uploadPin } = require('../util/cloudinary')
-
-const CACHE_KEYS = {
-  pin: (id) => `pin:${id}`,
-  userPins: (userId) => `user:${userId}:pins`,
-  allPins : (cursor, limit) =>  `pins:${cursor || 'latest'}:${limit}`,
-  likedPins: (userId) => `user:${userId}:liked:pins`
-}
-
-const CACHE_TTL = {
-  PIN: 3600,          // 1 hour
-  USER_PINS: 3600,    // 1 hour
-  RECENT_PINS: 1800,   // 30 minutes
-  LIKED_PINS: 1600,
-  ALL_PINS: 3600, // 1 hour
-}
+const { CACHE_KEYS, CACHE_TTL } = require('../util/cache_KEY_TTL')
 
 const pinController = {
   // pin controller
@@ -189,10 +175,16 @@ const pinController = {
         user_id: userId
       })
 
-      // Invalidate related caches
+
+      // Find all pin feed cache keys
+      const feedKeys = await redisClient.keys('pins:*')
+
+      // Invalidate all necessary caches
       await Promise.all([
-        redisClient.del(CACHE_KEYS.userPins(userId)),    // User's pins list
-        // redisClient.del(CACHE_KEYS.allPins()),            // Pin feed list
+      // Clear user's pin list
+        redisClient.del(CACHE_KEYS.userPins(req.user.id)),
+        // Clear all feed caches
+        ...feedKeys.map(key => redisClient.del(key))
       ])
 
       // Get pin with associations
@@ -287,7 +279,7 @@ const pinController = {
       // Build query
       const query = {
         attributes: {
-          exclude: ['created_at', 'updated_at', 'createdAt', 'updatedAt']
+          exclude: ['updated_at', 'updatedAt']
         },
         include: [{
           model: User,
@@ -353,8 +345,6 @@ const pinController = {
       const pinId = req.params.id
       const { content } = req.body
 
-      console.log('NEW COMMENT YA', content, 'ID', pinId )
-
       // Validate content
       if (!content || content.trim().length === 0) {
         return res.status(400).json({
@@ -379,7 +369,7 @@ const pinController = {
         content: content.trim()
       })
 
-      if (pin.user_id && pin.user_id !== comment.userId && req.app.ws) {
+      if (pin.user_id && pin.user_id !== comment.user_id && req.app.ws) {
         //  the WebSocket server instance from app
         req.app.ws.sendNotification(pin.user_id, {
           type: 'notification',
@@ -395,9 +385,7 @@ const pinController = {
       }
 
       // Invalidate related Redis caches
-      await Promise.all([
-        redisClient.del(CACHE_KEYS.pin(pinId))
-      ])
+      await redisClient.del(CACHE_KEYS.pin(pinId))
 
       // Get comment with user details
       const commentWithUser = await Comment.findOne({
@@ -457,7 +445,7 @@ const pinController = {
         await existingLike.destroy()
 
         // Invalidate cache
-        await redisClient.del(`pin:${pinId}`)
+        await redisClient.del(CACHE_KEYS.pin(pinId))
 
         return res.status(200).json({
           success: true,
@@ -490,7 +478,7 @@ const pinController = {
       }
 
       // Invalidate cache
-      await redisClient.del(`pin:${pinId}`)
+      await redisClient.del(CACHE_KEYS.pin(pinId))
 
       return res.status(200).json({
         success: true,
@@ -535,7 +523,7 @@ const pinController = {
 
 
       // Invalidate cache
-      await redisClient.del(`pin:${comment.pin_id}`)
+      await redisClient.del(CACHE_KEYS.pin(comment.pin_id))
 
       // Get reply with user details
       const replyWithUser = await CommentReply.findOne({
@@ -580,7 +568,6 @@ const pinController = {
       const commentId = req.params.commentId
 
 
-      console.log('LIKE COMMENT', commentId )
       // Check if comment exists
       const comment = await Comment.findByPk(commentId)
       if (!comment) {
@@ -589,8 +576,6 @@ const pinController = {
           message: 'Comment not found'
         })
       }
-
-      console.log('Comment', comment.dataValues)
 
       // Check if user already liked the comment
       const existingLike = await Like.findOne({
@@ -606,7 +591,7 @@ const pinController = {
         await existingLike.destroy()
 
         // Invalidate cache
-        await redisClient.del(`pin:${comment.pin_id}`)
+        await redisClient.del(CACHE_KEYS.pin(comment.pin_id))
 
         return res.status(200).json({
           success: true,
@@ -641,7 +626,7 @@ const pinController = {
       }
 
       // Invalidate cache
-      await redisClient.del(`pin:${comment.pin_id}`)
+      await redisClient.del(CACHE_KEYS.pin(comment.pin_id))
 
 
       return res.status(200).json({
@@ -659,13 +644,13 @@ const pinController = {
     const userId = req.user.id
 
     // check redis cache
-    const cacheKey = CACHE_KEYS.likedPins(userId)
+    const cacheKey = CACHE_KEYS.userLikedPins(userId)
     const cachedData = await redisClient.get(cacheKey)
     if (cachedData) {
       const parsed = JSON.parse(cachedData)
       return res.status(200).json({
         success: true,
-        data: parsed,
+        data: parsed.likedPins,
         source: 'cache'
       })
     }
@@ -698,7 +683,7 @@ const pinController = {
     await redisClient.setEx(
       cacheKey,
       CACHE_TTL.LIKED_PINS,
-      JSON.stringify(likedPins)
+      JSON.stringify({ likedPins })
     )
 
     return res.status(200).json({

@@ -2,11 +2,11 @@ import React, { useEffect, useState, useRef, useCallback, createContext, useCont
 import WebSocketManager from '../utils/websocketManager'
 import { useAuth } from './AuthContext'
 
-
 const NotificationContext = createContext()
 
 export const NotificationProvider = ({ children }) => {
-  const { isConnected } = useAuth()
+  const { isWebsocketConnected } = useAuth()
+
   const [unreadCount, setUnreadCount] = useState(0)
   const [notifications, setNotifications] = useState(new Set())
   const wsClient = useRef(null)
@@ -21,7 +21,7 @@ export const NotificationProvider = ({ children }) => {
     // Check if WebSocket is initialized
       const ws = WebSocketManager.getInstance()
 
-      if (ws && isConnected && !subscribed) {
+      if (ws && isWebsocketConnected && !subscribed) {
         const handleNotification = (message) => {
           handleNewNotification(message.data)
         }
@@ -34,14 +34,14 @@ export const NotificationProvider = ({ children }) => {
       }
     }
 
-    if (isConnected) {
+    if (isWebsocketConnected) {
       initializeNotifications()
     }
 
     return () => {
       subscribed = false
     }
-  }, [isConnected])
+  }, [isWebsocketConnected])
 
 
   const handleNewNotification = (notification) => {

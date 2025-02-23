@@ -5,13 +5,54 @@ const redisClient = require('../util/redis')
 const { uploadProfileImg } = require('../util/cloudinary')
 const { User, Follower } = require('../models/index')
 const { sequelize, Op } = require('../util/db')
+const { CACHE_KEYS, CACHE_TTL } = require('../util/cache_KEY_TTL')
+
+const invalidateUserRelatedCache = async (userId) => {
+  try {
+    // Get all cache keys that need to be invalidated
+    const [feedKeys, likedKeys] = await Promise.all([
+      redisClient.keys('pins:*'),         // All feed caches
+      redisClient.keys(`user:${userId}:*`) // All user-related caches
+    ])
+
+    // Combine all keys that need to be deleted
+    const keysToDelete = [
+      CACHE_KEYS.user(userId),           // User profile
+      CACHE_KEYS.userPins(userId),       // User's pins
+      CACHE_KEYS.userLikedPins(userId),      // User's liked pins
+      ...feedKeys,                       // Feed caches
+      ...likedKeys                       // Any other user-specific caches
+    ]
+
+    // Delete all keys in parallel
+    await Promise.all(
+      keysToDelete.map(key => redisClient.del(key))
+    )
+
+    // logger.info(`Cache invalidated for user ${userId}`)
+  } catch (error) {
+    // logger.error('Cache invalidation error:', error)
+    throw new Error('Failed to invalidate cache', error)
+  }
+}
 
 const userController = {
   // user controller
   getUserById: async (req, res, next) => {
     try {
-
       const userId = req.params.id
+
+      // Check Redis cache
+      const cacheKey = CACHE_KEYS.user(userId)
+      const cachedData = await redisClient.get(cacheKey)
+      if (cachedData) {
+        const parsed = JSON.parse(cachedData)
+        return res.status(200).json({
+          success: true,
+          data: parsed.user,
+          source: 'cache'
+        })
+      }
 
       // Find user by ID
       const user = await User.findById(userId)
@@ -27,7 +68,7 @@ const userController = {
       }
 
       // Cache user data in Redis for future requests
-      await redisClient.setEx(`user:${userId}`, 3600, JSON.stringify(user))
+      await redisClient.setEx(cacheKey, CACHE_TTL.USER, JSON.stringify({ user }))
 
       return res.status(200).json({
         success: true,
@@ -43,10 +84,19 @@ const userController = {
     try {
       const username = req.params.username
 
-      // Find user by ID
+      // Check Redis cache
+      const cacheKey = CACHE_KEYS.user(username)
+      const cachedData = await redisClient.get(cacheKey)
+      if (cachedData) {
+        const parsed = JSON.parse(cachedData)
+        return res.status(200).json({
+          success: true,
+          data: parsed.user,
+          source: 'cache'
+        })
+      }
+
       const user = await User.findByUsername(username)
-      // .select('-password') // Exclude password from response
-      // .lean(); // Convert to plain JS object
 
       // Check if user exists
       if (!user) {
@@ -57,10 +107,11 @@ const userController = {
       }
 
       // Cache user data in Redis for future requests
-      await redisClient.setEx(`user:${username}`, 3600, JSON.stringify(user))
+      await redisClient.setEx(cacheKey, CACHE_TTL.USER, JSON.stringify({ user }))
 
       return res.status(200).json({
         success: true,
+        source: 'database',
         data: user
       })
 
@@ -106,8 +157,8 @@ const userController = {
         }
       })
 
-      // Invalidate Redis cache
-      await redisClient.del(`user:${userId}`)
+      // Invalidate all related caches
+      await invalidateUserRelatedCache(userId)
 
       return res.status(200).json({
         success: true,
@@ -142,8 +193,15 @@ const userController = {
         })
       }
 
+      // iF user Exist
+      const user = await User.findOne({ where: { id: userId } })
+
+      if (!user){
+        return res.status(400).json({ Error: 'Not authenticated' })
+      }
+
       // Upload to Cloudinary
-      const imageUrl = await uploadProfileImg(file)
+      const imageUrl = await uploadProfileImg(file, userId, user.dataValues.username)
 
       // Update user's avatar_url
       const [updated] = await User.update({
@@ -167,8 +225,9 @@ const userController = {
         }
       })
 
-      // Invalidate Redis cache
-      await redisClient.del(`user:${userId}`)
+      // Invalidate all related caches
+      await invalidateUserRelatedCache(userId)
+
 
       return res.status(200).json({
         success: true,
@@ -184,17 +243,23 @@ const userController = {
       const userId = req.user.id
       const followingId = req.params.id // ID of user to follow
 
+      // check if user exist
+      const followingUser = await User.findOne({ where: { id: followingId } })
+      if (!followingUser){
+        return res.status(404).json({ Error :'User does not Exist' })
+      }
+
       const existingFollow = await Follower.findOne({
         where: {
           follower_id: userId,
           following_id: followingId
-        }
+        },
       })
-
 
       if (existingFollow) {
         // unfollow if already followed
         await existingFollow.destroy()
+        await redisClient.del(CACHE_KEYS.user(followingUser.username))
         return res.status(200).json({ message: 'Successfully unfollowed' })
       }
 
@@ -216,6 +281,7 @@ const userController = {
           }
         })
       }
+      await redisClient.del(CACHE_KEYS.user(followingUser.username))
 
       res.status(200).json({ message: 'Successfully followed' })
     } catch (error) {

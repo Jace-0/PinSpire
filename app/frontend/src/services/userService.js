@@ -15,7 +15,6 @@ export const userService = {
   },
   updateAvatar: async (userId, formData) => {
     try {
-      console.log('FormData',formData)
       const response = await api.put(
         `/user/profile/settings/${userId}/avatar`,
         formData,

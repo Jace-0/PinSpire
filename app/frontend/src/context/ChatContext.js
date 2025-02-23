@@ -5,7 +5,7 @@ import { useAuth } from './AuthContext'
 const ChatContext = createContext()
 
 export const ChatProvider = ({ children }) => {
-  const { isConnected } = useAuth()
+  const { isWebsocketConnected } = useAuth()
   const [selectedChat, setSelectedChat] = useState(null)
 
   // toggle UI
@@ -20,11 +20,11 @@ export const ChatProvider = ({ children }) => {
   const [messagesByChat, setMessagesByChat] = useState([])
   const [isInitialized, setIsInitialized] = useState(false)
 
+  // Notification
+  const [messageNotificationCount, setMessageNotificationCount ] = useState(0)
 
   const handleChatMessage = useCallback((message) => {
     const { id, chat_id, content, sender_id, created_at, status, updated_at } = message.data
-
-    console.log('Message Sent', message)
 
     if (message && message.data) {
       setMessagesByChat(prevMessages => {
@@ -40,6 +40,12 @@ export const ChatProvider = ({ children }) => {
           return prevMessages
         }
 
+        // Only increment notification if user is recipient
+        const { user } = JSON.parse(sessionStorage.getItem('auth'))
+
+        if (sender_id !== user.id) {
+          setMessageNotificationCount(prev => prev + 1)
+        }
         return [...prevMessages, message.data]
       })
     }
@@ -58,7 +64,6 @@ export const ChatProvider = ({ children }) => {
     setChats(prev => {
       const updatedChats = prev.map(chat => {
         if (chat.id === chat_id) {
-          console.log('THIS CHAT', chat)
           return {
             ...chat,
             lastMessage
@@ -72,19 +77,10 @@ export const ChatProvider = ({ children }) => {
     })
   }, [])
 
-  console.log('MESSAGRDDDDD', messagesByChat)
-
-  console.log('Chat', chats)
-
-
   // Send message helper
   const sendMessage = useCallback(async (chatId, content) => {
-    console.log('CHatId', chatId)
-    console.log('content', content)
-
     try {
       const ws = WebSocketManager.getInstance()
-      console.log('WS', ws)
       if (!ws) throw new Error('WebSocket not connected')
 
       await ws.sendMessage('send_message', {
@@ -106,7 +102,7 @@ export const ChatProvider = ({ children }) => {
       // Check if WebSocket is initialized
       const ws = WebSocketManager.getInstance()
 
-      if (ws && isConnected && !subscribed) {
+      if (ws && isWebsocketConnected && !subscribed) {
 
         WebSocketManager.subscribe('message_sent', handleChatMessage)
         subscribed = true
@@ -117,14 +113,18 @@ export const ChatProvider = ({ children }) => {
       }
     }
 
-    if (isConnected) {
+    if (isWebsocketConnected) {
       initializeChat()
     }
 
     return () => {
       subscribed = false
     }
-  }, [isConnected, handleChatMessage])
+  }, [isWebsocketConnected, handleChatMessage])
+
+  const clearMessageNotification = () => {
+    setMessageNotificationCount(0)
+  }
 
 
   const value = {
@@ -142,7 +142,9 @@ export const ChatProvider = ({ children }) => {
     setIsInitialized,
     sendMessage,
     messagesByChat,
-    setMessagesByChat
+    setMessagesByChat,
+    messageNotificationCount,
+    clearMessageNotification
   }
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>
@@ -152,7 +154,7 @@ export const ChatProvider = ({ children }) => {
 export const ChatContexts = () => {
   const context = useContext(ChatContext)
   if (!context) {
-    throw new Error('ChatContexts must be used within the UserProvider')
+    throw new Error('ChatContexts must be used within the AuthProvider')
   }
   return context
 }

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import { userService } from '../../services/userService'
 import { chatService } from '../../services/chatService'
@@ -16,6 +16,18 @@ const NewMessaging = () => {
     setIsNewMessageBodyOpen
   } = ChatContexts()
 
+  const handleSearch = useCallback(async () => {
+    setIsLoading(true)
+    try {
+      const response = await userService.searchUser(username)
+      setSearchResults(response)
+    } catch (error) {
+      console.error('Search failed:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [username])
+
   // Debounce search to avoid too many API calls
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -27,28 +39,14 @@ const NewMessaging = () => {
     }, 1000)
 
     return () => clearTimeout(timeoutId)
-  }, [username])
+  }, [username, handleSearch])
 
-
-
-  const handleSearch = async () => {
-    setIsLoading(true)
-    try {
-      const response = await userService.searchUser(username)
-      setSearchResults(response)
-    } catch (error) {
-      console.error('Search failed:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const handleInputChange = (e) => {
     setUsername(e.target.value)
   }
 
   const createNewChat = async (userId) => {
-    console.log('ID', userId)
     const chat = await chatService.createNewChat(userId)
     setSelectedChat(chat.id)
     setIsNewMessageBodyOpen(false)

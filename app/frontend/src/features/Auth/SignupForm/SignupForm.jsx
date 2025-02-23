@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { TextField, Button, Card, CardContent, Typography, Box, Snackbar, Alert } from '@mui/material'
+import { TextField, Button, Card, CardContent, Typography, Box } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../context/AuthContext'
+import CustomSnackbar from '../../../components/common/CustomSnackBar'
 const SignupForm = () => {
   const navigate = useNavigate()
 
@@ -64,7 +65,7 @@ const SignupForm = () => {
       // Delay navigation
       setTimeout(() => {
         navigate('/')
-      }, 1000) // 1 second
+      }, 5000) // 1 second
 
     } catch (error) {
       console.error(error)
@@ -142,38 +143,12 @@ const SignupForm = () => {
           </Typography>
         </CardContent>
       </Card>
-      <Snackbar
+      <CustomSnackbar
         open={openSnackbar}
-        autoHideDuration={6000}
+        message={snackbarMessage}
+        severity={snackbarSeverity}
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={handleCloseSnackbar}
-          severity={snackbarSeverity}
-          sx={{
-            width: '100%',
-            borderRadius: '16px',
-            fontWeight: 500,
-            '&.MuiAlert-standardSuccess': {
-              backgroundColor: '#E60023',
-              color: 'white',
-              '& .MuiAlert-icon': {
-                color: 'white'
-              }
-            },
-            '&.MuiAlert-standardError': {
-              backgroundColor: '#cc0000',
-              color: 'white',
-              '& .MuiAlert-icon': {
-                color: 'white'
-              }
-            }
-          }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
+      />
     </Box>
   )
 }

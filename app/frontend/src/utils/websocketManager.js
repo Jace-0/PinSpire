@@ -1,4 +1,5 @@
 import WebSocketClient from './WebSocketClient'
+import logger from './logger'
 
 class WebSocketManager {
   static instance = null
@@ -30,10 +31,9 @@ class WebSocketManager {
 
   static subscribe(type, handler) {
     if (!WebSocketManager.instance) {
-      console.warn('WebSocket not initialized. Call initialize first.')
+      logger.warn('WebSocket not initialized. Call initialize first.')
       return
     }
-
     // Add handler to WebSocket client
     WebSocketManager.instance.on(type, handler)
 
@@ -45,6 +45,7 @@ class WebSocketManager {
 
   static disconnect() {
     if (WebSocketManager.instance) {
+      WebSocketManager.instance.isIntentionalClosure = true
       WebSocketManager.instance.close()
       WebSocketManager.instance = null
       WebSocketManager.token = null
@@ -53,8 +54,6 @@ class WebSocketManager {
   }
 
   sendMessage(type, data) {
-    console.log('Manager Type ', type)
-    console.log('Manager Data ', data)
     if (!WebSocketManager.instance) {
       throw new Error('WebSocket not initialized')
     }
@@ -64,18 +63,18 @@ class WebSocketManager {
   static startMonitoringHandlers(interval = 5000) {
     setInterval(() => {
       const handlers = this.instance.getMessageHandler()
+      /*
       console.group('WebSocket Handlers Monitor')
       console.log('Timestamp:', new Date().toISOString())
       console.log('Active Handlers:', handlers)
       console.log('Total Handlers:', Object.keys(handlers).length)
       console.groupEnd()
+      */
     }, interval)
 
-    console.log('Started monitoring WebSocket handlers')
+    // console.log('Started monitoring WebSocket handlers')
   }
 
 }
 
 export default WebSocketManager
-
-

@@ -1,5 +1,5 @@
 // authentication middleware
-const logger = require('../util/logger')
+// const logger = require('../util/logger')
 const jwt = require('jsonwebtoken')
 const redisClient = require('../util/redis')
 

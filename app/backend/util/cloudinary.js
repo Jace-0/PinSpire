@@ -9,8 +9,12 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 })
 
-const uploadProfileImg = async (file) => {
+const uploadProfileImg = async (file, userId, username) => {
+
   try {
+    // Delete previous images with complete folder paths
+    await cloudinary.uploader.destroy(`avatars/defaults/default_${username}_`)
+    await cloudinary.uploader.destroy(`avatars/avatar_${userId}_`)
 
     // Convert buffer to base64
     const b64 = Buffer.from(file.buffer).toString('base64')
@@ -18,8 +22,10 @@ const uploadProfileImg = async (file) => {
 
     const result = await cloudinary.uploader.upload(dataURI, {
       folder: 'avatars',
+      public_id: `avatar_${userId}_`,
       resource_type: 'auto'
     })
+
     return result.secure_url
   } catch (error) {
     logger.error('Cloudinary upload error:', error)
@@ -49,7 +55,7 @@ const generateInitialAvatar = async (username) => {
 
     const result = await cloudinary.uploader.upload('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', {
       folder: 'avatars/defaults',
-      public_id: `default_${username}_${Date.now()}`,
+      public_id: `default_${username}_`,
       transformation: transformation
     })
 
@@ -78,5 +84,29 @@ const uploadPin = async (file) => {
     throw new Error('Image upload failed')
   }
 }
-module.exports = { uploadProfileImg, generateInitialAvatar, uploadPin }
+
+const clearFolder = async (folders) => {
+  try {
+    const result = await Promise.all(
+      folders.map(folder =>
+        cloudinary.api.delete_resources_by_prefix(folder, {
+          type: 'upload',
+          resource_type: 'image'
+        })
+      )
+    )
+    // const result = await cloudinary.api.delete_resources_by_prefix(folder, {
+    //   type: 'upload',
+    //   resource_type: 'image'
+    // })
+    logger.info('CLEARED CLOUDINARY', result)
+    logger.info('Cloudinary storage cleared successfully')
+
+  } catch (error) {
+    logger.error(`Failed to clear folder ${folders}:`, error)
+    throw new Error('Folder cleanup failed')
+  }
+}
+
+module.exports = { uploadProfileImg, generateInitialAvatar, uploadPin, clearFolder }
 

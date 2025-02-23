@@ -47,8 +47,6 @@ export const PinProvider = ({ children }) => {
   }
 
   const handleCommentReply = async () => {
-    console.log('commentId', commentId)
-    console.log('Content', replyComment)
     try {
       if (!commentId || !replyComment.trim()) return
 
@@ -64,7 +62,6 @@ export const PinProvider = ({ children }) => {
 
   const handleCommentLike = async (commentId) => {
     try {
-      console.log('CommentId =>', commentId)
       await pinService.likeComment(commentId)
       // Refresh pin data to get updated like count
       await getPin(pin.id)
@@ -94,7 +91,7 @@ export const PinProvider = ({ children }) => {
 export const usePin = () => {
   const context = useContext(PinContext)
   if (!context) {
-    throw new Error('usePin must be used within a PinProvider')
+    throw new Error('usePin must be used within a AuthProvider')
   }
   return context
 }

@@ -11,7 +11,7 @@ router.get('/ping', (req, res) => {
 // Auth routes
 router.post('/login', sanitizeInput, authController.login)
 router.post('/signup', sanitizeInput, authController.signup)
-router.post('/refresh-token', authentication, authController.refreshToken)
+router.post('/refresh-token', sanitizeInput, authController.refreshToken)
 router.post('/logout', authentication, authController.logout)
 
 

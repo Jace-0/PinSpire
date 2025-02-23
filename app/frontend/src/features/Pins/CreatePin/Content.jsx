@@ -91,15 +91,14 @@ const Content = ({ pinData, setPinData }) => {
               </>
             ):(
               <div className="upload-container">
-                <i className="fas fa-arrow-up-from-bracket upload-icon"
+                {/* <i className="fa-solid fa-arrow-up-from-bracket"
                   onClick={handleOpenFileExplorer}
                   style={{ cursor: 'pointer' }}
-                ></i>
+                ></i> */}
                 <p className="primary-text">Choose a file or drag and drop it here</p>
                 <p className="secondary-text">We recommend using high quality .jpg files less than 20MB</p>
-                <button className="url-button">
-                  <i className="fas fa-link"></i>
-                  Save from URL
+                <button className="explorer-button" onClick={handleOpenFileExplorer}>
+                  Open Explorer
                 </button>
               </div>
             )}

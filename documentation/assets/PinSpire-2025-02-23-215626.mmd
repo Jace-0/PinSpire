@@ -1,0 +1,41 @@
+graph TB
+    subgraph "Frontend Layer"
+        UI[User Interface]
+        CL[Component Layer]
+        SL[Service Layer]
+        SM[State Management]
+        
+        UI --> CL
+        CL --> SM
+        CL --> SL
+        SM --> SL
+    end
+
+    subgraph "Communication Layer"
+        REST[REST API]
+        WS[WebSocket]
+        SL --> REST
+        SL --> WS
+    end
+
+    subgraph "Backend Layer"
+        RPP[Request Processing Pipeline]
+        API[API Layer]
+        DM[Data Management]
+        
+        REST --> RPP
+        WS --> RPP
+        RPP --> API
+        API --> DM
+    end
+
+    subgraph "Data Layer"
+        PG[(PostgreSQL)]
+        RD[(Redis)]
+        CD[(Cloudinary)]
+        
+        DM --> PG
+        DM --> RD
+        DM --> CD
+    end
+

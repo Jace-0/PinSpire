@@ -13,7 +13,6 @@ const LoginForm = () => {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
   const { login } = useAuth() // Access the signup function from context
 
   const validateEmail = (email) => {
@@ -24,14 +23,12 @@ const LoginForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!email || !validateEmail(email)) {
-      setError('Please enter a valid email address.')
       setSnackbarMessage('Please enter a valid email address.')
       setSnackbarSeverity('error')
       setOpenSnackbar(true)
       return
     }
     if (!password) {
-      setError('Password cannot be empty.')
       setSnackbarMessage('Password cannot be empty.')
       setSnackbarSeverity('error')
       setOpenSnackbar(true)
@@ -48,11 +45,10 @@ const LoginForm = () => {
       // Delay navigation
       setTimeout(() => {
         navigate('/')
-      }, 1000) // 1 second delay
+      }, 5000) // 1 second delay
 
     } catch (error) {
-      console.error(error)
-      // setError(error.message)
+      // console.error(error)
       setSnackbarMessage( error.message || 'Login failed')
       setSnackbarSeverity('error')
       setOpenSnackbar(true)

@@ -43,12 +43,13 @@ app.use('/api/user', userRoutes)
 app.use('/api/pin', pinRoutes)
 app.use('/api/chat', chatRouter)
 
+if (process.env.NODE_ENV === 'test') {
+  const testRouter = require('./routes/test.router')
+  app.use('/api/test', testRouter)
+}
+
 app.use(middleware.unknownEndpoint)
 app.use(middleware.errorHandler)
-
-
-
-
 
 
 /* START APP  */

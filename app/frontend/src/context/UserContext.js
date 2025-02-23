@@ -49,7 +49,7 @@ export const UserProvider = ({ children }) => {
 export const UserCnxt = () => {
   const context = useContext(UserContext)
   if (!context) {
-    throw new Error('UserCnxt must be used within the UserProvider')
+    throw new Error('UserCnxt must be used within the authProvider')
   }
   return context
 }

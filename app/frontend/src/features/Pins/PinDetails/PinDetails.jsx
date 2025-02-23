@@ -4,6 +4,7 @@ import { pinService } from '../../../services/pinService'
 import { useEffect, useState, useRef } from 'react'
 import { usePin } from '../../../context/PinContext'
 import { useParams } from 'react-router-dom'
+import LoadingSpinner from '../../../components/common/LoadingSpinner'
 
 const PinDetails = () => {
   const { id } = useParams()
@@ -13,7 +14,7 @@ const PinDetails = () => {
     getPin(id)
   }, [id])
 
-  if (loading) return <h2>Loading...</h2>
+  if (loading) return <LoadingSpinner/>
   if (!pin) return <h2>Pin not found</h2>
 
   return (
@@ -55,7 +56,6 @@ const PinContentSection = () => {
 const UserInfo = () => {
   const { pin, handleLike } = usePin()
   const user = pin.user
-  console.log('PINNN', pin)
 
   return (
     <div className="user-info-container">
@@ -76,7 +76,8 @@ const UserInfo = () => {
         </button>
         <h2 className="like-count">{pin.like_count}</h2>
       </div>
-    </div>)
+    </div>
+  )
 }
 
 
@@ -118,7 +119,7 @@ const PinInfo = () => {
   return (
     <div className="pin-info">
       <h1 className="pin-title-pin">{pin.title }</h1>
-      <h3 className='pin-description'>{renderDescription()}</h3>
+      <h3 className="pin-description">{renderDescription()}</h3>
     </div>
   )
 }
@@ -151,7 +152,6 @@ const PinCommentsSection = () => {
 
 const PinCommentsList = () => {
   const { pin } = usePin()
-  console.log('PIN COMMENT', pin.comments)
   return (
     <div className="pin-comments-list">
       {pin.comments && pin.comments.map((comment) => (
@@ -170,8 +170,6 @@ const CommentSection = ({ comment }) => {
   const inputRef = useRef(null)
   const [showReplies, setShowReplies] = useState(false)
   const hasReplies = comment.replies && comment.replies.length > 0
-
-  console.log('COMMENT Details', comment)
 
   const handleSubmitReply = async () => {
     if (!replyComment.trim()) return
@@ -340,7 +338,8 @@ const PinCommentInput = () => {
       >
         <i className="fas fa-paper-plane"></i>
       </button>
-    </div>)
+    </div>
+  )
 }
 
 export default PinDetails

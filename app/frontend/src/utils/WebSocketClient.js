@@ -1,14 +1,16 @@
+import logger from '../utils/logger'
 class WebSocketClient {
   constructor(baseUrl, token) {
     this.baseUrl = baseUrl
     this.token = token
     this.ws = null
+    this.messageHandlers = new Map()
     this.reconnectAttempts = 0
     this.maxReconnectAttempts = 5
     this.reconnectTimeout = 1000
-    this.messageHandlers = new Map()
-
-    this.connect()
+    this.isIntentionalClosure = false
+    this.pingInterval = null
+    // this.connect()
   }
 
   connect() {
@@ -19,7 +21,7 @@ class WebSocketClient {
     this.ws = new WebSocket(url.toString())
 
     this.ws.onopen = () => {
-      console.log('Connected to WebSocket server')
+      // logger.info('Connected to WebSocket server')
       this.reconnectAttempts = 0
 
       // periodic ping to keep connection alive
@@ -29,13 +31,17 @@ class WebSocketClient {
     }
 
     this.ws.onclose = (event) => {
-      console.log('WebSocket connection closed:', event.code)
+      // logger.info('WebSocket connection closed:', event.code)
       clearInterval(this.pingInterval)
-      this.handleReconnection()
+      // console.log('isIntentionalClosure', this.isIntentionalClosure)
+      if (!this.isIntentionalClosure){
+        this.handleReconnection()
+      }
     }
 
+
     this.ws.onerror = (error) => {
-      console.error('WebSocket error:', error)
+      logger.error('WebSocket error:', error)
     }
 
     this.ws.onmessage = (event) => {
@@ -43,17 +49,17 @@ class WebSocketClient {
         const message = JSON.parse(event.data)
         if (message.type === 'pong') {
           this.sendMessage('pong', {})
-          console.log('Client responded with pong')
+          // console.log('Client responded with pong')
         }
 
-        console.log('Message WS client', message)
-        console.log('Handlers', this.messageHandlers)
+        // console.log('Message WS client', message)
+        // console.log('Handlers', this.messageHandlers)
 
         if (message.type && this.messageHandlers.has(message.type)) {
           this.messageHandlers.get(message.type)(message)
         }
       } catch (error) {
-        console.error('Error parsing message:', error)
+        // console.error('Error parsing message:', error)
       }
     }
   }
@@ -65,27 +71,27 @@ class WebSocketClient {
   handleReconnection() {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++
-      console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`)
+      logger.info(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`)
 
       setTimeout(() => {
         this.connect()
       }, this.reconnectTimeout * this.reconnectAttempts)
     } else {
-      console.error('Max reconnection attempts reached')
+      logger.error('Max reconnection attempts reached')
     }
   }
 
   sendMessage(type, data) {
-    console.log('Client TY', type)
-    console.log('Client DT', data)
+    // console.log('Client TY', type)
+    // console.log('Client DT', data)
     if (this.ws?.readyState === WebSocket.OPEN) {
-      console.log('Sent')
+      // console.log('Sent')
       this.ws.send(JSON.stringify({
         type,
         data
       }))
     } else {
-      console.error('WebSocket is not connected')
+      logger.error('WebSocket is not connected')
     }
   }
 
