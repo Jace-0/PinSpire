@@ -13,7 +13,8 @@ const NewMessaging = () => {
   const {
     setSelectedChat,
     setOpenChat,
-    setIsNewMessageBodyOpen
+    setIsNewMessageBodyOpen,
+    setIsInitialized
   } = ChatContexts()
 
   const handleSearch = useCallback(async () => {
@@ -51,6 +52,7 @@ const NewMessaging = () => {
     setSelectedChat(chat.id)
     setIsNewMessageBodyOpen(false)
     setOpenChat(true)
+    setIsInitialized(false) //update chat list
 
 
   }

@@ -7,9 +7,8 @@
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^6.3.1",
     "@mui/material": "^6.3.0",
-    "@reduxjs/toolkit": "^2.5.0",
-    "@tanstack/react-query": "^5.62.11",
     "axios": "^1.7.9",
+    "core-js": "^3.40.0",
     "cra-template": "1.2.0",
     "nginx": "^1.0.8",
     "react": "^19.0.0",
@@ -17,11 +16,12 @@
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.1.1",
     "react-scripts": "5.0.1",
+    "regenerator-runtime": "^0.14.1",
     "web-vitals": "^4.2.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "start": "webpack serve --mode=development",
+    "build": "webpack --mode=production",
     "eject": "react-scripts eject",
     "lint": "eslint",
     "lint:fix": "eslint . --fix",
@@ -48,6 +48,7 @@
     ]
   },
   "devDependencies": {
+    "@babel/core": "^7.26.9",
     "@babel/preset-env": "^7.26.7",
     "@babel/preset-react": "^7.26.3",
     "@eslint/js": "^9.17.0",
@@ -56,13 +57,22 @@
     "@testing-library/react": "^16.2.0",
     "@testing-library/user-event": "^14.6.1",
     "babel-jest": "^29.7.0",
+    "babel-loader": "^9.2.1",
+    "copy-webpack-plugin": "^12.0.2",
     "cross-env": "^7.0.3",
+    "css-loader": "^7.1.2",
+    "dotenv-webpack": "^8.1.0",
     "eslint": "^8.57.1",
     "eslint-plugin-react": "^7.37.3",
     "eslint-plugin-react-hooks": "^5.1.0",
     "globals": "^15.14.0",
+    "html-webpack-plugin": "^5.6.3",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
+    "style-loader": "^4.0.0",
+    "webpack": "^5.98.0",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.0",
     "whatwg-fetch": "^3.6.20"
   }
 }

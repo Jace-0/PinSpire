@@ -1,5 +1,5 @@
 // context/AuthContext.jsx
-import { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useState } from 'react'
 import WebSocketManager from '../utils/websocketManager'
 import { authService } from '../services/auth.service'
 

@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { authService } from './auth.service'
 
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api'
+const BASE_URL = process.env.APP_API_URL
 
 // Main API instance for authenticated routes
 const api = axios.create({
