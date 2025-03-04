@@ -30,14 +30,14 @@ const logout = () => {
 
 // User API Test
 const userApi = `${baseApi}/user`
-const updateUserProfileData = (userId) => {
+const updateUserProfileData = () => {
   return api
-    .put(`${userApi}/profile/settings/${userId}`)
+    .put(`${userApi}/profile/settings`)
 }
 
-const updateUserProfileAvatar = (userId) => {
+const updateUserProfileAvatar = () => {
   return api
-    .put(`${userApi}/profile/settings/${userId}/avatar`)
+    .put(`${userApi}/profile/settings/avatar`)
 }
 
 const getUserData = (userId) => {

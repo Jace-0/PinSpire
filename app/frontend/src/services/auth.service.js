@@ -6,7 +6,6 @@ export const authService = {
   login: async (credentials) => {
     try{
       const response = await authApi.post('/auth/login', credentials)
-
       return response.data
     } catch (error) {
       throw handleApiError(error)
@@ -16,7 +15,6 @@ export const authService = {
   signup: async (userData) => {
     try {
       const response = await authApi.post('/auth/signup', userData)
-      console.log('RESPONSE', response)
       return response.data
     }catch (error) {
       throw handleApiError(error)

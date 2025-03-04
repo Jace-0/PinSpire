@@ -7,7 +7,7 @@ const { User, Follower } = require('../models/index')
 const { sequelize, Op } = require('../util/db')
 const { CACHE_KEYS, CACHE_TTL } = require('../util/cache_KEY_TTL')
 
-const invalidateUserRelatedCache = async (userId) => {
+const invalidateUserRelatedCache = async (userId, username) => {
   try {
     // Get all cache keys that need to be invalidated
     const [feedKeys, likedKeys] = await Promise.all([
@@ -17,7 +17,7 @@ const invalidateUserRelatedCache = async (userId) => {
 
     // Combine all keys that need to be deleted
     const keysToDelete = [
-      CACHE_KEYS.user(userId),           // User profile
+      CACHE_KEYS.user(username),           // User profile
       CACHE_KEYS.userPins(userId),       // User's pins
       CACHE_KEYS.userLikedPins(userId),      // User's liked pins
       ...feedKeys,                       // Feed caches
@@ -123,7 +123,7 @@ const userController = {
   // Update user by ID
   updateUser: async (req, res, next ) => {
     try {
-      const userId = req.params.id
+      const userId = req.user.id
       const updates = req.body
 
       // Check if updates object is empty
@@ -158,7 +158,7 @@ const userController = {
       })
 
       // Invalidate all related caches
-      await invalidateUserRelatedCache(userId)
+      await invalidateUserRelatedCache(userId, req.user.username)
 
       return res.status(200).json({
         success: true,
@@ -182,7 +182,7 @@ const userController = {
     // })
 
     try {
-      const userId = req.params.id
+      const userId = req.user.id
       const file = req.file
 
 
@@ -197,7 +197,7 @@ const userController = {
       const user = await User.findOne({ where: { id: userId } })
 
       if (!user){
-        return res.status(400).json({ Error: 'Not authenticated' })
+        return res.status(400).json({ Error: 'Not Found' })
       }
 
       // Upload to Cloudinary
@@ -226,7 +226,7 @@ const userController = {
       })
 
       // Invalidate all related caches
-      await invalidateUserRelatedCache(userId)
+      await invalidateUserRelatedCache(userId, req.user.username)
 
 
       return res.status(200).json({
@@ -260,6 +260,7 @@ const userController = {
         // unfollow if already followed
         await existingFollow.destroy()
         await redisClient.del(CACHE_KEYS.user(followingUser.username))
+        await redisClient.del(CACHE_KEYS.user(req.user.username))
         return res.status(200).json({ message: 'Successfully unfollowed' })
       }
 
@@ -282,6 +283,7 @@ const userController = {
         })
       }
       await redisClient.del(CACHE_KEYS.user(followingUser.username))
+      await redisClient.del(CACHE_KEYS.user(req.user.username))
 
       res.status(200).json({ message: 'Successfully followed' })
     } catch (error) {

@@ -5,11 +5,12 @@ const cors = require('cors')
 const { PORT } = require('./util/config')
 const { connectToDatabase } = require('./util/db')
 const WebSocketServer = require('./util/websocket')
+const path = require('path')
 
 const logger = require('./util/logger')
 
 // Middleware imports
-const sessionMiddleware = require('./middleware/session')
+// const sessionMiddleware = require('./middleware/session')
 const middleware = require('./middleware/middleware')
 // Route imports
 const authRoutes = require('./routes/auth.router')
@@ -31,11 +32,17 @@ app.ws = wsServer
 
 app.use(cors())
 app.use(express.json())
-app.use(sessionMiddleware)
+// app.use(sessionMiddleware) JWT
 app.use(middleware.requestLogger)
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' })
+})
+
+// Serve static frontend
+app.use(express.static('build'))
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'))
 })
 
 app.use('/api/auth', authRoutes)

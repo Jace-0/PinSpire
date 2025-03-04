@@ -1,19 +1,13 @@
 import { useState } from 'react'
 import { TextField, Button, Card, CardContent, Typography, Box } from '@mui/material'
-import CustomSnackbar from '../../../components/common/CustomSnackBar'
 import { useAuth } from '../../../context/AuthContext'
-import { useNavigate } from 'react-router-dom'
+import { useSnackbarNotification } from '../../../context/snackbarNotificationContext'
 
 const LoginForm = () => {
-  const navigate = useNavigate()
-
-  const [openSnackbar, setOpenSnackbar] = useState(false)
-  const [snackbarMessage, setSnackbarMessage] = useState('')
-  const [snackbarSeverity, setSnackbarSeverity] = useState('success')
-
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const { login } = useAuth() // Access the signup function from context
+  const { showNotification } = useSnackbarNotification()
 
   const validateEmail = (email) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -23,44 +17,26 @@ const LoginForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!email || !validateEmail(email)) {
-      setSnackbarMessage('Please enter a valid email address.')
-      setSnackbarSeverity('error')
-      setOpenSnackbar(true)
+      showNotification('Please enter a valid email address.','error' )
       return
     }
     if (!password) {
-      setSnackbarMessage('Password cannot be empty.')
-      setSnackbarSeverity('error')
-      setOpenSnackbar(true)
+      showNotification('Password cannot be empty.','error' )
       return
     }
 
     try {
       const userData = { email, password }
       await login(userData)
-      setSnackbarMessage('Login successful!')
-      setSnackbarSeverity('success')
-      setOpenSnackbar(true)
-
-      // Delay navigation
-      setTimeout(() => {
-        navigate('/')
-      }, 5000) // 1 second delay
+      showNotification('Login successful!','success' )
 
     } catch (error) {
       // console.error(error)
-      setSnackbarMessage( error.message || 'Login failed')
-      setSnackbarSeverity('error')
-      setOpenSnackbar(true)
+      showNotification( error.message || 'Login failed','error' )
     }
   }
 
-  const handleCloseSnackbar = (event, reason) => {
-    if (reason === 'clickaway') {
-      return
-    }
-    setOpenSnackbar(false)
-  }
+
 
   return (
     <Box display='flex' justifyContent='Center' alignItems='center' minHeight="100vh" bgcolor="#f5f5f5"   sx={{ fontFamily: 'Noto Sans, sans-serif', overflow: 'hidden', paddingRight: 2 }}>
@@ -114,12 +90,6 @@ const LoginForm = () => {
           </form>
         </CardContent>
       </Card>
-      <CustomSnackbar
-        open={openSnackbar}
-        message={snackbarMessage}
-        severity={snackbarSeverity}
-        onClose={handleCloseSnackbar}
-      />
     </Box>
   )
 }

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import '@testing-library/jest-dom'
 import 'whatwg-fetch'
 
@@ -55,14 +56,17 @@ const originalWarn = console.warn
 
 beforeAll(() => {
   console.error = (...args) => {
-    if (args[0]?.includes('Warning:')) return
+    // Check if args[0] is a string before using includes
+    if (typeof args[0] === 'string' && args[0].includes('Warning:')) return
     originalError.call(console, ...args)
   }
   console.warn = (...args) => {
-    if (args[0]?.includes('Warning:')) return
+    // Check if args[0] is a string before using includes
+    if (typeof args[0] === 'string' && args[0].includes('Warning:')) return
     originalWarn.call(console, ...args)
   }
 })
+
 
 afterAll(() => {
   console.error = originalError

@@ -68,9 +68,7 @@ const Navigation = () => {
       </div>
       {/* Show notifications panel when bell is clicked */}
       {showNotifications && (
-        <div>
-          <NotificationSystem />
-        </div>
+        <NotificationSystem />
       )}
 
       {showMessages && (

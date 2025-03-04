@@ -136,9 +136,6 @@ const chatController = {
       const userId = req.user.id
       const { chat_id, content } = req.body
 
-      console.log('RECEIVED', req.body)
-      console.log('USER ID', userId)
-
       // check if chat exist
       const chatExist = await Chat.findOne({
         where: {

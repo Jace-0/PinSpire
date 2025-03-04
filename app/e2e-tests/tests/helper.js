@@ -5,14 +5,12 @@ const signUpUser = async (page, email = 'test@pinspire.com', password = 'test01'
   await page.getByRole('textbox', { name: 'Password' }).fill(password)
   await page.getByRole('textbox', { name: 'Date' }).fill('2001-02-13')
   await page.getByRole('button', { name: 'Sign Up'}).click()
-  await page.getByText('SignUp successful!').waitFor({ state: 'visible'})
   // await expect(page.getByText('SignUp successful!')).toBeVisible()
 
   // Wait for navigation with explicit timeout
-  await Promise.all([
-    page.waitForURL('/', { timeout: 80000 }),
-    page.waitForLoadState('networkidle')
-  ])
+  await page.waitForURL('/',  { timeout: 8000 }),
+  await page.getByText('SignUp successful!').waitFor({ state: 'visible'}),
+  await page.waitForLoadState('networkidle')
 }
 
 const signUpNewUser = async ( page, email, password) => {

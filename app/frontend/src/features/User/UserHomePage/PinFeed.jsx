@@ -69,7 +69,7 @@ const PinFeed = () => {
       <Header />
       <div className="home-container">
         <div className="pins-grid">
-          {pins.map((pin, index) => (
+          {pins && pins.map((pin, index) => (
             <div
             // Attach observer to last pin
               key={pin.id}

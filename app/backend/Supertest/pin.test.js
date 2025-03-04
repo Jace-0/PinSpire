@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /*
  Integration Tests: Pin Management, Social Interaction Features & Notifications
 Test Coverage:
@@ -16,15 +17,13 @@ Test Coverage:
  */
 
 const logger = require('../util/logger')
-const { test, before, after, beforeEach, afterEach, describe } = require('node:test')
+const { test, before, after, describe } = require('node:test')
 const assert = require('node:assert')
 const path = require('path')
 const { sequelize } = require('../util/db')
 const { User, Pin, Like, Comment, CommentReply } = require('../models/index')
 const redisClient = require('../util/redis')
 const WebSocket = require('ws')
-
-
 
 const {
   server,
@@ -36,48 +35,22 @@ const {
   replyComment
 } = require('./test_helper')
 
-const testUsers = {
-  JACE: {
-    email: 'jace@test.com',
-    password: 'Test123!@#',
-    username: 'jace',
-    dob: '2001-01-01'
-  },
-  MATTI: {
-    email: 'matti@test.com',
-    password: 'secret',
-    username: 'matti',
-    dob: '2001-01-02'
-  }
-}
 
 let port
-before(async () => {
-  try {
-    await sequelize.authenticate()
-    logger.info('Test database connected')
-    port = server.listen().address().port
-  } catch (error) {
-    logger.error('Database connection failed:', error)
-    throw error
-  }
-})
+// console.log('FROM PIN INTEGRATION')
 
-after(async () => {
-  try {
-    await sequelize.close()
-    await redisClient.quit()
-    logger.info('Test database connection closed')
-  } catch (error) {
-    logger.error('Error closing database:', error)
-    throw error
-  }
-})
+
 
 /* PIN INTEGRATION TEST  */
 describe('Pin Test', () => {
-  beforeEach(async () => {
+
+  before(async () => {
     try {
+      await sequelize.authenticate()
+      logger.info('Test database connected')
+      port = server.listen().address().port
+
+      // Cleanup database
       await sequelize.query('SET session_replication_role = replica')
 
       await Promise.all([
@@ -86,21 +59,52 @@ describe('Pin Test', () => {
       ])
 
       await sequelize.query('SET session_replication_role = default')
-
     } catch (error) {
-      logger.error('Database cleanup error', error)
+      logger.error('Database connection failed:', error)
       throw error
     }
   })
 
+  after(async () => {
+    try {
+      await sequelize.close()
+      await redisClient.quit()
+      logger.info('Test database connection closed')
+      // await Promise.all([
+      //   User.destroy({ truncate: true, cascade: true }),
+      //   Pin.destroy({ truncate: true, cascade: true })
+      // ])
+      logger.info('Cleaned databased')
+    } catch (error) {
+      logger.error('Error closing database:', error)
+      throw error
+    }
+  })
+
+  const testUsers = {
+    JACE: {
+      email: 'jace@test.com',
+      password: 'Test123!@#',
+      username: 'jace',
+      dob: '2001-01-01'
+    },
+    MATTI: {
+      email: 'matti@test.com',
+      password: 'secret',
+      username: 'matti',
+      dob: '2001-01-02'
+    }
+  }
 
   let JACE, JACE_TOKENS
   let MATTI, MATTI_TOKENS
   let testPin
-  let notificationPayload
-  let wsClient
+  let jaceNotificationPayload
+  let jaceWsClient
+  let mattiNotificationPayload
+  let mattiWsClient
 
-  beforeEach(async () => {
+  before(async () => {
     // Create test user (JACE)
     const response = await createUser(testUsers.JACE)
       .expect(201)
@@ -112,7 +116,7 @@ describe('Pin Test', () => {
       refreshToken: response.body.refreshToken
     }
 
-    // Create test user that will perform like, comment, like comment and comment reply (Matti Luukkainen)
+    // Create test user that will perform like, comment, like comment and comment reply operations (Matti Luukkainen)
     const user = await createUser(testUsers.MATTI)
       .expect(201)
 
@@ -122,20 +126,17 @@ describe('Pin Test', () => {
       refreshToken: user.body.refreshToken
     }
 
-    // Create a test pin for like operations
-    testPin = await createPin()
-      .set('Authorization', `Bearer ${JACE_TOKENS.accessToken}`)
-      .field('title', testPinInfo.title)
-      .field('description', testPinInfo.description)
-      .field('external_url', testPinInfo.external_url)
-      .attach('image', testPinInfo.image_url)
-      .expect(201)
-      .expect('Content-Type', /application\/json/)
-
     // Initialize WebSocket client for user (JACE)
-    wsClient = new WebSocket(
+    jaceWsClient = new WebSocket(
       `ws://localhost:${port}?token=${JACE_TOKENS.accessToken}`
     )
+
+    // Initialize WebSocket client for user (MATTI)
+    mattiWsClient = new WebSocket(
+      `ws://localhost:${port}?token=${MATTI_TOKENS.accessToken}`
+    )
+
+
 
     // Wait for WebSocket connection with proper error handling
     await new Promise((resolve, reject) => {
@@ -143,40 +144,57 @@ describe('Pin Test', () => {
         reject(new Error('WebSocket connection timeout'))
       }, 5000)
 
-      wsClient.on('open', () => {
+      jaceWsClient.on('open', () => {
         clearTimeout(timeout)
-        logger.info('WebSocket connected successfully')
+        logger.info(' jaceWsClient connected successfully')
+        resolve()
+      })
+      mattiWsClient.on('open', () => {
+        clearTimeout(timeout)
+        logger.info('mattiWsClient connected successfully')
         resolve()
       })
 
-      wsClient.on('error', (error) => {
+      jaceWsClient.on('error', (error) => {
         clearTimeout(timeout)
-        logger.error('WebSocket connection error:', error)
+        logger.error('jaceWsClient connection error:', error)
+        reject(error)
+      })
+      mattiWsClient.on('error', (error) => {
+        clearTimeout(timeout)
+        logger.error('mattiWsClient connection error:', error)
         reject(error)
       })
 
       // Listen for notifications
-      wsClient.on('message', (data) => {
-        logger.info('Received notification:', data.toString())
-        notificationPayload  = JSON.parse(data)
+      jaceWsClient.on('message', (data) => {
+        logger.info('Jace Received notification:', data.toString())
+        jaceNotificationPayload  = JSON.parse(data)
+      })
+
+      mattiWsClient.on('message', (data) => {
+        logger.info('Matti Received notification:', data.toString())
+        mattiNotificationPayload  = JSON.parse(data)
       })
     })
 
   })
 
 
-  afterEach(async () => {
+  after(async () => {
     // Clean up WebSocket connection
-    if (wsClient?.readyState === WebSocket.OPEN) {
+    if (jaceWsClient?.readyState === WebSocket.OPEN && mattiWsClient?.readyState === WebSocket.OPEN) {
       await new Promise(resolve => {
-        wsClient.on('close', resolve)
-        wsClient.close()
+        jaceWsClient.on('close', resolve)
+        jaceWsClient.close()
+        mattiWsClient.on('close', resolve)
+        mattiWsClient.close()
       })
     }
-    logger.info('PAYLOAD BEFORE CLEANUP', notificationPayload)
+    logger.info('PAYLOAD BEFORE CLEANUP', jaceNotificationPayload)
     // Reset notification
-    notificationPayload  = null
-    logger.info('PAYLOAD AFTER CLEANUP', notificationPayload)
+    jaceNotificationPayload  = null
+    logger.info('PAYLOAD AFTER CLEANUP', jaceNotificationPayload)
 
   })
 
@@ -189,101 +207,104 @@ describe('Pin Test', () => {
     external_url : 'https://nl.pinterest.com/pin/2181499815227379/',
     image_url: testImagePath
   }
-
-  test('POST /api/pin - should create a new pin successfully', async () => {
-    const response = await createPin()
-      .set('Authorization', `Bearer ${JACE_TOKENS.accessToken}`)
-      .field('title', testPinInfo.title)
-      .field('description', testPinInfo.description)
-      .field('external_url', testPinInfo.external_url)
-      .attach('image', testPinInfo.image_url)
-      .expect(201)
-
-    const { data } = response.body
-
-    assert.strictEqual(response.body.success, true)
-    assert.strictEqual(response.body.message, 'Pin created successfully')
-    assert.deepStrictEqual(data.title, testPinInfo.title)
-    assert.equal(data.description, testPinInfo.description)
-    assert.ok(data.image_url)
-    assert.strictEqual(data.user.id, JACE.id)
-  })
-
-  test('POST /api/pin - should fail without authentication', async () => {
-
-    try {
-      //wrap in try/catch for some reason server connection reset 'ECONNRESET'
+  describe('Create pin Tests', () => {
+    test('POST /api/pin - should create a new pin successfully', async () => {
       const response = await createPin()
+        .set('Authorization', `Bearer ${JACE_TOKENS.accessToken}`)
         .field('title', testPinInfo.title)
         .field('description', testPinInfo.description)
         .field('external_url', testPinInfo.external_url)
         .attach('image', testPinInfo.image_url)
-        .expect(401)
-        .expect('Content-Type', /application\/json/)
+        .expect(201)
 
-      logger.info('Response', response)
-      assert.strictEqual(response.body.error, 'Please authenticate')
-    }catch(error){
-      logger.info('Error:', error)
-    }
+      const { data } = response.body
+      testPin = data // used as test pin for other interaction test
+      assert.strictEqual(response.body.success, true)
+      assert.strictEqual(response.body.message, 'Pin created successfully')
+      assert.deepStrictEqual(data.title, testPinInfo.title)
+      assert.equal(data.description, testPinInfo.description)
+      assert.ok(data.image_url)
+      assert.strictEqual(data.user.id, JACE.id)
+    })
+
+    test('POST /api/pin - should fail without authentication', async () => {
+
+      try {
+        //wrap in try/catch for some reason server connection reset 'ECONNRESET'
+        const response = await createPin()
+          .field('title', testPinInfo.title)
+          .field('description', testPinInfo.description)
+          .field('external_url', testPinInfo.external_url)
+          .attach('image', testPinInfo.image_url)
+          .expect(401)
+          .expect('Content-Type', /application\/json/)
+
+        logger.info('Response', response)
+        assert.strictEqual(response.body.error, 'Please authenticate')
+      }catch(error){
+        logger.info('Error:', error)
+      }
+
+    })
+
+
+    test('POST /api/pin - should fail without image', async () => {
+
+      const response = await createPin()
+        .set('Authorization', `Bearer ${JACE_TOKENS.accessToken}`)
+        .field('title', testPinInfo.title)
+        .field('description', testPinInfo.description)
+        .field('external_url', testPinInfo.external_url)
+        // Intentionally not attaching image
+        .expect(400)
+
+      assert.strictEqual(response.body.success, false)
+      assert.strictEqual(response.body.message, 'Pin image is required')
+    })
+
+
+    test('POST /api/pin - should fail with invalid data', async () => {
+
+      const response = await createPin()
+        .set('Authorization', `Bearer ${JACE_TOKENS.accessToken}`)
+        .field('title', '')
+        .field('description', testPinInfo.description)
+        .field('external_url', 'hello')
+        .attach('image', testPinInfo.image_url)
+        .expect(400)
+
+      const { errors } = response.body
+
+
+      assert.equal(response.body.success, false)
+      assert.ok(response.body.errors)
+      assert.strictEqual(errors[0].message, 'Title cannot be empty' )
+      assert.strictEqual(errors[1].message, 'Invalid source URL format' )
+    })
+
+
+    test('POST /api/pins - should handle invalid image format', async () => {
+      const testTextPath = path.join(__dirname, 'test-files/test.txt')
+
+      const response = await createPin()
+        .set('Authorization', `Bearer ${JACE_TOKENS.accessToken}`)
+        .field('title', '')
+        .field('description', testPinInfo.description)
+        .field('external_url', 'hello')
+        .attach('image', testTextPath)
+        .expect(400)
+
+      assert.strictEqual(response.body.error, 'Only images are allowed')
+    })
 
   })
 
-
-  test('POST /api/pin - should fail without image', async () => {
-
-    const response = await createPin()
-      .set('Authorization', `Bearer ${JACE_TOKENS.accessToken}`)
-      .field('title', testPinInfo.title)
-      .field('description', testPinInfo.description)
-      .field('external_url', testPinInfo.external_url)
-      // Intentionally not attaching image
-      .expect(400)
-
-    assert.strictEqual(response.body.success, false)
-    assert.strictEqual(response.body.message, 'Pin image is required')
-  })
-
-
-  test('POST /api/pin - should fail with invalid data', async () => {
-
-    const response = await createPin()
-      .set('Authorization', `Bearer ${JACE_TOKENS.accessToken}`)
-      .field('title', '')
-      .field('description', testPinInfo.description)
-      .field('external_url', 'hello')
-      .attach('image', testPinInfo.image_url)
-      .expect(400)
-
-    const { errors } = response.body
-
-
-    assert.equal(response.body.success, false)
-    assert.ok(response.body.errors)
-    assert.strictEqual(errors[0].message, 'Title cannot be empty' )
-    assert.strictEqual(errors[1].message, 'Invalid source URL format' )
-  })
-
-
-  test('POST /api/pins - should handle invalid image format', async () => {
-    const testTextPath = path.join(__dirname, 'test-files/test.txt')
-
-    const response = await createPin()
-      .set('Authorization', `Bearer ${JACE_TOKENS.accessToken}`)
-      .field('title', '')
-      .field('description', testPinInfo.description)
-      .field('external_url', 'hello')
-      .attach('image', testTextPath)
-      .expect(400)
-
-    assert.strictEqual(response.body.error, 'Only images are allowed')
-  })
   describe('Like Pin Tests', () => {
 
     test('POST /api/pin/:id/like - should like a pin successfully and recieve Like Notification through Websocket in real-time', async () => {
 
       // IF SAME USER WHO CREATED THE PIN LIKES IT,  (Server won't send notification)
-      const response = await likePin(testPin.body.data.id) // created by jace
+      const response = await likePin(testPin.id) // created by jace
         .set('Authorization', `Bearer ${MATTI_TOKENS.accessToken}`)
         .expect(200)
 
@@ -299,7 +320,7 @@ describe('Pin Test', () => {
         }, 5000)
 
         const checkInterval = setInterval(() => {
-          if (notificationPayload ) {
+          if (jaceNotificationPayload ) {
             clearInterval(checkInterval)
             clearTimeout(timeout)
             resolve()
@@ -308,33 +329,33 @@ describe('Pin Test', () => {
       })
 
       // Verify notification payload
-      assert.ok(notificationPayload , 'Should receive notification')
-      assert.strictEqual(notificationPayload.type, 'notification')
-      assert.strictEqual(notificationPayload.data.data.type, 'Like') // Like action
-      assert.strictEqual(notificationPayload.data.data.content.username, MATTI.username, ' User name that performed action' )
+      assert.ok(jaceNotificationPayload , 'Should receive notification')
+      assert.strictEqual(jaceNotificationPayload.type, 'notification')
+      assert.strictEqual(jaceNotificationPayload.data.data.type, 'Like') // Like action
+      assert.strictEqual(jaceNotificationPayload.data.data.content.username, MATTI.username, ' User name that performed action' )
 
       // Verify like was created in database
       const like = await Like.findOne({
         where: {
           user_id: MATTI.id,
-          likeable_id: testPin.body.data.id,
+          likeable_id: testPin.id,
           likeable_type: 'pin'
         }
       })
 
       assert.ok(like.dataValues.id, 'Like record should have a valid ID')
-      assert.strictEqual(like.dataValues.likeable_id, testPin.body.data.id, 'Like record should reference the correct pin ID')
+      assert.strictEqual(like.dataValues.likeable_id, testPin.id, 'Like record should reference the correct pin ID')
       assert.strictEqual(like.dataValues.user_id, MATTI.id, 'Like record should be associated with the correct user ID')
     })
 
     test('POST /api/pin/:id/like - should unlike a previously liked pin', async () => {
       // First like the pin
-      await likePin(testPin.body.data.id)
+      await likePin(testPin.id)
         .set('Authorization', `Bearer ${JACE_TOKENS.accessToken}`)
         .expect(200)
 
       // Then try to like again (should unlike)
-      const response = await likePin(testPin.body.data.id)
+      const response = await likePin(testPin.id)
         .set('Authorization', `Bearer ${JACE_TOKENS.accessToken}`)
         .expect(200)
 
@@ -346,7 +367,7 @@ describe('Pin Test', () => {
       const like = await Like.findOne({
         where: {
           user_id: JACE.id,
-          likeable_id: testPin.body.data.id,
+          likeable_id: testPin.id,
           likeable_type: 'pin'
         }
       })
@@ -365,36 +386,37 @@ describe('Pin Test', () => {
     })
 
     test('POST /api/pin/:id/like - should fail without authentication', async () => {
-      const response = await likePin(testPin.body.data.id)
+      const response = await likePin(testPin.id)
         .expect(401)
 
       assert.strictEqual(response.body.error, 'Please authenticate' )
     })
 
   })
+
+  let mattiComment
   describe('Comment Tests', () => {
-
     test('POST /api/pin/:id/comment - adds comment, returns comment with user details, and sends real-time notification to pin owner', async () => {
-
       const commentData = {
-        content: 'Dog are awesome creatures ONE'
+        content: 'Dogs are awesome creatures from Matti Luukkainen'
       }
 
-      let pinId = testPin.body.data.id
+      let pinId = testPin.id
 
       const response = await commentPin(pinId)
         .set('Authorization', `Bearer ${MATTI_TOKENS.accessToken}`)
         .send(commentData)
         .expect(201)
 
+      mattiComment = response.body.data
 
       assert.strictEqual(response.body.success, true)
       assert.strictEqual(response.body.message, 'Comment added')
 
-      assert.deepStrictEqual(response.body.data.content, commentData.content)
+      assert.deepStrictEqual(mattiComment.content, commentData.content)
       // Verify user info
-      assert.deepStrictEqual(response.body.data.user.id, MATTI.id)
-      assert.deepStrictEqual(response.body.data.user.username, MATTI.username)
+      assert.deepStrictEqual(mattiComment.user.id, MATTI.id)
+      assert.deepStrictEqual(mattiComment.user.username, MATTI.username)
 
 
       // Wait for notification with timeout
@@ -404,7 +426,7 @@ describe('Pin Test', () => {
         }, 5000)
 
         const checkInterval = setInterval(() => {
-          if (notificationPayload ) {
+          if (jaceNotificationPayload ) {
             clearInterval(checkInterval)
             clearTimeout(timeout)
             resolve()
@@ -413,10 +435,10 @@ describe('Pin Test', () => {
       })
 
       // Verify notification payload
-      assert.ok(notificationPayload , 'Should receive notification')
-      assert.strictEqual(notificationPayload.type, 'notification')
-      assert.strictEqual(notificationPayload.data.data.type, 'Comment') // Comment action
-      assert.strictEqual(notificationPayload.data.data.content.username, MATTI.username, ' User name that performed action' )
+      assert.ok(jaceNotificationPayload , 'Should receive notification')
+      assert.strictEqual(jaceNotificationPayload.type, 'notification')
+      assert.strictEqual(jaceNotificationPayload.data.data.type, 'Comment') // Comment action
+      assert.strictEqual(jaceNotificationPayload.data.data.content.username, MATTI.username, ' User name that performed action' )
 
       // Verify comment was created in database
       const comment = await Comment.findOne({
@@ -432,7 +454,7 @@ describe('Pin Test', () => {
 
     test('POST /api/pin/:id/comment - should fail with empty content', async () => {
 
-      let pinId = testPin.body.data.id
+      let pinId = testPin.id
 
       const commentData = {
         content: ''
@@ -464,7 +486,7 @@ describe('Pin Test', () => {
 
     test('POST /api/pin/:id/comment - should fail without authentication', async () => {
 
-      let pinId = testPin.body.data.id
+      let pinId = testPin.id
 
       const commentData = {
         content: 'This is a test comment'
@@ -479,22 +501,12 @@ describe('Pin Test', () => {
   })
 
   describe('Like Comment Tests', () => {
-    let mattiComment
+    // Like existing comment by Matti Lukkainen
 
-    beforeEach(async () => {
-      // Create a test comment for like operations
-      mattiComment = await commentPin(testPin.body.data.id)
-        .set('Authorization', `Bearer ${MATTI_TOKENS.accessToken}`)
-        .send({
-          content: 'Dogs are awesome creatures from Matti Luukkainen',
-        })
-        .expect(201)
-    })
+    test('POST /api/comment/:commentId/like - should like a comment successfully and send Comment Like Notification throgh Websocket in real-time to comment owner', async () => {
 
-    test('POST /api/comment/:commentId/like - should like a comment successfully and recieve Comment Like Notification throgh Websocket in real-time', async () => {
-
-      logger.info('Matti comment id', mattiComment.body.data.id)
-      const response = await likeComment(mattiComment.body.data.id)
+      logger.info('Matti comment id', mattiComment.id)
+      const response = await likeComment(mattiComment.id)
         .set('Authorization', `Bearer ${JACE_TOKENS.accessToken}`)
         .expect(200)
 
@@ -509,7 +521,7 @@ describe('Pin Test', () => {
         }, 5000)
 
         const checkInterval = setInterval(() => {
-          if (notificationPayload ) {
+          if (jaceNotificationPayload ) {
             clearInterval(checkInterval)
             clearTimeout(timeout)
             resolve()
@@ -518,17 +530,17 @@ describe('Pin Test', () => {
       })
 
       // Verify notification payload
-      assert.ok(notificationPayload , 'Should receive notification')
-      assert.strictEqual(notificationPayload.type, 'notification')
-      assert.strictEqual(notificationPayload.data.data.type, 'LikeComment') // Like action
-      assert.strictEqual(notificationPayload.data.data.content.username, JACE.username, ' User name that performed action' )
-      assert.strictEqual(notificationPayload.data.data.content.pinId, mattiComment.body.data.id, 'Pin Id should match' )
+      assert.ok(mattiNotificationPayload , 'Should receive notification')
+      assert.strictEqual(mattiNotificationPayload.type, 'notification')
+      assert.strictEqual(mattiNotificationPayload.data.data.type, 'LikeComment') // Like action
+      assert.strictEqual(mattiNotificationPayload.data.data.content.username, JACE.username, ' User name that performed action' )
+      assert.strictEqual(mattiNotificationPayload.data.data.content.pinId, testPin.id, 'Pin Id should match' )
 
       // Verify like was created in database
       const like = await Like.findOne({
         where: {
           user_id: JACE.id,
-          likeable_id: mattiComment.body.data.id,
+          likeable_id: mattiComment.id,
           likeable_type: 'comment'
         }
       })
@@ -536,13 +548,8 @@ describe('Pin Test', () => {
     })
 
     test('POST /api/comment/:commentId/like - should unlike a previously liked comment', async () => {
-      // First like the comment
-      await likeComment(mattiComment.body.data.id) // test comment from matti
-        .set('Authorization', `Bearer ${JACE_TOKENS.accessToken}`)
-        .expect(200)
-
-      // Then try to like again (should unlike)
-      const response = await  await likeComment(mattiComment.body.data.id)
+      // Unlike previous liked the comment
+      const response = await likeComment(mattiComment.id) // test comment from matti
         .set('Authorization', `Bearer ${JACE_TOKENS.accessToken}`)
         .expect(200)
 
@@ -554,7 +561,7 @@ describe('Pin Test', () => {
       const like = await Like.findOne({
         where: {
           user_id: JACE.id,
-          likeable_id: mattiComment.body.data.id,
+          likeable_id: mattiComment.id,
           likeable_type: 'comment'
         }
       })
@@ -573,34 +580,21 @@ describe('Pin Test', () => {
     })
 
     test('POST /api/comments/:commentId/like - should fail without authentication', async () => {
-      const response = await likeComment(mattiComment.body.data.id)
+      const response = await likeComment(mattiComment.id)
         .expect(401)
 
       assert.strictEqual(response.body.error, 'Please authenticate')
     })
   })
 
-
   describe('Reply Comment Tests', () => {
-    let mattiComment
 
-    beforeEach(async () => {
-      // Create a test comment for like operations
-      mattiComment = await commentPin(testPin.body.data.id)
-        .set('Authorization', `Bearer ${MATTI_TOKENS.accessToken}`)
-        .send({
-          content: 'Dogs are awesome creatures THREE',
-        })
-        .expect(201)
-
-    })
-
-    test('POST /api/comment/:commentId/replies - should add reply successfully and recieve Comment Reply Notification through websocket in real-time', async () => {
+    test('POST /api/comment/:commentId/replies - should add reply successfully and comment owner should recieve Comment Reply Notification through websocket in real-time', async () => {
       const replyData = {
         content: 'Thank you matti'
       }
 
-      const commentId = mattiComment.body.data.id
+      const commentId = mattiComment.id
       const response = await replyComment(commentId)
         .set('Authorization', `Bearer ${JACE_TOKENS.accessToken}`)
         .send(replyData)
@@ -619,7 +613,7 @@ describe('Pin Test', () => {
         }, 5000)
 
         const checkInterval = setInterval(() => {
-          if (notificationPayload ) {
+          if (jaceNotificationPayload ) {
             clearInterval(checkInterval)
             clearTimeout(timeout)
             resolve()
@@ -627,20 +621,20 @@ describe('Pin Test', () => {
         }, 100)
       })
 
-      logger.info('NOTIFICATION PAYLOAD 3', notificationPayload.type)
-      logger.info('NOTICATION 3', notificationPayload.data.data.type )
-      logger.info('NOTICATION 3', notificationPayload.data.data.content )
+      logger.info('NOTIFICATION PAYLOAD 3', mattiNotificationPayload.type)
+      logger.info('NOTICATION 3', mattiNotificationPayload.data.data.type )
+      logger.info('NOTICATION 3', mattiNotificationPayload.data.data.content )
       // Verify notification payload
-      assert.ok(notificationPayload , 'Should receive notification')
-      assert.strictEqual(notificationPayload.type, 'notification')
-      assert.strictEqual(notificationPayload.data.data.type, 'ReplyComment') //  action
-      assert.strictEqual(notificationPayload.data.data.content.username, JACE.username, ' User name that performed action' )
-      assert.strictEqual(notificationPayload.data.data.content.pinId, mattiComment.body.data.id, 'Pin Id should match' )
+      assert.ok(mattiNotificationPayload , 'Should receive notification')
+      assert.strictEqual(mattiNotificationPayload.type, 'notification')
+      assert.strictEqual(mattiNotificationPayload.data.data.type, 'ReplyComment') //  action
+      assert.strictEqual(mattiNotificationPayload.data.data.content.username, JACE.username, ' User name that performed action' )
+      assert.strictEqual(mattiNotificationPayload.data.data.content.pinId, testPin.id, 'Pin Id should match' )
 
       // Verify reply was created in database
       const reply = await CommentReply.findOne({
         where: {
-          comment_id: mattiComment.body.data.id,
+          comment_id: mattiComment.id,
           user_id: JACE.id,
           content: replyData.content
         }
@@ -652,7 +646,7 @@ describe('Pin Test', () => {
         content: ''
       }
 
-      const response = await replyComment(mattiComment.body.data.id)
+      const response = await replyComment(mattiComment.id)
         .set('Authorization', `Bearer ${JACE_TOKENS.accessToken}`)
         .send(replyData)
         .expect(400)
@@ -681,7 +675,7 @@ describe('Pin Test', () => {
         content: 'Hey Mat'
       }
 
-      const response = await replyComment(mattiComment.body.data.id)
+      const response = await replyComment(mattiComment.id)
         .send(replyData)
         .expect(401)
 

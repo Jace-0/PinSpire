@@ -1,25 +1,17 @@
 import { useState } from 'react'
-import CustomSnackbar from '../../../components/common/CustomSnackBar'
 import Header from './Header'
 import Navigation from '../../../components/common/Navigation'
 import Content from './Content'
 import { pinService } from '../../../services/pinService'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../../../context/AuthContext'
+import { useSnackbarNotification } from '../../../context/snackbarNotificationContext'
+import LoadingSpinner from '../../../components/common/LoadingSpinner'
 
 const CreatePin = () => {
   const navigate = useNavigate()
+  const { showNotification } = useSnackbarNotification()
+  const [ loading, setLoading ] = useState(false)
 
-  // Snackbar state
-  const [openSnackbar, setOpenSnackbar] = useState(false)
-  const [snackbarMessage, setSnackbarMessage] = useState('')
-  const [snackbarSeverity, setSnackbarSeverity] = useState('success')
-
-  // Snackbar close handler
-  const handleCloseSnackbar = (event, reason) => {
-    if (reason === 'clickaway') return
-    setOpenSnackbar(false)
-  }
 
   // State management
   const [pinData, setPinData] = useState({
@@ -31,11 +23,11 @@ const CreatePin = () => {
   })
 
   const handlePublish = async () => {
+    setLoading(true)
     try {
       if (!pinData.title || !pinData.image) {
-        setSnackbarMessage('Title and image are required')
-        setSnackbarSeverity('error')
-        setOpenSnackbar(true)
+        setLoading(false)
+        showNotification('Title and image are required', 'error')
         return
       }
 
@@ -57,34 +49,26 @@ const CreatePin = () => {
       const response = await pinService.createPin(formData)
 
       if (response.success) {
-        setSnackbarMessage('Pin created successfully')
-        setSnackbarSeverity('success')
-        setOpenSnackbar(true)
-        setTimeout(() => {
-          navigate('/')
-        }, 3000)
+        setLoading(false)
+        showNotification('Pin created successfully', 'success')
+        // setTimeout(() => {
+        navigate('/')
+        // }, 3000)
 
       }
     } catch (error) {
-      console.error('Error creating pin:', error)
-      setSnackbarMessage( error.message || 'Error creating pin')
-      setSnackbarSeverity('error')
-      setOpenSnackbar(true)
+      showNotification(error.message || 'Error creating pin', 'error')
     }
 
   }
+
 
   return (
     <>
       <Navigation />
       <Header onPublish={handlePublish} />
       <Content pinData={pinData} setPinData={setPinData} />
-      <CustomSnackbar
-        open={openSnackbar}
-        message={snackbarMessage}
-        severity={snackbarSeverity}
-        onClose={handleCloseSnackbar}
-      />
+      {loading && <LoadingSpinner/>}
     </>
   )
 }

@@ -43,12 +43,6 @@ The Frontend Layer handles user interactions, state management, and UI rendering
   - Event-driven updates
   - Bi-directional data flow
 
-- **Nginx**
-
-  - Application serving
-  - Static file handling
-  <!-- - Reverse proxy -->
-
 - **React Router**
   - Route management
   - Navigation handling
@@ -111,6 +105,7 @@ The Backend Layer serves as the server-side component responsible for processing
 - **ExpressJS**
   - Primary web framework for handling HTTP requests and responses
   - Middleware management and routing
+  - Serving static file
 - **WebSocket (ws)**
   - Enables real-time bidirectional communication
   - Handles live updates and notifications

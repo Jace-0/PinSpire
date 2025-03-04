@@ -1,19 +1,14 @@
 import { useState } from 'react'
 import { TextField, Button, Card, CardContent, Typography, Box } from '@mui/material'
-import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../context/AuthContext'
-import CustomSnackbar from '../../../components/common/CustomSnackBar'
-const SignupForm = () => {
-  const navigate = useNavigate()
+import { useSnackbarNotification } from '../../../context/snackbarNotificationContext'
 
-  const [openSnackbar, setOpenSnackbar] = useState(false)
-  const [snackbarMessage, setSnackbarMessage] = useState('')
-  const [snackbarSeverity, setSnackbarSeverity] = useState('success')
+const SignupForm = () => {
+  const { showNotification } = useSnackbarNotification()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [date, setDate] = useState('')
-  const [error, setError] = useState('')
   const { signup } = useAuth() // Access the signup function from context
 
   const validateEmail = (email) => {
@@ -21,36 +16,20 @@ const SignupForm = () => {
     return re.test(email)
   }
 
-  const handleCloseSnackbar = (event, reason) => {
-    if (reason === 'clickaway') {
-      return
-    }
-    setOpenSnackbar(false)
-  }
-
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!email || !validateEmail(email)) {
-      setError('Please enter a valid email address.')
-      setSnackbarMessage('Please enter a valid email address.')
-      setSnackbarSeverity('error')
-      setOpenSnackbar(true)
+      showNotification('Please enter a valid email address.','error' )
       return
     }
 
     if (!password) {
-      setError('Password cannot be empty.')
-      setSnackbarMessage('Password cannot be empty.')
-      setSnackbarSeverity('error')
-      setOpenSnackbar(true)
+      showNotification('Password cannot be empty.','error' )
       return
     }
 
     if (!date) {
-      setError('Date cannot be empty.')
-      setSnackbarMessage('Date cannot be empty.')
-      setSnackbarSeverity('error')
-      setOpenSnackbar(true)
+      showNotification('Date cannot be empty.','error' )
       return
     }
 
@@ -58,21 +37,11 @@ const SignupForm = () => {
     try {
       const userData = { email, password, dob: date }
       await signup(userData)
-      setSnackbarMessage('Signup successful!')
-      setSnackbarSeverity('success')
-      setOpenSnackbar(true)
-
-      // Delay navigation
-      setTimeout(() => {
-        navigate('/')
-      }, 5000) // 1 second
+      showNotification('Signup successful!', 'success')
 
     } catch (error) {
       console.error(error)
-      setSnackbarMessage(error.message || 'Sign up failed')
-      setSnackbarSeverity('error')
-      setOpenSnackbar(true)
-      // setError(error.message)
+      showNotification(error.message || 'Sign up failed','error' )
     }
   }
 
@@ -143,12 +112,6 @@ const SignupForm = () => {
           </Typography>
         </CardContent>
       </Card>
-      <CustomSnackbar
-        open={openSnackbar}
-        message={snackbarMessage}
-        severity={snackbarSeverity}
-        onClose={handleCloseSnackbar}
-      />
     </Box>
   )
 }

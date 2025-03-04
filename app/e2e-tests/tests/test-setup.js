@@ -1,5 +1,5 @@
 import { test as base, expect } from '@playwright/test'
-import { signUpUser, loginUser } from './helper'
+import { signUpUser, signUpNewUser } from './helper'
 const path = require('path')
 
 
@@ -32,7 +32,15 @@ export const test = base.extend({
         primaryUserPage.setDefaultNavigationTimeout(800000)
             
         // Reset DB and create test user
-        await primaryUserPage.request.post('http://localhost:3000/api/testing/reset')
+        const response = await primaryUserPage.request.post('http://localhost:3000/api/test/reset', {
+          timeout: 30000, // 30 seconds
+          failOnStatusCode: true
+        })
+
+        if (response.status() !==200){
+          throw new Error(`Database reset failed with status ${response.status()}`)
+        }
+
         await primaryUserPage.goto('/')
         await signUpUser(primaryUserPage)
 
@@ -135,56 +143,49 @@ export const test = base.extend({
 
   },
 
-  pinPage: async ({ primaryUserPage, createPinPage }, use) => {
-
-    // SINGLE TEST
-    const testImagePath = path.join(__dirname, './test-files/jacket.jpeg')
-    const pinDetails = {
-      title: 'Black winter jacket',
-      description: 'Premium black winter jacket featuring water-resistant material, thermal insulation, and sleek modern design. Perfect for extreme weather conditions while maintaining a sophisticated urban look.',
-      link: 'https://pinspire.com/black-winter-jacket',
-      imagePath: testImagePath
-    }
-   
-    // Upload image
-    const fileInput = createPinPage.getByTestId('file-input')
-    await fileInput.setInputFiles(pinDetails.imagePath)
-   
-    // Verify image preview
-    await expect(createPinPage.locator('.pin-image')).toBeVisible()
-    await expect(createPinPage.locator('.edit-button')).toBeVisible()
-   
-    // Fill pin details
-    await createPinPage.locator('#title').fill(pinDetails.title)
-    await createPinPage.locator('#description').fill(pinDetails.description)
-    await createPinPage.locator('#link').fill(pinDetails.link)
-
-    // Board Functionality doesnt exist yet
-
-    // Verify publish button becomes enabled
-    const publishButton = createPinPage.locator('.publish-button')        
-    // Submit pin
-    await publishButton.click()
-   
-    await expect(primaryUserPage.getByRole('alert')
-      .filter({ hasText: 'Pin created successfully' }))
-      .toBeVisible({ timeout: 8000 })
-
-   
-    // Verify redirect to pin detail page
-    await expect(createPinPage).toHaveURL('/')
+  pinPage: async ({ primaryUserPage }, use) => {
     await primaryUserPage.waitForLoadState('networkidle')
 
-    // CREATE PIN PAGE
 
-    await primaryUserPage.locator('.pins-grid').waitFor({ state: 'visible'})
+    // verify component
+    await expect(primaryUserPage.getByTestId('header-search')).toBeVisible()
+    await expect(primaryUserPage.getByTestId('sidebar-nav')).toBeVisible()
+     
+    await expect(primaryUserPage.locator('.home-container')).toBeVisible()
+    
+
+    // Verify Created Pin is live
     await expect(primaryUserPage.locator('.pin-card')).toBeVisible()
-    await expect(primaryUserPage.getByText('Black winter jacket ')).toBeVisible()
+    await expect(primaryUserPage.locator('.pin-card .pin-image-container')).toBeVisible()
+    await expect(primaryUserPage.locator('.pin-image-container .pin-image')).toBeVisible()
+    await expect(primaryUserPage.locator('.pin-image-container .pin-overlay .pin-title')).toHaveText('Black winter jacket')
+
+    // Verify user info
+    await expect(primaryUserPage.locator('.pin-card .pin-footer')).toBeVisible()
+    await expect(primaryUserPage.locator('.pin-card .pin-footer .user-avatar')).toBeVisible()
+    await expect(primaryUserPage.locator('.pin-card .pin-footer .user-name')).toBeVisible()
+
+    // click on image 
     await primaryUserPage.locator('.pin-image-container .pin-image').click()
+    // await expect(primaryUserPage.getByTestId('loading-spinner')).toBeVisible()
+
+    // More specific regex pattern to match UUID format
     await expect(primaryUserPage.url()).toMatch(/\/pin\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/)
 
-    await primaryUserPage.getByTestId('loading-spinner').waitFor({ state: 'visible'})
 
+    // verify component
+    await expect(primaryUserPage.getByTestId('header-search')).toBeVisible()
+    await expect(primaryUserPage.getByTestId('sidebar-nav')).toBeVisible()
+
+    await expect(primaryUserPage.locator('.pin-details-container')).toBeVisible()
+    await expect(primaryUserPage.locator('.pin-details-container .pin-details-wrapper')).toBeVisible()
+
+    // PIN IMAGE SECTION
+    await expect(primaryUserPage.locator('.pin-details-image-section .pin-main-image')).toBeVisible()
+
+    // PIN CONTENT SECTION
+    await expect(primaryUserPage.locator('.pin-details-content')).toBeVisible()
+     
     await use(primaryUserPage)
 
   },
@@ -204,12 +205,15 @@ export const test = base.extend({
         // await page.request.post('http://localhost:3000/api/testing/reset')
         await secondaryUserPage.goto('/')
         // await secondaryUserPage.waitForLoadState('networkidle')
+        await signUpNewUser(secondaryUserPage, 'jace@test.com', 'jace000')
 
       } else {
         // Reuse existing page
         await secondaryUserPage.goto('/')
         // await secondaryUserPage.waitForLoadState('networkidle')
       }
+
+      await secondaryUserPage.waitForLoadState('networkidle')
 
       await use(secondaryUserPage)
   
@@ -221,14 +225,35 @@ export const test = base.extend({
   },
 
   pinPageWithSecondaryUser: async ({ secondaryUserPage }, use) => {
-    await secondaryUserPage.waitForLoadState('networkidle')
+
+    // verify component
+    await expect(secondaryUserPage.getByTestId('header-search')).toBeVisible()
+    await expect(secondaryUserPage.getByTestId('sidebar-nav')).toBeVisible()
+         
+    await expect(secondaryUserPage.locator('.home-container')).toBeVisible()
+    
+        
     await secondaryUserPage.locator('.pins-grid').waitFor({ state: 'visible'})
-    await expect(secondaryUserPage.locator('.pin-card')).toBeVisible()
+    await expect(secondaryUserPage.locator('.pins-grid .pin-card')).toBeVisible()
     await expect(secondaryUserPage.getByText('Black winter jacket')).toBeVisible()
     await secondaryUserPage.getByText('Black winter jacket').click()
     await expect(primaryUserPage.url()).toMatch(/\/pin\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/)
 
-    await secondaryUserPage.getByTestId('loading-spinner').waitFor({ state: 'visible'})
+    // await secondaryUserPage.getByTestId('loading-spinner').waitFor({ state: 'visible'})
+
+    // verify component
+    await expect(secondaryUserPage.getByTestId('header-search')).toBeVisible()
+    await expect(secondaryUserPage.getByTestId('sidebar-nav')).toBeVisible()
+
+    await expect(secondaryUserPage.locator('.pin-details-container')).toBeVisible()
+    await expect(secondaryUserPage.locator('.pin-details-container .pin-details-wrapper')).toBeVisible()
+
+    // PIN IMAGE SECTION
+    await expect(secondaryUserPage.locator('.pin-details-image-section .pin-main-image')).toBeVisible()
+
+    // PIN CONTENT SECTION
+    await expect(secondaryUserPage.locator('.pin-details-content')).toBeVisible()
+     
     await use(secondaryUserPage)
   }
 

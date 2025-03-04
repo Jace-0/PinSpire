@@ -16,10 +16,10 @@ import SignupForm from './features/Auth/SignupForm/SignupForm'
 import LoginForm from './features/Auth/LoginForm/LoginForm'
 import HomePage from './components/Home/HomePage'
 import CreatePin from './features/Pins/CreatePin/CreatePin'
-import EditProfile from './features/User/UserProfilePage.jsx/EditProfile'
+import EditProfile from './features/User/UserProfilePage/EditProfile'
 import PinDetails from './features/Pins/PinDetails/PinDetails'
 import PinFeed from './features/User/UserHomePage/PinFeed'
-import ProfilePage from './features/User/UserProfilePage.jsx/ProfilePage'
+import ProfilePage from './features/User/UserProfilePage/ProfilePage'
 
 
 const AppRoutes = () => {

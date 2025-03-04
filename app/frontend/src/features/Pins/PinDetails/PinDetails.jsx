@@ -1,9 +1,9 @@
 import Header from '../../../components/common/Header'
 import Navigation from '../../../components/common/Navigation'
 import { pinService } from '../../../services/pinService'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, } from 'react'
 import { usePin } from '../../../context/PinContext'
-import { useParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import LoadingSpinner from '../../../components/common/LoadingSpinner'
 
 const PinDetails = () => {
@@ -12,7 +12,7 @@ const PinDetails = () => {
 
   useEffect(() => {
     getPin(id)
-  }, [id])
+  }, [id, getPin])
 
   if (loading) return <LoadingSpinner/>
   if (!pin) return <h2>Pin not found</h2>
@@ -31,8 +31,10 @@ const PinDetails = () => {
   )
 }
 
+/* Image Section Component */
 const PinImageSection = () => {
   const { pin }  = usePin()
+  console.log('PIN ', pin)
   return (
     <div className="pin-details-image-section">
       <img
@@ -43,7 +45,7 @@ const PinImageSection = () => {
     </div>)
 }
 
-
+/* Pin Content section Component */
 const PinContentSection = () => {
   return (
     <div className="pin-details-content">
@@ -53,9 +55,11 @@ const PinContentSection = () => {
     </div>)
 }
 
+/* User info Component - PinContentSection */
 const UserInfo = () => {
   const { pin, handleLike } = usePin()
   const user = pin.user
+  console.log('USER,', user)
 
   return (
     <div className="user-info-container">
@@ -65,7 +69,9 @@ const UserInfo = () => {
           alt="profile image"
           className="profile-image"
         />
-        <h2 className='user-username'>{user.username}</h2>
+        <Link to={`/profile/${user.username}`}>
+          <h2 className='user-username'>{user.username}</h2>
+        </Link>
       </div>
       <div className="like-container">
         <button
@@ -79,13 +85,12 @@ const UserInfo = () => {
     </div>
   )
 }
-
-
+/* Pin info Component - PinContentSection */
 const PinInfo = () => {
   const { pin } = usePin()
 
   const [isExpanded, setIsExpanded] = useState(false)
-  const maxLength = 100 // Adjust this value for your needs
+  const maxLength = 100
 
   const toggleDescription = () => {
     setIsExpanded(!isExpanded)
@@ -115,7 +120,6 @@ const PinInfo = () => {
     )
   }
 
-
   return (
     <div className="pin-info">
       <h1 className="pin-title-pin">{pin.title }</h1>
@@ -123,11 +127,10 @@ const PinInfo = () => {
     </div>
   )
 }
-
+/* Pin Comment section Component - PinContentSection */
 const PinCommentsSection = () => {
-
   const { pin } = usePin()
-  const [ isExpanded , setIsExpanded] = useState(false)
+  const [ isExpanded , setIsExpanded ] = useState(false)
 
   return (
     <div className="pin-comments-section">
@@ -150,6 +153,43 @@ const PinCommentsSection = () => {
   )
 }
 
+// Comment on Pin
+const PinCommentInput = () => {
+  const [ comment, setComment ] = useState('')
+  const { handleComment } = usePin()
+
+  const handleSumbit = async (e) => {
+    e.preventDefault()
+    if (!comment.trim()) return
+    try {
+      await handleComment(comment)
+      setComment('')
+    }catch (error) {
+      console.error('Error submitting comment:', error)
+    }
+  }
+
+  return (
+    <div className="pin-comment-input-wrapper">
+      <input
+        type="text"
+        value={comment}
+        onChange={(e) => setComment(e.target.value)}
+        placeholder="Add a comment"
+        className="pin-comment-input"
+      />
+      <button
+        className="pin-comment-submit"
+        onClick={handleSumbit}
+        disabled={!comment.trim()}
+      >
+        <i className="fas fa-paper-plane"></i>
+      </button>
+    </div>
+  )
+}
+
+/* Pin Comment List Component - pinCommentSection */
 const PinCommentsList = () => {
   const { pin } = usePin()
   return (
@@ -163,25 +203,12 @@ const PinCommentsList = () => {
     </div>)
 }
 
+/* Comment Section Component - pinCommentSection */
 const CommentSection = ({ comment }) => {
-
   const [showReplyInput, setShowReplyInput] = useState(false)
-  const { replyComment, setReplyComment , handleCommentReply, setCommentId, handleCommentLike } = usePin()
-  const inputRef = useRef(null)
+  const { handleCommentReply, handleCommentLike } = usePin()
   const [showReplies, setShowReplies] = useState(false)
   const hasReplies = comment.replies && comment.replies.length > 0
-
-  const handleSubmitReply = async () => {
-    if (!replyComment.trim()) return
-
-    try {
-      setCommentId(comment.id)
-      await handleCommentReply()
-      setShowReplyInput(false)
-    } catch (error) {
-      console.error('Error submitting reply:', error)
-    }
-  }
 
   const formatTimeAgo = (date) => {
     const seconds = Math.floor((new Date() - new Date(date)) / 1000)
@@ -196,8 +223,92 @@ const CommentSection = ({ comment }) => {
   }
 
 
-  // comment Replies
+  /* Reply to comments */
+  const InputCommentReply = () => {
+    const [localReplyComment, setLocalReplyComment] = useState('')
+    const inputRef = useRef(null)
+    const handleSubmitReply = async () => {
+      if (!localReplyComment.trim()) return
+
+      try {
+        await handleCommentReply(comment.id, localReplyComment)
+        setLocalReplyComment('')
+        setShowReplyInput(false)
+      } catch (error) {
+        console.error('Error submitting reply:', error)
+      }
+    }
+
+    return (
+      <div className="reply-input-container">
+        <input
+          ref={inputRef}
+          type="text"
+          value={localReplyComment}
+          onChange={(e) => setLocalReplyComment(e.target.value)}
+          placeholder="Reply"
+          className="reply-input"
+          autoFocus
+        />
+        <button
+          className="reply-submit"
+          onClick={handleSubmitReply}
+          disabled={!localReplyComment.trim()}
+        >
+          <i className="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    )
+  }
+
+  /* Like comment */
+  const handleLikeComment = async (e) => {
+    e.preventDefault()
+    await handleCommentLike(comment.id)
+  }
+
+  /* Comment Replies component */
   const CommentReplies = ({ replies }) => {
+    // console.log('REPLIES', replies)
+    const [showNestedReplyInput, setShowNestedReplyInput] = useState(false)
+    const [nestedReplyComment, setNestedReplyComment] = useState('')
+    const nestedInputRef = useRef(null)
+
+    const { handleCommentReply } = usePin()
+
+    // Initialize nested reply with @username
+    const initializeNestedReplyWithMention = (username) => {
+      setNestedReplyComment(`@${username} `)
+      setShowNestedReplyInput(true)
+    }
+
+    // Focus and place cursor at end for nested replies
+    useEffect(() => {
+      if (showNestedReplyInput && nestedInputRef.current) {
+        nestedInputRef.current.focus()
+        const length = nestedInputRef.current.value.length
+        nestedInputRef.current.setSelectionRange(length, length)
+      }
+    }, [showNestedReplyInput])
+
+    const handleNestedReplySubmit = async () => {
+      if (!nestedReplyComment.trim()) return
+      try {
+        await handleCommentReply(replies.id, nestedReplyComment)
+        setNestedReplyComment('')
+        setShowNestedReplyInput(false)
+      } catch (error) {
+        console.error('Error submitting nested reply:', error)
+      }
+    }
+
+
+    /* Like comment */
+    const handleLikeComment = async (e) => {
+      e.preventDefault()
+      await handleCommentLike(replies.id)
+    }
+
     return (
       <div className="pin-comment">
         <div className="comment-main">
@@ -207,60 +318,60 @@ const CommentSection = ({ comment }) => {
             className="comment-user-avatar"
           />
           <div className="comment-content">
-            <span className="comment-username">{replies.user.username}</span>
-            <span className="comment-text">{replies.content}</span>
+            <div className='comment-header'>
+              <Link to={`/profile/${replies.user.username}`}>
+                <span className="comment-username">{replies.user.username}</span>
+              </Link>
+              <span className="comment-text">{replies.content}</span>
+            </div>
 
             <div className="comment-actions">
               <span className="comment-time">
                 {formatTimeAgo(replies.created_at)}
               </span>
 
-              <button className="reply-button" > reply</button>
-              <button className="like-button">
+              <button
+                className="reply-button"
+                onClick={() => initializeNestedReplyWithMention(replies.user.username)}
+              >
+                reply
+              </button>
+              <button
+                className="like-button"
+                onClick={handleLikeComment}
+              >
                 <i className="fas fa-heart"></i>
               </button>
+              {replies?.likes_count > 0 && <h2 className="like-count">{ replies?.likes_count}</h2>}
+
             </div>
-            {/* {showReplyInput && <InputCommentReply />} */}
+
+            {showNestedReplyInput && (
+              <div className="reply-input-container">
+                <input
+                  ref={nestedInputRef}
+                  type="text"
+                  value={nestedReplyComment}
+                  onChange={(e) => setNestedReplyComment(e.target.value)}
+                  placeholder="Reply"
+                  className="reply-input"
+                  autoFocus
+                />
+                <button
+                  className="reply-submit"
+                  onClick={handleNestedReplySubmit}
+                  disabled={!nestedReplyComment.trim()}
+                >
+                  <i className="fas fa-paper-plane"></i>
+                </button>
+              </div>
+            )}
 
           </div>
         </div>
       </div>
     )
   }
-
-
-  // Reply to comments
-  const InputCommentReply = () => {
-
-    return (
-      <div className="reply-input-container">
-        <input
-          ref={inputRef}
-          type="text"
-          value={replyComment}
-          onChange={(e) => setReplyComment(e.target.value)}
-          placeholder="Reply"
-          className="reply-input"
-          autoFocus
-        />
-        <button
-          className="reply-submit"
-          onClick={handleSubmitReply}
-          disabled={!replyComment.trim()}
-        >
-          <i className="fas fa-paper-plane"></i>
-        </button>
-      </div>)
-  }
-
-  const handleLikeComment = async (e) => {
-    e.preventDefault()
-    await handleCommentLike(comment.id)
-  }
-
-
-
-
 
   return(
     <div className="pin-comment">
@@ -271,9 +382,12 @@ const CommentSection = ({ comment }) => {
           className="comment-user-avatar"
         />
         <div className="comment-content">
-          <span className="comment-username">{comment.user.username}</span>
-          <span className="comment-text">{comment.content}</span>
-
+          <div className="comment-header">
+            <Link to={`/profile/${comment.user.username}`}>
+              <span className="comment-username">{comment.user.username}</span>
+            </Link>
+            <span className="comment-text">{comment.content}</span>
+          </div>
           <div className="comment-actions">
             <span className="comment-time">
               {formatTimeAgo(comment.created_at)}
@@ -312,32 +426,6 @@ const CommentSection = ({ comment }) => {
 
         </div>
       </div>
-    </div>
-  )
-}
-
-// Comment on a pin
-const PinCommentInput = () => {
-
-  const { comment, setComment, handleComment } = usePin()
-
-  return (
-
-    <div className="pin-comment-input-wrapper">
-      <input
-        type="text"
-        value={comment}
-        onChange={(e) => setComment(e.target.value)}
-        placeholder="Add a comment"
-        className="pin-comment-input"
-      />
-      <button
-        className="pin-comment-submit"
-        onClick={handleComment}
-        disabled={!comment.trim()}
-      >
-        <i className="fas fa-paper-plane"></i>
-      </button>
     </div>
   )
 }

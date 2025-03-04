@@ -26,12 +26,27 @@ class Comment extends Model {
         },
         onDelete: 'CASCADE'
       },
+      parent_id: {
+        type: DataTypes.UUID,
+        allowNull: true,
+        references: {
+          model: 'comments',
+          key: 'id'
+        },
+        onDelete: 'CASCADE',
+        comment: 'ID of parent comment if this is a reply'
+      },
       content: {
         type: DataTypes.TEXT,
         allowNull: false,
         validate: {
           notEmpty: true
         }
+      },
+      mentioned_users: {
+        type: DataTypes.ARRAY(DataTypes.UUID),
+        defaultValue: [],
+        comment: 'Array of user IDs mentioned in the comment'
       },
       created_at: {
         type: DataTypes.DATE,

@@ -1016,17 +1016,21 @@ body.home-page {
   border-radius: 32px;
   overflow: hidden;
   box-shadow: 0 1px 20px rgba(0, 0, 0, 0.1);
+  max-height: 80vh; /* Add max height to wrapper */
+
 }
 
 .pin-details-image-section {
   flex: 1;
+  min-width: 40%;
   max-width: 40%;
+  height: 80vh;
 }
 
 .pin-main-image {
   width: 100%;
   height: 100%;
-  object-fit: inherit;
+  object-fit: cover;
 }
 
 .pin-details-content {
@@ -1035,6 +1039,8 @@ body.home-page {
   display: flex;
   flex-direction: column;
   /* max-width: 40%; */
+  max-height: 80vh; /* Set maximum height */
+  overflow-y: auto; /* Add vertical scrollbar when content overflows */
 }
 
 .user-info {
@@ -1138,7 +1144,6 @@ body.home-page {
 }
 
 
-
 .pin-comments-section {
   flex: 1;
   display: flex;
@@ -1180,7 +1185,7 @@ body.home-page {
 
 .pin-comment {
   display: flex;
-  gap: 12px;
+  gap: 9px;
   margin-bottom: 16px;
 }
 
@@ -1203,6 +1208,13 @@ body.home-page {
 .comment-username {
   font-weight: 600;
   margin-right: 8px;
+  color: #111;
+}
+
+
+a, Link {
+  text-decoration: none !important;
+  /* color: inherit !important; */
 }
 
 .comment-text {
@@ -1214,7 +1226,6 @@ body.home-page {
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-top: 4px;
 }
 
 .comment-time {
@@ -1265,6 +1276,10 @@ body.home-page {
   cursor: pointer;
 }
 
+.fa-paper-plane:hover {
+  color: inherit !important;
+  background: none !important;
+}
 
 .reply-submit:disabled {
   background: #efefef;
@@ -1478,56 +1493,29 @@ body.home-page {
   }
 }
 
-/* Header image */
-
-/* .profile {
-  display: flex;
-  align-items: center;
-}
-
-.profile-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-  cursor: pointer;
-}
-
-.fa-user-circle {
-  font-size: 32px;
-  color: #767676;
-  cursor: pointer;
-}
-
-.profile a {
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-}
-` */
-
-
-
 
 
 
 /* Notification System  */
 /* Container for the entire notification system */
+.messaging-system,
 .notification-system {
-  position: fixed;
-  left: 100px;
-  top: 0;
+  position: absolute;
+  left: 70px;
+  width: 390px;
+  top: 10px;
   height: 100vh;
   /* z-index: 10000; */
   pointer-events: none;
 }
 /* The main notification panel */
+.messaging-panel,
 .notification-panel {
+  position: absolute;
   background: white;
   border-radius: 13px;
-  margin-left: 350px;
-  margin-top: 10px;
-  width: 380px;
+  left: 390px;
+  width: 100%;
   height: 95vh;
   box-shadow: 0 2px 20px rgba(0, 0, 0, 0.15);
   transform: translateX(-100%); /* Start hidden */
@@ -1631,29 +1619,6 @@ body.home-page {
 }
 
 /* Messaging style */
-
-.messaging-system {
-  position: fixed;
-  left: 100px;
-  top: 0;
-  height: 100vh;
-  pointer-events: none;
-}
-
-.messaging-panel {
-  background: white;
-  border-radius: 13px;
-  margin-left: 350px;
-  margin-top: 10px;
-  width: 380px;
-  height: 95vh;
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.15);
-  transform: translateX(-100%); /* Start hidden */
-  transition: transform 0.3s ease-in-out;
-  pointer-events: auto; 
-  display: flex;
-  flex-direction: column;
-}
 
 .messaging-header {
   padding: 0px 18px;

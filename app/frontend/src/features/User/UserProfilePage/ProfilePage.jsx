@@ -47,7 +47,7 @@ const ProfilePage = () => {
     <div className="layout">
       <Navigation />
       <Header/>
-      <div className="u-home-container" data-testId="profileSection-container">
+      <div className="u-home-container" data-testid="profileSection-container">
         <ProfileSection  isOwnProfile={isOwnProfile} profile={profile} updateProfile={fetchProfile} />
         <Tabs />
       </div>

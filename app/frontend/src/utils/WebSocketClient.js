@@ -21,7 +21,7 @@ class WebSocketClient {
     this.ws = new WebSocket(url.toString())
 
     this.ws.onopen = () => {
-      // logger.info('Connected to WebSocket server')
+      logger.info('Connected to WebSocket server')
       this.reconnectAttempts = 0
 
       // periodic ping to keep connection alive

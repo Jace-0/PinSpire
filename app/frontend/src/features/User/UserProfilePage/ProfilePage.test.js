@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import ProfilePage from './ProfilePage'
 import { AuthProvider } from '../../../context/AuthContext'
+import { ChatProvider } from '../../../context/ChatContext'
 import { UserProvider } from '../../../context/UserContext'
 import { NotificationProvider } from '../../../context/NotificationContext'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
@@ -13,7 +14,7 @@ import * as authHook from '../../../context/AuthContext'
 // Mock userService
 jest.mock('../../../services/userService', () => ({
   userService: {
-    getProfileByUsername: jest.fn(),
+    getProfileByUsername: jest.fn().mockRejectedValue(mockProfile),
     checkFollowStatus: jest.fn()
   }
 }))
@@ -57,13 +58,15 @@ const renderProfilePage = (username = 'jace0', loggedInUser = null) => {
   return render(
     <MemoryRouter  initialEntries={[`/profile/${username}`]}>
       <AuthProvider>
-        <UserProvider>
-          <NotificationProvider>
-            <Routes>
-              <Route path="/profile/:username" element={<ProfilePage />} />
-            </Routes>
-          </NotificationProvider>
-        </UserProvider>
+        <ChatProvider>
+          <UserProvider>
+            <NotificationProvider>
+              <Routes>
+                <Route path="/profile/:username" element={<ProfilePage />} />
+              </Routes>
+            </NotificationProvider>
+          </UserProvider>
+        </ChatProvider>
       </AuthProvider>
     </MemoryRouter>
   )
@@ -74,8 +77,12 @@ describe('ProfilePage', () => {
 
   beforeEach(() => {
     //mock response
-    userService.getProfileByUsername.mockResolvedValue(mockProfile)
-    userService.checkFollowStatus.mockResolvedValue({ isFollowing: false })
+    userService.getProfileByUsername.mockImplementation(() =>
+      Promise.resolve(mockProfile)
+    )
+    userService.checkFollowStatus.mockImplementation(() =>
+      Promise.resolve({ data: { isFollowing: false } })
+    )
   })
 
   it('shows loading state initially', () => {
@@ -93,6 +100,7 @@ describe('ProfilePage', () => {
       expect(userService.getProfileByUsername).toHaveBeenCalledWith('jace0')
     })
 
+    // screen.debug()
     // Verify components are displayed
     expect(screen.getByTestId('header-search')).toBeInTheDocument()
     expect(screen.getByTestId('sidebar-nav')).toBeInTheDocument()
@@ -100,18 +108,17 @@ describe('ProfilePage', () => {
     expect(screen.getByTestId('profileSection-container')).toBeInTheDocument()
     expect(screen.getByTestId('tabs-container')).toBeInTheDocument()
 
-    expect(await screen.findByText('Edit profile')).toBeInTheDocument()
     expect(await screen.findByText('Jace Sam')).toBeInTheDocument()
     expect(await screen.findByText('@jace0')).toBeInTheDocument()
     expect(await screen.findByText('0 followers · 0 following')).toBeInTheDocument()
     expect(await screen.findByText('bio: software developer')).toBeInTheDocument()
     expect(await screen.queryByText ('Follow')).not.toBeInTheDocument()
     expect(await screen.queryByText ('Message')).not.toBeInTheDocument()
+    expect(await screen.getByRole('button', { name : 'Edit profile' })).toBeInTheDocument()
     expect(await screen.getByRole('button', { name: 'Created' })).toBeInTheDocument()
     expect(await screen.getByRole('button', { name: 'Liked' })).toBeInTheDocument()
 
   })
-
 
 
   it('displays user profile when viewing someone else\'s profile', async () => {

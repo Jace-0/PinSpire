@@ -11,20 +11,23 @@ import { PinProvider } from './context/PinContext'
 import { UserProvider } from './context/UserContext'
 import { NotificationProvider } from './context/NotificationContext'
 import { ChatProvider } from './context/ChatContext'
+import { SnackbarNotificationProvider } from './context/snackbarNotificationContext'
 
 const root = ReactDOM.createRoot(document.getElementById('root'))
 root.render(
   <React.StrictMode>
     <AuthProvider>
-      <NotificationProvider>
-        <ChatProvider>
-          <UserProvider>
-            <PinProvider>
-              <App />
-            </PinProvider>
-          </UserProvider>
-        </ChatProvider>
-      </NotificationProvider>
+      <SnackbarNotificationProvider>
+        <NotificationProvider>
+          <ChatProvider>
+            <UserProvider>
+              <PinProvider>
+                <App />
+              </PinProvider>
+            </UserProvider>
+          </ChatProvider>
+        </NotificationProvider>
+      </SnackbarNotificationProvider>
     </AuthProvider>
   </React.StrictMode>
 )

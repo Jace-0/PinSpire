@@ -191,7 +191,7 @@ const authController = {
         { EX: 7 * 24 * 60 * 60 } // Same as refresh token expiry
       )
 
-      res.json({
+      res.status(200).json({
         accessToken: newAccessToken,
         refreshToken: newRefreshToken
       })

@@ -16,8 +16,8 @@ router.get('/profile/id/:id', authentication, invalidIdHandler, userController.g
 router.get('/profile/username/:username', authentication, userController.getUserByUsername)
 
 // Update user settings
-router.put('/profile/settings/:id', authentication, invalidIdHandler, sanitizeInput,  userController.updateUser)
-router.put('/profile/settings/:id/avatar', authentication, invalidIdHandler, upload.single('avatar'), userController.updateAvatar )
+router.put('/profile/settings/', authentication, invalidIdHandler, sanitizeInput,  userController.updateUser)
+router.put('/profile/settings/avatar', authentication, invalidIdHandler, upload.single('avatar'), userController.updateAvatar )
 
 // Follow
 router.post('/:id/followers', authentication, invalidIdHandler, sanitizeInput, userController.followUser)

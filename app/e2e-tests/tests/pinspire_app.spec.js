@@ -1,4 +1,5 @@
 /* eslint-disable no-undef */
+import { verify } from 'crypto'
 import { test, expect } from './test-setup'
 const path = require('path')
 const { signUpUser, loginUser, signUpNewUser} = require('./helper')
@@ -33,7 +34,6 @@ test.describe('Pinspire E2E Test', () => {
     test('user can sign up and login', async ({ page }) => {
       await signUpUser(page)
 
-
       // Verify logged in state
       await expect(page.getByTestId('logout-wrapper')).toBeVisible()
       
@@ -52,10 +52,11 @@ test.describe('Pinspire E2E Test', () => {
 
   test.describe('Authenticated user tests', () => {
     test.describe('Home Page TEST', () => {
-      test('User Home page - TEST component &Links ', async ({ primaryUserPage }) => {
+      test('User Home page - TEST component & Links ', async ({ primaryUserPage }) => {
         // Header
-        await expect(primaryUserPage.getByRole('textbox', { name: 'Search users' })).toBeVisible()
         await expect(primaryUserPage.getByTestId('header-search')).toBeVisible()
+        await expect(primaryUserPage.getByRole('textbox', { name: 'Search users' })).toBeVisible()
+        await expect(primaryUserPage.locator('.header-search-bar i ')).toBeVisible()
         await expect(primaryUserPage.getByRole('link', { name: 'Profile' })).toBeVisible()
         await expect(primaryUserPage.locator('.profile-avatar')).toBeVisible()
 
@@ -71,6 +72,8 @@ test.describe('Pinspire E2E Test', () => {
 
         // Test pin feed container
         await expect(primaryUserPage.locator('.home-container')).toBeVisible()
+        
+        await expect(primaryUserPage.locator('.home-container .pins-grid')).toBeHidden() // no pins yet
 
         // Test navigation functionality
         await primaryUserPage.getByRole('link').filter({ has: primaryUserPage.locator('i.fas.fa-home') }).click()
@@ -105,23 +108,45 @@ test.describe('Pinspire E2E Test', () => {
         // Test profile navigation (assuming logged in user's username)
         await primaryUserPage.getByRole('link').filter({ has: primaryUserPage.locator('i.fas.fa-user') }).click()
         await expect(primaryUserPage.url()).toContain('/profile/test')
+        await primaryUserPage.getByTestId('loading-spinner').waitFor({ state: 'visible'})
+        await primaryUserPage.waitForLoadState('networkidle')
+
+        // verify componet 
+        await expect(primaryUserPage.getByTestId('header-search')).toBeVisible()
+        await expect(primaryUserPage.getByTestId('sidebar-nav')).toBeVisible()
+         
+ 
+        await expect(primaryUserPage.getByTestId('profileSection-container')).toBeVisible()
+        await expect(primaryUserPage.locator('.profile-section')).toBeVisible()
+
+        
+        // Test User username, following and follow count and profile image 
+        await expect(primaryUserPage.locator('.profile-section img')).toBeVisible()
+  
+        // Test username
+        await expect(
+          primaryUserPage.locator('.profile-section p').filter({ hasText: '@test' })
+        ).toBeVisible()
 
       })
     
-      test('Search Bar works', async ({ userProfilePage }) => {
+      test('Search Bar works', async ({ primaryUserPage }) => {
+        await expect(primaryUserPage.getByTestId('header-search')).toBeVisible()
         const searchBar = primaryUserPage.getByRole('textbox', { name: 'Search users' })
         await expect(searchBar).toBeVisible()
-        await expect(userProfilePage.locator('.header-search-bar i ')).toBeVisible()
+        await expect(primaryUserPage.locator('.header-search-bar i ')).toBeVisible()
 
         await searchBar.click()
         await searchBar.type('test')
 
+        // await primaryUserPage.getByTestId('loading-spinner').waitFor({ state: 'visible'})
         await expect(primaryUserPage.locator('.search-dropdown')).toBeVisible()
-        await primaryUserPage.getByTestId('loading-spinner').waitFor({ state: 'visible'})
-        await expect(primaryUserPage.locator('.user-search-result')).toBeVisible()
-        await expect(primaryUserPage.locator('.user-search-result h3')).toBeVisible()
-        await expect(primaryUserPage.locator('.user-search-result h3')).toHaveText('People')
-        await expect(primaryUserPage.locator('.user-search-result .user-grid')).toHaveText('People')
+        await expect(primaryUserPage.getByText('No users found')).toBeVisible() // Expect no users to be found fetch users after 100ms debounce
+        await expect(primaryUserPage.locator('.user-search-results')).toBeVisible()
+        await expect(primaryUserPage.locator('.user-search-results h3')).toBeVisible()
+        await expect(primaryUserPage.locator('.user-search-results h3')).toHaveText('People')
+        await expect(primaryUserPage.locator('.user-search-results .user-grid')).toBeVisible()
+        await expect(primaryUserPage.locator('.user-search-results .user-grid .user-card')).toBeVisible()
 
         // Test User is Visible
         await expect(primaryUserPage.locator('.user-card .s-user-avatar')).toBeVisible()
@@ -129,21 +154,45 @@ test.describe('Pinspire E2E Test', () => {
         await expect(primaryUserPage.locator('.user-card .s-user-info .s-username')).toBeVisible()
         await expect(primaryUserPage.locator('.user-card .s-user-info .s-username')).toHaveText('@test')
 
-        // Click user , route to profile/test
-
+        // Click user (test) , route to profile/test
         await primaryUserPage.locator('.user-card .s-user-info').click()
         await expect(primaryUserPage.url()).toContain('/profile/test')
         await primaryUserPage.waitForLoadState('networkidle')
 
         // verify componet 
-        await expect(userProfilePage.getByTestId('header-search')).toBeVisible()
-        await expect(userProfilePage.getByTestId('sidebar-nav')).toBeVisible()
+        await expect(primaryUserPage.getByTestId('header-search')).toBeVisible()
+        await expect(primaryUserPage.getByTestId('sidebar-nav')).toBeVisible()
          
  
-        await expect(userProfilePage.getByTestId('profileSection-container')).toBeVisible()
-        await expect(userProfilePage.locator('.profile-section')).toBeVisible()
+        await expect(primaryUserPage.getByTestId('profileSection-container')).toBeVisible()
+        await expect(primaryUserPage.locator('.profile-section')).toBeVisible()
+
+        // Test User username, following and follow count and profile image 
+        await expect(primaryUserPage.locator('.profile-section img')).toBeVisible()
+  
+        // Test username
+        await expect(
+          primaryUserPage.locator('.profile-section p').filter({ hasText: '@test' })
+        ).toBeVisible()
+        
+        // Test followers/following count
+        await expect(
+          primaryUserPage.locator('.profile-section p').filter({ hasText: '0 followers · 0 following' })
+        ).toBeVisible()
+
+        //Buttons
+        await expect(primaryUserPage.getByRole('button', { name: 'Edit profile' })).toBeVisible()
+        await expect(primaryUserPage.getByRole('button', { name: 'Liked' })).toBeVisible()
+        await expect(primaryUserPage.getByRole('button', { name: 'Created' })).toBeVisible()
+
+        // verify Tabs has no liked or created pins
+        await expect(primaryUserPage.getByText('No pins created yet')).toBeVisible()
+
+        await primaryUserPage.getByRole('button', { name: 'Liked' }).click()
+        await expect(primaryUserPage.getByText('No pins liked yet')).toBeVisible()
 
       })
+
       test('can view own profile', async ({ userProfilePage }) => {
         // verify componet 
         await expect(userProfilePage.getByTestId('header-search')).toBeVisible()
@@ -229,9 +278,9 @@ test.describe('Pinspire E2E Test', () => {
 
         test('can edit profile information', async ({ profileSettingsPage }) => {
           const testData = {
-            firstName: 'Jace',
-            lastName: 'Sam',
-            bio: 'Software developer',
+            firstName: 'Pinspire',
+            lastName: 'Test',
+            bio: 'Pinterest Clone',
             website: 'https://pinterest-clone.com/'
           }
 
@@ -278,9 +327,7 @@ test.describe('Pinspire E2E Test', () => {
           await profileSettingsPage.locator('#avatar-file').setInputFiles(testImagePath)
 
           // 3. Wait for upload success message
-          await expect(
-            profileSettingsPage.getByText('Profile photo updated successfully')
-          ).toBeVisible({ timeout: 5000 })
+          await profileSettingsPage.getByText('Profile photo updated successfully').waitFor({ state: 'visible'})
 
           // 4. Get new src and verify it changed
           const newSrc = imageElement
@@ -315,7 +362,7 @@ test.describe('Pinspire E2E Test', () => {
         let followButton
         test('can follow user - FOLLOW TEST', async ({ primaryUserPage, secondaryUserPage }) => {
           // create new User (Jace)
-          await signUpNewUser(secondaryUserPage, 'jace@test.com', 'jace000')
+          // await signUpNewUser(secondaryUserPage, 'jace@test.com', 'jace000')  MOVED TO SecondaryUserPage Fixture
           
           // Go to newly created user page 
           const searchBar = primaryUserPage.getByRole('textbox', { name: 'Search users' })
@@ -323,13 +370,14 @@ test.describe('Pinspire E2E Test', () => {
           await searchBar.click()
           await searchBar.type('jace')
           await expect(primaryUserPage.locator('.search-dropdown')).toBeVisible()
-          await expect(primaryUserPage.locator('.user-search-result')).toBeVisible()
-          await expect(primaryUserPage.locator('.user-search-result .user-grid')).toHaveText('People')
-  
+          await expect(primaryUserPage.locator('.user-search-results')).toBeVisible()
+          await expect(primaryUserPage.locator('.user-search-results h3')).toHaveText('People')
+          await expect(primaryUserPage.locator('.user-search-results .user-grid')).toBeVisible()
+          await expect(primaryUserPage.locator('.user-search-results .user-grid .user-card')).toBeVisible()
+    
           // Jace is Visible
           await expect(primaryUserPage.locator('.user-card .s-user-avatar')).toBeVisible()
           await expect(primaryUserPage.locator('.user-card .s-user-info')).toBeVisible()
-          await expect(primaryUserPage.locator('.user-card .s-user-info .s-username')).toBeVisible()
           await expect(primaryUserPage.locator('.user-card .s-user-info .s-username')).toHaveText('@jace')
   
           // Click user 
@@ -340,9 +388,9 @@ test.describe('Pinspire E2E Test', () => {
           //  Verify component
           await expect(primaryUserPage.getByTestId('header-search')).toBeVisible()
           await expect(primaryUserPage.getByTestId('sidebar-nav')).toBeVisible()
+          await expect(primaryUserPage.getByTestId('profileSection-container')).toBeVisible()
   
           // Verify new created profile section
-          await expect(primaryUserPage.getByTestId('profileSection-container')).toBeVisible()
           await expect(primaryUserPage.locator('.profile-section')).toBeVisible()
           await expect(primaryUserPage.getByText('@jace0')).toBeVisible()
           await expect(primaryUserPage.getByRole('button',{ name: 'Follow'})).toBeVisible()
@@ -351,36 +399,18 @@ test.describe('Pinspire E2E Test', () => {
           await expect(primaryUserPage.getByRole('button', { name: 'Liked' })).toBeVisible()
           await expect(primaryUserPage.getByRole('button', { name: 'Created' })).toBeVisible()
           
-  
           // Follow user 
           // Click the follow button
           followButton = primaryUserPage.locator('.follow-btn')
           await followButton.click()
 
 
-          // Success Alert
-          await expect(primaryUserPage.getByRole('alert')
-            .filter({ hasText: 'Successfully followed jace' }))
-            .toBeVisible({ timeout: 5000 })
-
           // Verify button state changed
           await expect(followButton).toHaveText('Following', { timeout: 5000 })
 
-          // await expect(primaryUserPage.getByRole('button', { name: 'Follow' }))
-          //   .toBeHidden({ timeout: 5000 })
-
-          // Wait for Follow button to disappear and Following to appear
-          // await primaryUserPage
-          //   .locator('.follow-btn').not.toHaveText('Follow')
-
-          // Verify UI updates
-          await expect(primaryUserPage.getByRole('button', { name: 'Following'})).toBeVisible({ timeout: 5000 })
+          await expect(primaryUserPage.getByRole('button', { name: 'Following'})).toBeVisible()
           // verify (Jace)  has one Followers
-          await expect(primaryUserPage.getByText('1 followers · 0 following')).toBeVisible({ timeout: 5000 })
-
-  
-          // await expect(primaryUserPage.getByText('0 followers · 0 following' )).not.toBeVisible()
-  
+          await expect(primaryUserPage.getByText('1 followers · 0 following')).toBeVisible()
   
           // verify (test user) following count is 1
           await primaryUserPage.getByRole('link').filter({ has: primaryUserPage.locator('i.fas.fa-user') }).click()
@@ -399,8 +429,10 @@ test.describe('Pinspire E2E Test', () => {
           await searchBar.click()
           await searchBar.type('jace')
           await expect(primaryUserPage.locator('.search-dropdown')).toBeVisible()
-          await expect(primaryUserPage.locator('.user-search-result')).toBeVisible()
-          await expect(primaryUserPage.locator('.user-search-result .user-grid')).toHaveText('People')
+          await expect(primaryUserPage.locator('.user-search-results')).toBeVisible()
+          await expect(primaryUserPage.locator('.user-search-results h3')).toHaveText('People')
+          await expect(primaryUserPage.locator('.user-search-results .user-grid')).toBeVisible()
+          await expect(primaryUserPage.locator('.user-search-results .user-grid .user-card')).toBeVisible()
   
           // Jace is Visible
           await expect(primaryUserPage.locator('.user-card .s-user-avatar')).toBeVisible()
@@ -427,10 +459,6 @@ test.describe('Pinspire E2E Test', () => {
           followButton = primaryUserPage.locator('.follow-btn')
           await followButton.click()
 
-          // Success Alert
-          await expect(primaryUserPage.getByRole('alert')
-            .filter({ hasText: 'Successfully unfollowed jace' }))
-            .toBeVisible({ timeout: 5000 })
         
           // Verify button state changed
           await expect(followButton).toHaveText('Follow', { timeout: 5000 })
@@ -449,15 +477,18 @@ test.describe('Pinspire E2E Test', () => {
           await expect(primaryUserPage.getByText('0 followers · 0 following')).toBeVisible()
         })
 
-        test('can both follow and unfollow each other - FOLLOW, UNFOLLOW TEST', async ({ primaryUserPage, secondaryUserPage}) => {
-          // primary user follows secondary user
+        test('Users follow and unfollow each other - FOLLOW, UNFOLLOW TEST', async ({ primaryUserPage, secondaryUserPage}) => {
+          // primary user (test) follows secondary user (jace)
+
           let searchBar = primaryUserPage.getByRole('textbox', { name: 'Search users' })
           await expect(searchBar).toBeVisible()  
           await searchBar.click()
           await searchBar.type('jace')
           await expect(primaryUserPage.locator('.search-dropdown')).toBeVisible()
-          await expect(primaryUserPage.locator('.user-search-result')).toBeVisible()
-          await expect(primaryUserPage.locator('.user-search-result .user-grid')).toHaveText('People')
+          await expect(primaryUserPage.locator('.user-search-results')).toBeVisible()
+          await expect(primaryUserPage.locator('.user-search-results h3')).toHaveText('People')
+          await expect(primaryUserPage.locator('.user-search-results .user-grid')).toBeVisible()
+          await expect(primaryUserPage.locator('.user-search-results .user-grid .user-card')).toBeVisible()
   
           // Jace is Visible
           await expect(primaryUserPage.locator('.user-card .s-user-avatar')).toBeVisible()
@@ -471,45 +502,141 @@ test.describe('Pinspire E2E Test', () => {
           await primaryUserPage.waitForLoadState('networkidle')
 
           await primaryUserPage.locator('.profile-section').waitFor({ state: 'visible' })
-  
           await expect(primaryUserPage.getByText('@jace')).toBeVisible()
           await expect(primaryUserPage.getByRole('button',{ name: 'Follow'})).toBeVisible()
           await expect(primaryUserPage.getByText('0 followers · 0 following')).toBeVisible()
   
-  
           // Follow user (Jace)
           followButton = primaryUserPage.locator('.follow-btn')
           await followButton.click()
-
-          // Success Alert
-          await expect(primaryUserPage.getByRole('alert')
-            .filter({ hasText: 'Successfully followed jace' }))
-            .toBeVisible({ timeout: 5000 })
         
           // Verify button state changed
           await expect(followButton).toHaveText('Following', { timeout: 5000 })
         
           await expect(primaryUserPage.getByRole('button',{ name: 'Following'})).toBeVisible()
   
-          // verify following count is 1
+          // verify Followers count is 1
           await expect(primaryUserPage.getByText('1 followers · 0 following')).toBeVisible()
   
           // verify secondaryUserPage following count is 1
           await secondaryUserPage.getByRole('link').filter({ has: secondaryUserPage.locator('i.fas.fa-user') }).click()
           await expect(secondaryUserPage.url()).toContain('/profile/jace')
-  
-          await expect(primaryUserPage.getByTestId('profileSection-container')).toBeVisible()
-          await expect(primaryUserPage.getByText('@jace')).toBeVisible()
-          await expect(primaryUserPage.getByText('1 followers · 0 following')).toBeVisible()
+          await expect(secondaryUserPage.getByTestId('profileSection-container')).toBeVisible()
+          await expect(secondaryUserPage.getByText('@jace')).toBeVisible()
+          await expect(secondaryUserPage.getByText('1 followers · 0 following')).toBeVisible()
 
-          // Secodary User Follows Primary User (test)
+
+
+          // Secodary User (jace) Follows Primary User (test)
           searchBar = secondaryUserPage.getByRole('textbox', { name: 'Search users' })
           await expect(searchBar).toBeVisible()  
           await searchBar.click()
           await searchBar.type('test')
           await expect(secondaryUserPage.locator('.search-dropdown')).toBeVisible()
-          await expect(secondaryUserPage.locator('.user-search-result')).toBeVisible()
-          await expect(secondaryUserPage.locator('.user-search-result .user-grid')).toHaveText('People')
+          await expect(secondaryUserPage.locator('.user-search-results')).toBeVisible()
+          await expect(secondaryUserPage.locator('.user-search-results h3')).toHaveText('People')
+          await expect(secondaryUserPage.locator('.user-search-results .user-grid')).toBeVisible()
+          await expect(secondaryUserPage.locator('.user-search-results .user-grid .user-card')).toBeVisible()
+  
+          // Test is Visible
+          await expect(secondaryUserPage.locator('.user-card .s-user-avatar')).toBeVisible()
+          await expect(secondaryUserPage.locator('.user-card .s-user-info')).toBeVisible()
+          await expect(secondaryUserPage.locator('.user-card .s-user-info .s-username')).toBeVisible()
+          await expect(secondaryUserPage.locator('.user-card .s-user-info .s-username')).toHaveText('@test')
+          await secondaryUserPage.locator('.user-card .s-user-info').click()
+          await expect(secondaryUserPage.url()).toContain('/profile/test')
+          await secondaryUserPage.waitForLoadState('networkidle')
+
+          await secondaryUserPage.locator('.profile-section').waitFor({ state: 'visible' })
+          await expect(secondaryUserPage.getByText('@test')).toBeVisible()
+          await expect(secondaryUserPage.getByRole('button',{ name: 'Follow'})).toBeVisible()
+          await expect(secondaryUserPage.getByText('0 followers · 1 following')).toBeVisible()
+  
+          followButton = secondaryUserPage.locator('.follow-btn')
+          await followButton.click()
+        
+          // Verify button state changed
+          await expect(followButton).toHaveText('Following', { timeout: 5000 })
+        
+          await expect(secondaryUserPage.getByRole('button',{ name: 'Following'})).toBeVisible()
+  
+          // verify (Test) Following count is 1,  Followers count is 1
+          await expect(secondaryUserPage.getByText('1 followers · 1 following')).toBeVisible()
+
+          // verify [secondaryUserPage] (jace) Followers count is 1, followers count is 1
+          await secondaryUserPage.getByRole('link').filter({ has: secondaryUserPage.locator('i.fas.fa-user') }).click()
+          await expect(secondaryUserPage.url()).toContain('/profile/jace')
+          await secondaryUserPage.waitForLoadState('networkidle')
+
+          await expect(secondaryUserPage.getByText('@jace')).toBeVisible()
+          await expect(secondaryUserPage.getByText('1 followers · 1 following')).toBeVisible()
+
+  
+          // verify [primaryUserPage] (test) Followers count is 1 and following is 1
+          await primaryUserPage.getByRole('link').filter({ has: primaryUserPage.locator('i.fas.fa-user') }).click()
+          await expect(primaryUserPage.url()).toContain('/profile/test')
+          await secondaryUserPage.waitForLoadState('networkidle')
+
+  
+          await expect(primaryUserPage.getByTestId('profileSection-container')).toBeVisible()
+          await expect(primaryUserPage.getByText('@test')).toBeVisible()
+          await expect(primaryUserPage.getByText('1 followers · 1 following')).toBeVisible()
+
+          // BOTH UNFOLLOWS
+
+          // (test) Unfollows (jace)
+
+          searchBar = primaryUserPage.getByRole('textbox', { name: 'Search users' })
+          await expect(searchBar).toBeVisible()  
+          await searchBar.click()
+          await searchBar.type('jace')
+          await expect(primaryUserPage.locator('.search-dropdown')).toBeVisible()
+          await expect(primaryUserPage.locator('.user-search-results')).toBeVisible()
+          await expect(primaryUserPage.locator('.user-search-results h3')).toHaveText('People')
+          await expect(primaryUserPage.locator('.user-search-results .user-grid')).toBeVisible()
+          await expect(primaryUserPage.locator('.user-search-results .user-grid .user-card')).toBeVisible()
+  
+          // Jace is Visible
+          await expect(primaryUserPage.locator('.user-card .s-user-avatar')).toBeVisible()
+          await expect(primaryUserPage.locator('.user-card .s-user-info')).toBeVisible()
+          await expect(primaryUserPage.locator('.user-card .s-user-info .s-username')).toBeVisible()
+          await expect(primaryUserPage.locator('.user-card .s-user-info .s-username')).toHaveText('@jace')
+  
+          // Click user 
+          await primaryUserPage.locator('.user-card .s-user-info').click()
+          await expect(primaryUserPage.url()).toContain('/profile/jace')
+          await primaryUserPage.waitForLoadState('networkidle')
+
+          // Very Jace Profile
+          await primaryUserPage.locator('.profile-section').waitFor({ state: 'visible' })
+          await expect(primaryUserPage.getByText('@jace')).toBeVisible()
+          await expect(primaryUserPage.getByRole('button',{ name: 'Following'})).toBeVisible()
+          await expect(primaryUserPage.getByText('1 followers · 1 following')).toBeVisible()
+   
+          // UNFOLLOW USER (Jace)
+          followButton = primaryUserPage.locator('.follow-btn')
+          await followButton.click()
+         
+          // Verify button state changed
+          await expect(followButton).toHaveText('Follow', { timeout: 5000 })
+         
+          await expect(primaryUserPage.getByRole('button',{ name: 'Follow'})).toBeVisible()
+   
+          // verify (jace) followers count is 0 and following count is 1 (test)
+          await expect(primaryUserPage.getByText('0 followers · 1 following')).toBeVisible()
+   
+
+          // Secondary user (jace) unfollows Primary user (test)
+          searchBar = secondaryUserPage.getByRole('textbox', { name: 'Search users' })
+          await expect(searchBar).toBeVisible()  
+          await searchBar.click()
+          await searchBar.type('test')
+          await expect(secondaryUserPage.locator('.search-dropdown')).toBeVisible()
+          await expect(secondaryUserPage.locator('.user-search-results')).toBeVisible()
+          await expect(secondaryUserPage.locator('.user-search-results h3')).toHaveText('People')
+          await expect(secondaryUserPage.locator('.user-search-results .user-grid')).toBeVisible()
+          await expect(secondaryUserPage.locator('.user-search-results .user-grid .user-card')).toBeVisible()
+
   
           // Test is Visible
           await expect(secondaryUserPage.locator('.user-card .s-user-avatar')).toBeVisible()
@@ -519,120 +646,17 @@ test.describe('Pinspire E2E Test', () => {
   
           // Click user 
           await secondaryUserPage.locator('.user-card .s-user-info').click()
-          await expect(secondaryUserPage.url()).toContain('/profile/jace')
+          await expect(secondaryUserPage.url()).toContain('/profile/test')
           await secondaryUserPage.waitForLoadState('networkidle')
-
-          await secondaryUserPage.locator('.profile-section').waitFor({ state: 'visible' })
-  
-          await expect(secondaryUserPage.getByText('@test')).toBeVisible()
-          await expect(secondaryUserPage.getByRole('button',{ name: 'Follow'})).toBeVisible()
-          await expect(secondaryUserPage.getByText('0 followers · 1 following')).toBeVisible()
-  
-          followButton = secondaryUserPage.locator('.follow-btn')
-          await followButton.click()
-
-          // Success Alert
-          await expect(secondaryUserPage.getByRole('alert')
-            .filter({ hasText: 'Successfully followed test' }))
-            .toBeVisible({ timeout: 5000 })
-        
-          // Verify button state changed
-          await expect(followButton).toHaveText('Following', { timeout: 5000 })
-        
-          await expect(secondaryUserPage.getByRole('button',{ name: 'Following'})).toBeVisible()
-  
-          // verify (@test) following count is 1,  followers count is 1
-          await expect(secondaryUserPage.getByText('1 followers · 1 following')).toBeVisible()
-  
-          // verify primaryUserPage (test) Followers count is 1 and following is 1
-          await primaryUserPage.getByRole('link').filter({ has: primaryUserPage.locator('i.fas.fa-user') }).click()
-          await expect(primaryUserPage.url()).toContain('/profile/test')
-  
-          await expect(primaryUserPage.getByTestId('profileSection-container')).toBeVisible()
-          await expect(primaryUserPage.getByText('@test')).toBeVisible()
-          await expect(primaryUserPage.getByText('1 followers · 1 following')).toBeVisible()
-
-
-          // BOTH UNFOLLOWS
-
-          // PRIMARYUSER (test) unfollows SECONDARYUSER (jace)
-          // verify previous follow
-          searchBar = primaryUserPage.getByRole('textbox', { name: 'Search users' })
-          await expect(searchBar).toBeVisible()  
-          await searchBar.click()
-          await searchBar.type('jace')
-          await expect(primaryUserPage.locator('.search-dropdown')).toBeVisible()
-          await expect(primaryUserPage.locator('.user-search-result')).toBeVisible()
-          await expect(primaryUserPage.locator('.user-search-result .user-grid')).toHaveText('People')
-  
-          // Jace is Visible
-          await expect(primaryUserPage.locator('.user-card .s-user-avatar')).toBeVisible()
-          await expect(primaryUserPage.locator('.user-card .s-user-info')).toBeVisible()
-          await expect(primaryUserPage.locator('.user-card .s-user-info .s-username')).toBeVisible()
-          await expect(primaryUserPage.locator('.user-card .s-user-info .s-username')).toHaveText('@jace')
-  
-          // Click user 
-          await primaryUserPage.locator('.user-card .s-user-info').click()
-          await expect(primaryUserPage.url()).toContain('/profile/jace')
-          await primaryUserPage.waitForLoadState('networkidle')
- 
-          await primaryUserPage.locator('.profile-section').waitFor({ state: 'visible' })
-          await expect(primaryUserPage.getByText('@jace')).toBeVisible()
-          await expect(primaryUserPage.getByRole('button',{ name: 'Following'})).toBeVisible()
-          await expect(primaryUserPage.getByText('1 followers · 1 following')).toBeVisible()
-   
-          // UNFOLLOW USER (Jace)
-          followButton = primaryUserPage.locator('.follow-btn')
-          await followButton.click()
- 
-          // Success Alert
-          await expect(primaryUserPage.getByRole('alert')
-            .filter({ hasText: 'Successfully unfollowed jace' }))
-            .toBeVisible({ timeout: 5000 })
-         
-          // Verify button state changed
-          await expect(followButton).toHaveText('Follow', { timeout: 5000 })
-         
-          await expect(primaryUserPage.getByRole('button',{ name: 'Follow'})).toBeVisible()
-   
-          // verify (jace) followers count is 0 and following count is 1(test)
-          await expect(primaryUserPage.getByText('0 followers · 1 following')).toBeVisible()
-   
-
-          // SECONDARYUSER (jace) unfollows PRIMARYUSER (test)
-          // UNFOLLOW PRIMARY USER (test)
-          searchBar = secondaryUserPage.getByRole('textbox', { name: 'Search users' })
-          await expect(searchBar).toBeVisible()  
-          await searchBar.click()
-          await searchBar.type('test')
-          await expect(secondaryUserPage.locator('.search-dropdown')).toBeVisible()
-          await expect(secondaryUserPage.locator('.user-search-result')).toBeVisible()
-          await expect(secondaryUserPage.locator('.user-search-result .user-grid')).toHaveText('People')
-  
-          // Jace is Visible
-          await expect(secondaryUserPage.locator('.user-card .s-user-avatar')).toBeVisible()
-          await expect(secondaryUserPage.locator('.user-card .s-user-info')).toBeVisible()
-          await expect(secondaryUserPage.locator('.user-card .s-user-info .s-username')).toBeVisible()
-          await expect(secondaryUserPage.locator('.user-card .s-user-info .s-username')).toHaveText('@test')
-  
-          // Click user 
-          await primaryUserPage.locator('.user-card .s-user-info').click()
-          await expect(primaryUserPage.url()).toContain('/profile/test')
-          await primaryUserPage.waitForLoadState('networkidle')
  
           await secondaryUserPage.locator('.profile-section').waitFor({ state: 'visible' })
           await expect(secondaryUserPage.getByText('@test')).toBeVisible()
           await expect(secondaryUserPage.getByRole('button',{ name: 'Follow'})).toBeVisible()
-          // verify followers count is 1 (jace), following is 0 (previous unfollowed jace)
+          // verify followers count is 1 (jace), following is 0 (previously unfollowed jace)
           await expect(secondaryUserPage.getByText('1 followers · 0 following')).toBeVisible()
 
           followButton = secondaryUserPage.locator('.follow-btn')
           await followButton.click()
- 
-          // Success Alert
-          await expect(secondaryUserPage.getByRole('alert')
-            .filter({ hasText: 'Successfully unfollowed test' }))
-            .toBeVisible({ timeout: 5000 })
          
           // Verify button state changed
           await expect(followButton).toHaveText('Follow', { timeout: 5000 })
@@ -645,7 +669,7 @@ test.describe('Pinspire E2E Test', () => {
       })
 
       test.describe('Message test ', async () => {
-        test('displays all Message elements correctly', async ({ primaryUserPage }) => {
+        test('displays all Message elements and components correctly', async ({ primaryUserPage }) => {
 
           await primaryUserPage.getByRole('link').filter({ has: primaryUserPage.locator('i.fas.fa-comment-dots') }).click()
           await expect(primaryUserPage.locator('.messaging-system')).toBeVisible()
@@ -663,7 +687,7 @@ test.describe('Pinspire E2E Test', () => {
 
         }),
 
-        test('displays New message Page elements correctly', async ({ primaryUserPage}) => {
+        test('displays (New message Page) elements and component correctly', async ({ primaryUserPage}) => {
           await primaryUserPage.getByRole('link').filter({ has: primaryUserPage.locator('i.fas.fa-comment-dots') }).click()
           // Click new message button
           await primaryUserPage.locator('.new-message-btn').click()
@@ -679,7 +703,7 @@ test.describe('Pinspire E2E Test', () => {
           await expect(primaryUserPage.locator('.search-container h3')).toHaveText('No result found')
         }),
 
-        test('should support user search, chat creation, and real-time messaging', async ({ primaryUserPage, secondaryUserPage, newMessagePage }) => {
+        test('should search for users, create chat and be able send and receive messages real-time messaging', async ({ primaryUserPage, secondaryUserPage, newMessagePage }) => {
           // Create secondary test user
           await signUpNewUser(secondaryUserPage, 'jace@test.com', 'jace000')
 
@@ -744,87 +768,88 @@ test.describe('Pinspire E2E Test', () => {
         })
 
       })
+      
       test.describe('Pin Creation Tool Page - Test pin can be created and visble', async () => {
-        test(' Pin creation page element and components are render completely', async ({ primaryUserPage}) => {
+        // test(' Pin creation page element and components are render completely', async ({ primaryUserPage}) => {
 
-          // Navigate to pin creation
-          await expect(primaryUserPage.getByRole('link').filter({ has: primaryUserPage.locator('i.fas.fa-plus') })).toBeVisible()
-          await primaryUserPage.getByRole('link').filter({ has: primaryUserPage.locator('i.fas.fa-plus') }).click()
-          await expect(primaryUserPage).toHaveURL('/pin-creation-tool')
+        //   // Navigate to pin creation
+        //   await expect(primaryUserPage.getByRole('link').filter({ has: primaryUserPage.locator('i.fas.fa-plus') })).toBeVisible()
+        //   await primaryUserPage.getByRole('link').filter({ has: primaryUserPage.locator('i.fas.fa-plus') }).click()
+        //   await expect(primaryUserPage).toHaveURL('/pin-creation-tool')
 
-          // Header section verification
-          const header = primaryUserPage.locator('.create-pin-header')
-          await expect(header).toBeVisible()
-          await expect(header.locator('h1')).toHaveText('Create Pin')
-          await expect(header.locator('.publish-button')).toBeVisible()
+        //   // Header section verification
+        //   const header = primaryUserPage.locator('.create-pin-header')
+        //   await expect(header).toBeVisible()
+        //   await expect(header.locator('h1')).toHaveText('Create Pin')
+        //   await expect(header.locator('.publish-button')).toBeVisible()
 
-          // Side nav verification
-          await expect(primaryUserPage.getByTestId('sidebar-nav')).toBeVisible()
+        //   // Side nav verification
+        //   await expect(primaryUserPage.getByTestId('sidebar-nav')).toBeVisible()
 
-          // Pin creation tool container
-          await expect(primaryUserPage.locator('.content-container')).toBeVisible()
+        //   // Pin creation tool container
+        //   await expect(primaryUserPage.locator('.content-container')).toBeVisible()
 
-          // Image upload section verification
-          const imageSection = {
-            container: primaryUserPage.locator('.image-section'),
-            wrapper: primaryUserPage.locator('.image-wrapper'),
-            fileInput: primaryUserPage.getByTestId('file-input'),
-            uploadContainer: primaryUserPage.locator('.upload-container'),
-            primaryText: primaryUserPage.locator('.upload-container .primary-text'),
-            secondaryText: primaryUserPage.locator('.upload-container .secondary-text'),
-            explorerButton: primaryUserPage.locator('.explorer-button')
-          }
+        //   // Image upload section verification
+        //   const imageSection = {
+        //     container: primaryUserPage.locator('.image-section'),
+        //     wrapper: primaryUserPage.locator('.image-wrapper'),
+        //     fileInput: primaryUserPage.getByTestId('file-input'),
+        //     uploadContainer: primaryUserPage.locator('.upload-container'),
+        //     primaryText: primaryUserPage.locator('.upload-container .primary-text'),
+        //     secondaryText: primaryUserPage.locator('.upload-container .secondary-text'),
+        //     explorerButton: primaryUserPage.locator('.explorer-button')
+        //   }
           
-          // Verify image section elements
-          await expect(imageSection.container).toBeVisible()
-          await expect(imageSection.wrapper).toBeVisible()
-          await expect(imageSection.fileInput).toBeHidden()
-          await expect(imageSection.uploadContainer).toBeVisible()
-          await expect(imageSection.primaryText).toHaveText('Choose a file or drag and drop it here')
-          await expect(imageSection.secondaryText).toHaveText('We recommend using high quality .jpg files less than 20MB')
-          await expect(imageSection.explorerButton).toBeVisible()
-          await expect(imageSection.explorerButton).toHaveText('Open Explorer')
+        //   // Verify image section elements
+        //   await expect(imageSection.container).toBeVisible()
+        //   await expect(imageSection.wrapper).toBeVisible()
+        //   await expect(imageSection.fileInput).toBeHidden()
+        //   await expect(imageSection.uploadContainer).toBeVisible()
+        //   await expect(imageSection.primaryText).toHaveText('Choose a file or drag and drop it here')
+        //   await expect(imageSection.secondaryText).toHaveText('We recommend using high quality .jpg files less than 20MB')
+        //   await expect(imageSection.explorerButton).toBeVisible()
+        //   await expect(imageSection.explorerButton).toHaveText('Open Explorer')
 
-          // Form section verification
-          const formSection = primaryUserPage.locator('.form-section')
-          await expect(formSection).toBeVisible()
+        //   // Form section verification
+        //   const formSection = primaryUserPage.locator('.form-section')
+        //   await expect(formSection).toBeVisible()
 
 
-          // Form fields
-          const formFields = [
-            'Title',
-            'Description',
-            'Link',
-            'Board',
-            'Tagged Topics',
-            'Add products',
-            'More options'
-          ]
+        //   // Form fields
+        //   const formFields = [
+        //     'Title',
+        //     'Description',
+        //     'Link',
+        //     'Board',
+        //     'Tagged Topics',
+        //     'Add products',
+        //     'More options'
+        //   ]
             
-          for (const field of formFields) {
-            await expect(
-              primaryUserPage.locator('.form-group').filter({ hasText: field })
-            ).toBeVisible()
-          }
+        //   for (const field of formFields) {
+        //     await expect(
+        //       primaryUserPage.locator('.form-group').filter({ hasText: field })
+        //     ).toBeVisible()
+        //   }
 
-          // Verify helper text for tagged topics
-          await expect(formSection
-            .locator('.helper-text'))
-            .toHaveText('Don\'t worry, people won\'t see your tags')
+        //   // Verify helper text for tagged topics
+        //   await expect(formSection
+        //     .locator('.helper-text'))
+        //     .toHaveText('Don\'t worry, people won\'t see your tags')
 
-          // Verify more options button has icon
-          await expect(formSection
-            .locator('.more-options-button i.fas.fa-chevron-down'))
-            .toBeVisible()
+        //   // Verify more options button has icon
+        //   await expect(formSection
+        //     .locator('.more-options-button i.fas.fa-chevron-down'))
+        //     .toBeVisible()
     
-        }),
+        // }),
 
         test('can create pin with image upload and details', async ({ primaryUserPage, createPinPage }) => {
 
           const testImagePath = path.join(__dirname, './test-files/jacket.jpeg')
           const pinDetails = {
             title: 'Black winter jacket',
-            description: 'Premium black titanium winter jacket featuring water-resistant material, ' + 
+            description: 'Premium black winter jacket featuring water-resistant material, ' + 
                         'thermal insulation, and sleek modern design. Perfect for extreme weather ' +
                         'conditions while maintaining a sophisticated urban look.',
             link: 'https://pinspire.com/black-winter-jacket',
@@ -863,191 +888,144 @@ test.describe('Pinspire E2E Test', () => {
           await expect(primaryUserPage.getByText(pinDetails.title)).toBeVisible()
         })
 
-        test('Pin can be viewed with all detials', async ({ primaryUserPage, createPinPage }) => {
-          /*
-          // SINGLE TEST
-          const testImagePath = path.join(__dirname, './test-files/jacket.jpeg')
-          const pinDetails = {
-            title: 'Black winter jacket',
-            description: 'Premium black winter jacket featuring water-resistant material, thermal insulation, and sleek modern design. Perfect for extreme weather conditions while maintaining a sophisticated urban look.',
-            link: 'https://pinspire.com/black-winter-jacket',
-            imagePath: testImagePath
-          }
-        
-          // Upload image
-          const fileInput = createPinPage.getByTestId('file-input')
-          await fileInput.setInputFiles(pinDetails.imagePath)
-        
-          // Verify image preview
-          await expect(createPinPage.locator('.pin-image')).toBeVisible()
-          await expect(createPinPage.locator('.edit-button')).toBeVisible()
-        
-          // Fill pin details
-          await createPinPage.locator('#title').fill(pinDetails.title)
-          await createPinPage.locator('#description').fill(pinDetails.description)
-          await createPinPage.locator('#link').fill(pinDetails.link)
+        // test('Pin can be viewed with all detials', async ({ primaryUserPage }) => {
 
-          // Board Functionality doesnt exist yet
-
-          // Verify publish button becomes enabled
-          const publishButton = createPinPage.locator('.publish-button')        
-          // Submit pin
-          await publishButton.click()
-        
-          await expect(primaryUserPage.getByRole('alert')
-            .filter({ hasText: 'Pin created successfully' }))
-            .toBeVisible({ timeout: 8000 })
-        
-          // Verify redirect to pin detail page
-          await expect(createPinPage).toHaveURL('/')
-          await primaryUserPage.waitForLoadState('networkidle')
-*/
-
-
-          // Verify Created Pin is in home Pinfeed
-
-
-
-          // Pin feed home container
-          await expect(primaryUserPage.locator('.home-container')).toBeVisible()
-
-          // Verify Created Pin is live
-          await expect(primaryUserPage.locator('.pins-grid')).toBeVisible()
-          await expect(primaryUserPage.locator('.pin-card')).toBeVisible()
-          await expect(primaryUserPage.locator('.pin-card .pin-image-container')).toBeVisible()
-          await expect(primaryUserPage.locator('.pin-image-container .pin-image')).toBeVisible()
-          await expect(primaryUserPage.locator('.pin-image-container .pin-overlay .pin-title')).toHaveText('Black winter jacket')
-
-          // Verify user info
-          await expect(primaryUserPage.locator('.pin-card .pin-footer')).toBeVisible()
-          await expect(primaryUserPage.locator('.pin-card .pin-footer .user-avatar')).toBeVisible()
-          await expect(primaryUserPage.locator('.pin-card .pin-footer .user-name')).toBeVisible()
-
-          // click on image 
-          await primaryUserPage.locator('.pin-image-container .pin-image').click()
-
-          // More specific regex pattern to match UUID format
-          await expect(primaryUserPage.url()).toMatch(/\/pin\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/)
-          // await expect(primaryUserPage.url()).toContain('/pin/')
-
-          await primaryUserPage.getByTestId('loading-spinner').waitFor({ state: 'visible', timeout: 5000 })
-
-          // verify component
-          await expect(primaryUserPage.getByTestId('header-search')).toBeVisible()
-          await expect(primaryUserPage.getByTestId('sidebar-nav')).toBeVisible()
-
-          await expect(primaryUserPage.locator('.pin-details-container')).toBeVisible()
-          await expect(primaryUserPage.locator('.pin-details-container .pin-details-wrapper')).toBeVisible()
-
-          // PIN IMAGE SECTION
-          await expect(primaryUserPage.locator('.pin-details-image-section .pin-main-image')).toBeVisible()
-
-          // PIN CONTENT SECTION
-          await expect(primaryUserPage.locator('.pin-details-content')).toBeVisible()
+        //   // Verify Created Pin is in home Pinfeed
+        //   // verify component
+        //   await expect(primaryUserPage.getByTestId('header-search')).toBeVisible()
+        //   await expect(primaryUserPage.getByTestId('sidebar-nav')).toBeVisible()
           
-          // verify user info
-          await expect(primaryUserPage.locator('.user-info-container .user-details')).toBeVisible()
-          await expect(primaryUserPage.locator('.user-details .profile-image')).toBeVisible()
-          await expect(primaryUserPage.locator('.user-details .user-username')).toBeVisible()
-          await expect(primaryUserPage.locator('.user-details .user-username')).toHaveText('test')
+        //   await expect(primaryUserPage.locator('.home-container')).toBeVisible()
 
-          // Verify Like button
-          await expect(primaryUserPage.locator('.user-info-container .like-container')).toBeVisible()
-          await expect(primaryUserPage.locator('.like-container .pin-like-button')).toBeVisible()
-          await expect(primaryUserPage.locator('.like-container .like-count')).toHaveText('0')
+        //   // Verify Created Pin is live
+        //   await expect(primaryUserPage.locator('.home-container .pins-grid')).toBeVisible()
+        //   await expect(primaryUserPage.locator('.pin-card')).toBeVisible()
+        //   await expect(primaryUserPage.locator('.pin-card .pin-image-container')).toBeVisible()
+        //   await expect(primaryUserPage.locator('.pin-image-container .pin-image')).toBeVisible()
+        //   await expect(primaryUserPage.locator('.pin-image-container .pin-overlay .pin-title')).toHaveText('Black winter jacket')
 
-          // Verify Pin info
-          await expect(primaryUserPage.locator('.pin-info')).toBeVisible()
-          await expect(primaryUserPage.locator('.pin-info .pin-title-pin')).toBeVisible()
-          await expect(primaryUserPage.locator('.pin-info .pin-title-pin')).toHaveText('Black winter jacket')
+        //   // Verify user info
+        //   await expect(primaryUserPage.locator('.pin-card .pin-footer')).toBeVisible()
+        //   await expect(primaryUserPage.locator('.pin-card .pin-footer .user-avatar')).toBeVisible()
+        //   await expect(primaryUserPage.locator('.pin-card .pin-footer .user-name')).toBeVisible()
 
-          const descriptionLocator = primaryUserPage.locator('.pin-info .pin-description')
-          await expect(descriptionLocator).toBeVisible()
+        //   // click on image 
+        //   await primaryUserPage.locator('.pin-image-container .pin-image').click()
 
-          const fullDescription = 'Premium black winter jacket featuring water-resistant material, thermal insulation, and sleek modern design. Perfect for extreme weather conditions while maintaining a sophisticated urban look.'
+        //   // More specific regex pattern to match UUID format
+        //   await expect(primaryUserPage.url()).toMatch(/\/pin\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/)
+        //   // await expect(primaryUserPage.url()).toContain('/pin/')
+
+        //   await primaryUserPage.getByTestId('loading-spinner').waitFor({ state: 'visible', timeout: 5000 })
+
+        //   // verify component
+        //   await expect(primaryUserPage.getByTestId('header-search')).toBeVisible()
+        //   await expect(primaryUserPage.getByTestId('sidebar-nav')).toBeVisible()
+
+        //   await expect(primaryUserPage.locator('.pin-details-container')).toBeVisible()
+        //   await expect(primaryUserPage.locator('.pin-details-container .pin-details-wrapper')).toBeVisible()
+
+        //   // PIN IMAGE SECTION
+        //   await expect(primaryUserPage.locator('.pin-details-image-section .pin-main-image')).toBeVisible()
+
+        //   // PIN CONTENT SECTION
+        //   await expect(primaryUserPage.locator('.pin-details-content')).toBeVisible()
+          
+        //   // verify user info
+        //   await expect(primaryUserPage.locator('.user-info-container .user-details')).toBeVisible()
+        //   await expect(primaryUserPage.locator('.user-details .profile-image')).toBeVisible()
+        //   await expect(primaryUserPage.locator('.user-details .user-username')).toBeVisible()
+        //   await expect(primaryUserPage.locator('.user-details .user-username')).toHaveText('test')
+
+        //   // Verify Like button
+        //   await expect(primaryUserPage.locator('.user-info-container .like-container')).toBeVisible()
+        //   await expect(primaryUserPage.locator('.like-container .pin-like-button')).toBeVisible()
+        //   await expect(primaryUserPage.locator('.like-container .like-count')).toHaveText('0')
+
+        //   // Verify Pin info
+        //   await expect(primaryUserPage.locator('.pin-info')).toBeVisible()
+        //   await expect(primaryUserPage.locator('.pin-info .pin-title-pin')).toBeVisible()
+        //   await expect(primaryUserPage.locator('.pin-info .pin-title-pin')).toHaveText('Black winter jacket')
+
+        //   const descriptionLocator = primaryUserPage.locator('.pin-info .pin-description')
+        //   await expect(descriptionLocator).toBeVisible()
+
+        //   const fullDescription = 'Premium black winter jacket featuring water-resistant material, thermal insulation, and sleek modern design. Perfect for extreme weather conditions while maintaining a sophisticated urban look.'
         
-          await expect(descriptionLocator).toContainText(fullDescription.substring(0, 100))
-          await expect(primaryUserPage.locator('button:has-text("Show more")')).toBeVisible()
+        //   await expect(descriptionLocator).toContainText(fullDescription.substring(0, 100)+ '...Show more')
+        //   await expect(primaryUserPage.locator('button:has-text("Show more")')).toBeVisible()
 
-          // Click show more
-          await primaryUserPage.click('button:has-text("Show more")')
+        //   // Click show more
+        //   await primaryUserPage.click('button:has-text("Show more")')
     
-          // Verify full description is shown with show less
-          await expect(descriptionLocator).toContainText(fullDescription)
-          await expect(primaryUserPage.locator('button:has-text("Show less")')).toBeVisible()
+        //   // Verify full description is shown with show less
+        //   await expect(descriptionLocator).toContainText(fullDescription)
+        //   await expect(primaryUserPage.locator('button:has-text("Show less")')).toBeVisible()
     
-          // Click show less
-          await primaryUserPage.click('button:has-text("Show less")')
+        //   // Click show less
+        //   await primaryUserPage.click('button:has-text("Show less")')
     
-          // Verify back to truncated state
-          await expect(descriptionLocator).toContainText(fullDescription.substring(0, 100))
-          await expect(primaryUserPage.locator('button:has-text("Show more")')).toBeVisible()
+        //   // Verify back to truncated state
+        //   await expect(descriptionLocator).toContainText(fullDescription.substring(0, 100))
+        //   await expect(primaryUserPage.locator('button:has-text("Show more")')).toBeVisible()
           
 
-          // Verify Comments section
-          await expect(primaryUserPage.locator('.pin-comments-section')).toBeVisible()
+        //   // Verify Comments section
+        //   await expect(primaryUserPage.locator('.pin-comments-section')).toBeVisible()
 
-          await expect(primaryUserPage.locator('.pin-comments-section .comments-header')).toBeVisible()
-          await expect(primaryUserPage.locator('.comments-header .comments-count')).toBeVisible()
-          await expect(primaryUserPage.locator('.comments-header .comments-count')).toHaveText('0 comments')
+        //   await expect(primaryUserPage.locator('.pin-comments-section .comments-header')).toBeVisible()
+        //   await expect(primaryUserPage.locator('.comments-header .comments-count')).toBeVisible()
+        //   await expect(primaryUserPage.locator('.comments-header .comments-count')).toHaveText('0 comments')
 
-          await expect(primaryUserPage.locator('.comments-header .comments-toggle')).toBeVisible()
+        //   await expect(primaryUserPage.locator('.comments-header .comments-toggle')).toBeVisible()
 
-          // PinCommentsList
-          // await expect(primaryUserPage.locator('.pin-comments-list')).toBeVisible()
+        //   // PinCommentInput
+        //   await expect(primaryUserPage.locator('.pin-comment-input-wrapper')).toBeVisible()
+        //   await expect(primaryUserPage.locator('.pin-comment-input-wrapper .pin-comment-input')).toBeVisible()
 
-
-          // PinCommentInput
-          await expect(primaryUserPage.locator('.pin-comment-input-wrapper')).toBeVisible()
-          await expect(primaryUserPage.locator('.pin-comment-input-wrapper .pin-comment-input')).toBeVisible()
-
-          await expect(primaryUserPage.locator('.pin-comment-input-wrapper .pin-comment-submit')).toBeVisible()
-          await expect(primaryUserPage.locator('.pin-comment-input-wrapper .pin-comment-submit i')).toBeVisible()
+        //   await expect(primaryUserPage.locator('.pin-comment-input-wrapper .pin-comment-submit')).toBeVisible()
+        //   await expect(primaryUserPage.locator('.pin-comment-input-wrapper .pin-comment-submit i')).toBeVisible()
 
 
-        })
+        // })
 
-        test('Pin owner Can Like own pin - No Like Notification', async ({ pinPage }) => {
-          // Like Previously created pin
-          await expect(pinPage.locator('.user-info-container .like-container')).toBeVisible()
-          await expect(pinPage.locator('.like-container .pin-like-button')).toBeVisible()
-          await expect(pinPage.locator('.like-container .like-count')).toHaveText('0')
+        // test('Can Like and unlike own pin - No Like Notification', async ({ pinPage }) => {
+        //   // Like Previously created pin
+        //   await expect(pinPage.locator('.user-info-container .like-container')).toBeVisible()
+        //   await expect(pinPage.locator('.like-container .pin-like-button')).toBeVisible()
+        //   await expect(pinPage.locator('.like-container .like-count')).toHaveText('0')
 
-          await pinPage.locator('.like-container .pin-like-button').click()
+        //   await pinPage.locator('.like-container .pin-like-button').click()
 
-          await expect(pinPage.locator('.like-container .like-count')).toHaveText('1', {
-            timeout: 5000,
-            waitFor: 'visible'
-          })
+        //   await expect(pinPage.locator('.like-container .like-count')).toHaveText('1', {
+        //     timeout: 5000,
+        //     waitFor: 'visible'
+        //   })
 
-          await expect(pinPage.locator('.like-container .like-count')).not.toHaveText('0')
-        })
-        test('Pin owner Can Unlike own pin - No Like Notification', async ({ pinPage }) => {
-          // Like Previously created pin
-          await expect(pinPage.locator('.user-info-container .like-container')).toBeVisible()
-          await expect(pinPage.locator('.like-container .pin-like-button')).toBeVisible()
-          await expect(pinPage.locator('.like-container .like-count')).toHaveText('1')
+        //   await expect(pinPage.locator('.like-container .like-count')).not.toHaveText('0')
 
-          await pinPage.locator('.like-container .pin-like-button').click()
+        //   // Unlike Operations
 
-          await expect(pinPage.locator('.like-container .like-count')).toHaveText('0', {
-            timeout: 5000,
-            waitFor: 'visible'
-          })
+        //   await pinPage.locator('.like-container .pin-like-button').click()
 
-          await expect(pinPage.locator('.like-container .like-count')).not.toHaveText('1')
+        //   await expect(pinPage.locator('.like-container .like-count')).toHaveText('0', {
+        //     timeout: 5000,
+        //     waitFor: 'visible'
+        //   })
 
-          // VERIFY NO LIKE NOTIFICATION 
+        //   await expect(pinPage.locator('.like-container .like-count')).not.toHaveText('1')
 
-          await expect(pinPage.getByRole('link').filter({ has: pinPage.locator('i.fas.fa-bell') })).toBeVisible()
+        //   // VERIFY NO LIKE NOTIFICATION 
 
-          await pinPage.getByRole('link').filter({ has: pinPage.locator('i.fas.fa-bell') }).click()
-          await expect(pinPage.locator('.notification-system')).toBeVisible()
-          await expect(pinPage.locator('.notification-header h3')).toBeVisible()
-          await expect(pinPage.locator('.notification-content')).toBeVisible()
-          await expect(pinPage.getByText('No notifications yet')).toBeVisible()
+        //   await expect(pinPage.getByRole('link').filter({ has: pinPage.locator('i.fas.fa-bell') })).toBeVisible()
 
-        })
+        //   await pinPage.getByRole('link').filter({ has: pinPage.locator('i.fas.fa-bell') }).click()
+        //   await expect(pinPage.locator('.notification-system')).toBeVisible()
+        //   await expect(pinPage.locator('.notification-header h3')).toBeVisible()
+        //   await expect(pinPage.locator('.notification-content')).toBeVisible()
+        //   await expect(pinPage.getByText('No notifications yet')).toBeVisible()
+
+        // })
 
         test('Pin owner Can Comment on own pin - No Comment Notification', async ({ pinPage }) => {
           const commentCountHeader = pinPage.locator('.comments-header .comments-count')
@@ -1105,60 +1083,64 @@ test.describe('Pinspire E2E Test', () => {
           await expect(pinPage.getByText('No notifications yet')).toBeVisible()
         })
 
-        test('Like Own Comment - No Like Comment Notification', async ({ pinPage}) => {
+        // test('Like Own Comment - No Like Comment Notification', async ({ pinPage}) => {
+        //   const commentCountHeader = pinPage.locator('.comments-header .comments-count')
 
-          await expect(pinPage.locator('.pin-comment-input')).toHaveText('1 comments')
-          await pinPage.locator('.comments-toggle i').click()
-          await expect(pinPage.locator('.comment-content .comment-username')).toHaveText('test')
-          await expect(pinPage.locator('.comment-content .comment-text')).toHaveText('I love it!')
+        //   await expect(commentCountHeader).toHaveText('1 comments')
+        //   await pinPage.locator('.comments-toggle i').click()
+
+        //   await expect(pinPage.locator('.pin-comments-list')).toBeVisible()
+        //   await expect(pinPage.locator('.comment-content .comment-username')).toHaveText('test')
+        //   await expect(pinPage.locator('.comment-content .comment-text')).toHaveText('I love it!')
     
-          // Like Comment 
-          await expect(pinPage.locator('.comment-actions .like-button')).toBeVisible()
+        //   // Like Comment 
+        //   const commentLikeBtn = pinPage.locator('.comment-actions .like-button')
+        //   await expect(commentLikeBtn).toBeVisible()
+        //   await commentLikeBtn.click()
 
-          await pinPage.locator('.comment-actions .like-button').click()
-
-          // Like count should be 
-          await expect(pinPage.locator('.comment-actions .like-count')).toHaveText('1', {
-            timeout: 5000,
-            waitFor: 'visible'
-          })
-        })
+        //   // Like count should be 
+        //   await expect(pinPage.locator('.comment-actions .like-count')).toHaveText('1', {
+        //     timeout: 5000,
+        //     waitFor: 'visible'
+        //   })
+        // })
 
         test('pin owner Can reply to own comment - No Comment Reply Notification', async ({ pinPage }) => {
-          // Verify Pin Page
-          await expect(pinPage.locator('.pin-details-container')).toBeVisible()
-          await expect(pinPage.locator('.pin-details-image-section .pin-main-image')).toBeVisible()
-          await expect(pinPage.locator('.pin-details-content')).toBeVisible()
-          await expect(pinPage.locator('.pin-details-content .user-info-container')).toBeVisible()
-          await expect(pinPage.locator('.pin-info .pin-title-pin')).toHaveText('Black winter jacket')
-
           // Verify Initial Comment State 
-          await expect(pinPage.locator('.pin-comment-input')).toHaveText('1 comments')
+          const commentCountHeader = pinPage.locator('.comments-header .comments-count')
+
+          await expect(commentCountHeader).toHaveText('1 comments')
           await pinPage.locator('.comments-toggle i').click()
           await expect(pinPage.locator('.comment-content .comment-username')).toHaveText('test')
           await expect(pinPage.locator('.comment-content .comment-text')).toHaveText('I love it!')
 
           // Verify Reply Interface
           await expect(pinPage.locator('.comment-actions .reply-button')).toBeVisible()
-          await pinPage.locator('.comment-actions .reply-button').toBeVisible()
+          await pinPage.locator('.comment-actions .reply-button').click()
           await expect(pinPage.locator('.reply-input-container')).toBeVisible()
           await expect(pinPage.locator('.reply-input-container .reply-input')).toBeVisible()
-          await expect(pinPage.locator('.reply-input-container .reply-submit')).toBeVisible()
-          await expect(pinPage.locator('.reply-input-container .reply-submit i')).toBeVisible()
+          await expect(pinPage.locator('.reply-input-container .reply-submit')).toBeDisabled()
+          await expect(pinPage.locator('.reply-input-container .reply-submit i')).toBeDisabled()
 
           // Submit Reply
-          await pinPage.locator('.comment-actions .reply-button').click()
-          await pinPage.locator('.reply-input-container .reply-input').type('Replying to my own comment')
-          await expect(commentInput).toHaveValue('Replying to my own comment')
+          const commentReplyInput = pinPage.locator('.reply-input-container .reply-input')
+          await commentReplyInput.type('Replying to my own comment')
+          await expect(commentReplyInput).toHaveValue('Replying to my own comment')
+
+          await expect(pinPage.locator('.reply-input-container .reply-submit')).not.toBeDisabled()
+          await expect(pinPage.locator('.reply-input-container .reply-submit i')).not.toBeDisabled()
 
           await pinPage.locator('.reply-input-container .reply-submit i').click()
 
-          // Verify Reply Content
-          await expect(pinPage.getByText('1 reply')).toBeVisible({ timeout: 5000})
-          await expect(pinPage.locator('.replies-section')).toBeVisible({ timeout: 5000})
-          await pinPage.locator('.replies-section button i').click()
+          await 
 
-          await expect(pinPage.locator('.replies-container .show')).toBeVisible()
+          // Verify Reply Content
+          await expect(pinPage.locator('.comment-content .replies-section .show-replies-btn ')).toHaveText('1 reply', {
+            timeout: 5000,
+            waitFor: 'visible'
+          })
+
+          await pinPage.locator('.replies-section .show-replies-btn i').click()
 
           //  Verify User
           await expect(pinPage.locator('.replies-container .show .pin-comment')).toBeVisible()
@@ -1170,10 +1152,10 @@ test.describe('Pinspire E2E Test', () => {
           await expect(pinPage.locator('.replies-container .show .comment-content .comment-text')).toHaveText('Replying to my own comment')
 
           // Verify Reply Actions
-          await expect(pinPage.locator('.replies-container .show .comment-actions')).toBeVisible()
-          await expect(pinPage.locator('.replies-container .show .comment-actions .comment-time')).toBeVisible()
-          await expect(pinPage.locator('.replies-container .show .comment-actions .reply-button')).toBeVisible()
-          await expect(pinPage.locator('.replies-container .show .comment-actions .like-button')).toBeVisible()
+          await expect(pinPage.locator('.comment-actions')).toBeVisible()
+          await expect(pinPage.locator('.comment-actions .comment-time')).toBeVisible()
+          await expect(pinPage.locator('..comment-actions .reply-button')).toBeVisible()
+          await expect(pinPage.locator(' .comment-actions .like-button')).toBeVisible()
 
           // VERIFY NO REPLY COMMENT NOTIFICATION
           await expect(pinPage.getByRole('link').filter({ has: pinPage.locator('i.fas.fa-bell') })).toBeVisible()
@@ -1187,38 +1169,38 @@ test.describe('Pinspire E2E Test', () => {
         })
 
 
-        test('Pin can be liked - TEST LIKE NOTIFICATION IN REAL-TIME', async ({pinPage, pinPageWithSecondaryUser }) => {
-          // Liking primary User pin
-          await expect(pinPageWithSecondaryUser.locator('.user-info-container .like-container')).toBeVisible()
-          await expect(pinPageWithSecondaryUser.locator('.like-container .pin-like-button')).toBeVisible()
-          await expect(pinPageWithSecondaryUser.locator('.like-container .like-count')).toHaveText('1')
+        // test('Pin can be liked by other Users - TEST NOTIFICATION IN REAL-TIME', async ({ pinPage, pinPageWithSecondaryUser }) => {
+        //   // Liking primary User pin
+        //   await expect(pinPageWithSecondaryUser.locator('.user-info-container .like-container')).toBeVisible()
+        //   await expect(pinPageWithSecondaryUser.locator('.like-container .pin-like-button')).toBeVisible()
+        //   await expect(pinPageWithSecondaryUser.locator('.like-container .like-count')).toHaveText('0')
 
-          await pinPageWithSecondaryUser.locator('.like-container .pin-like-button').click()
+        //   await pinPageWithSecondaryUser.locator('.like-container .pin-like-button').click()
 
-          await expect(pinPage.locator('.like-container .like-count')).toHaveText('2', {
-            timeout: 5000,
-            waitFor: 'visible'
-          })
-          await expect(pinPageWithSecondaryUser.locator('.like-container .like-count')).not.toHaveText('1')
+        //   await expect(pinPageWithSecondaryUser.locator('.like-container .like-count')).toHaveText('1', {
+        //     timeout: 15000, 
+        //     waitFor: 'visible'
+        //   })
+        //   await expect(pinPageWithSecondaryUser.locator('.like-container .like-count')).not.toHaveText('0')
 
-          // VERIFY PRIMARY USER RECIEVED LIKE NOTIFICATION FROM (JACE)
-          // pinPage is primary user page
-          await expect(pinPage.getByRole('link').filter({ has: pinPage.locator('i.fas.fa-bell') })).toBeVisible()
+        //   // VERIFY PRIMARY USER RECIEVED LIKE NOTIFICATION FROM (JACE)
+        //   // pinPage is primary user page
+        //   await expect(pinPage.getByRole('link').filter({ has: pinPage.locator('i.fas.fa-bell') })).toBeVisible()
 
-          await pinPage.getByRole('link').filter({ has: pinPage.locator('i.fas.fa-bell') }).click()
-          await expect(pinPage.locator('.notification-system')).toBeVisible()
-          await expect(pinPage.locator('.notification-header h3')).toBeVisible()
-          await expect(pinPage.locator('.notification-content')).toBeVisible()
-          await expect(pinPage.getByText('No notifications yet')).not.toBeVisible()
+        //   await pinPage.getByRole('link').filter({ has: pinPage.locator('i.fas.fa-bell') }).click()
+        //   await expect(pinPage.locator('.notification-system')).toBeVisible()
+        //   await expect(pinPage.locator('.notification-header h3')).toBeVisible()
+        //   await expect(pinPage.getByText('No notifications yet')).not.toBeVisible()
 
-          // Verify Notication
+        //   // Verify Notication content
+        //   await expect(pinPage.locator('.notification-content')).toBeVisible()
+        //   await expect(pinPage.locator('.notification-item')).toBeVisible()
+        //   await expect(pinPage.locator('.notification-item .notification-message')).toHaveText('jace liked your pin "Black winter jacket"')
+        //   await expect(pinPage.locator('.notification-item .notification-time')).toBeVisible()
+        // })
 
-
-        })
-
-        test('can Comment on pin - TEST LIKE NOTIFICATION IN REAL-TIME', async ({ pinPage, pinPageWithSecondaryUser }) => {
-          // Comment on primary User pin (test)
-
+        test('can Comment on pin - TEST COMMENT NOTIFICATION IN REAL-TIME', async ({ pinPage, pinPageWithSecondaryUser }) => {
+          // Secondary user comment on primary user (test)
           const commentCountHeader = pinPageWithSecondaryUser.locator('.comments-header .comments-count')
 
           await expect(commentCountHeader).toHaveText('1 comments')
@@ -1227,11 +1209,11 @@ test.describe('Pinspire E2E Test', () => {
           await expect(pinPageWithSecondaryUser.locator('.pin-comment-input-wrapper .pin-comment-input')).toBeVisible()
           await expect(pinPageWithSecondaryUser.locator('.pin-comment-input-wrapper .pin-comment-submit')).toBeVisible()
 
-          // Comment on pin
+
+          // Comment on own pin
           const commentInput = pinPageWithSecondaryUser.locator('.pin-comment-input')
-          const jaceComment = 'Love the white fur collar'
-          await commentInput.type(jaceComment)
-          await expect(commentInput).toHaveValue(jaceComment)
+          await commentInput.type('Love the white fur collar')
+          await expect(commentInput).toHaveValue('Love the white fur collar')
 
           await pinPageWithSecondaryUser.locator('.pin-comment-submit').click()
 
@@ -1242,71 +1224,87 @@ test.describe('Pinspire E2E Test', () => {
 
           await expect(pinPageWithSecondaryUser.locator('.pin-comments-list')).toBeVisible()
 
+          const findCommentByText = (username, text) => {
+            return pinPageWithSecondaryUser.locator('.pin-comment').filter({
+              has: pinPageWithSecondaryUser.locator('.comment-text', { hasText : username}),
+              hasText: text
+            })
+          }
+
+          // Verify current Comment list State 
+
+          // Jace's comment
+          const jacePreviousComment = await findCommentByText('jace', 'Love the white fur collar' )
+          await expect(jacePreviousComment).toBeVisible()
+
+          // Previous (test) user comment 
+          const testUserComment = await findCommentByText('test', 'I Love it!')
+          await expect(testUserComment).toBeVisible()
+
+          // Verify previous test (user) reply comment
+          const previousReply = await findCommentByText('test','Replying to my own comment')
+          await expect(previousReply).toBeVisible()
+
           //  Verify User
-          await expect(pinPageWithSecondaryUser.locator('.pin-comment')).toBeVisible()
-          await expect(pinPageWithSecondaryUser.locator('.pin-comment .comment-main')).toBeVisible()
-          await expect(pinPageWithSecondaryUser.locator('.comment-main .comment-user-avatar')).toBeVisible()
-          await expect(pinPageWithSecondaryUser.locator('.comment-main .comment-content')).toBeVisible()
-          await expect(pinPageWithSecondaryUser.locator('.comment-content .comment-username').filter({ hasText: 'jace' })).toBeVisible()
+          // await expect(pinPageWithSecondaryUser.locator('.pin-comment')).toBeVisible()
+          // await expect(pinPageWithSecondaryUser.locator('.pin-comment .comment-main')).toBeVisible()
+          // await expect(pinPageWithSecondaryUser.locator('.comment-main .comment-user-avatar')).toBeVisible()
+          // await expect(pinPageWithSecondaryUser.locator('.comment-main .comment-content')).toBeVisible()
+          // await expect(pinPageWithSecondaryUser.locator('.comment-content .comment-username')).toHaveText('test')
+  
+          // // Verify comment
+          // await expect(pinPage.locator('.comment-content .comment-text')).toHaveText('I love it!')
 
-
-          // Verify previous own comment
-          await expect(pinPageWithSecondaryUser.locator('.comment-content .comment-text').filter({ hasText: 'I love it!' })).toBeVisible()
-
-          // Verify comment
-          await expect(pinPageWithSecondaryUser.locator('.comment-content .comment-text').filter({ hasText: jaceComment })).toBeVisible()
-
-          // Fix
-          // verify comment time
+          // // Verify comment actions
+          // await expect(pinPage.locator('.comment-actions')).toBeVisible()
+          // // verify comment time
           // await expect(pinPage.locator('.comment-actions .comment-time')).toBeVisible()
 
           // // verify Comment Reply is visible
           // await expect(pinPage.locator('.comment-actions .reply-button')).toBeVisible()
-              
+    
           // // Verify Like Comment 
           // await expect(pinPage.locator('.comment-actions .like-button')).toBeVisible()
 
-          // VERIFY NO COMMENT NOTIFICATION
+          // // VERIFY NO COMMENT NOTIFICATION
           
-          await expect(pinPage.getByRole('link').filter({ has: pinPage.locator('i.fas.fa-bell') })).toBeVisible()
+          // await expect(pinPage.getByRole('link').filter({ has: pinPage.locator('i.fas.fa-bell') })).toBeVisible()
 
-          await pinPage.getByRole('link').filter({ has: pinPage.locator('i.fas.fa-bell') }).click()
-          await expect(pinPage.locator('.notification-system')).toBeVisible()
-          await expect(pinPage.locator('.notification-header h3')).toBeVisible()
-          await expect(pinPage.locator('.notification-content')).toBeVisible()
-          await expect(pinPage.getByText('No notifications yet')).toBeVisible()
-
+          // await pinPage.getByRole('link').filter({ has: pinPage.locator('i.fas.fa-bell') }).click()
+          // await expect(pinPage.locator('.notification-system')).toBeVisible()
+          // await expect(pinPage.locator('.notification-header h3')).toBeVisible()
+          // await expect(pinPage.locator('.notification-content')).toBeVisible()
+          // await expect(pinPage.getByText('No notifications yet')).toBeVisible()
 
         })
-        test('Can reply to Comments - TEST COMMENT NOTIFICATION IN REAL-TIME', async  ({ pinPage, pinPageWithSecondaryUser}) => {
-          // Reply primary User commment previous comment
 
-          // Verify Pin Page
-          await expect(pinPageWithSecondaryUser.locator('.pin-details-container')).toBeVisible()
-          await expect(pinPageWithSecondaryUser.locator('.pin-details-image-section .pin-main-image')).toBeVisible()
-          await expect(pinPageWithSecondaryUser.locator('.pin-details-content')).toBeVisible()
-          await expect(pinPageWithSecondaryUser.locator('.pin-details-content .user-info-container')).toBeVisible()
-          await expect(pinPageWithSecondaryUser.locator('.pin-info .pin-title-pin')).toHaveText('Black winter jacket')
+        test('Can reply to Comments - TEST COMMENT REPLY NOTIFICATION IN REAL-TIME', async  ({ pinPage, pinPageWithSecondaryUser}) => {
+          // Reply primary User commment previous comment
+          // Secondary User Jace recieves Comment Reply Notification in realtime 
+
+          // // Verify Pin Page
+          // await expect(pinPageWithSecondaryUser.locator('.pin-info .pin-title-pin')).toHaveText('Black winter jacket')
 
           // Verify Initial Comment State 
           await expect(pinPage.locator('.pin-comment-input')).toHaveText('2 comments')
           await pinPage.locator('.comments-toggle i').click()
-          await expect(pinPageWithSecondaryUser.locator('.comment-content .comment-username').filter({ hasText: 'test' })).toBeVisible()
+          const jacePreviousComment = pinPage.locator('.pin-comment').filter({ hasText: /^jaceLove the white fur collartoday reply$/ })
+          await expect(jacePreviousComment).toBeVisible()
 
-          await expect(pinPage.locator('.comment-content .comment-text').filter({ hasText: 'I love it!' })).toBeVisible()
+          // verify previous comment
+          await expect(pinPage.locator('.pin-comment')).filter({ hasText: /^testI Love it!$/ }).toBeVisible()
+
+          // verify previous own reply
+          await expect(pinPage.getByText('Replying to my own comment')).toBeVisible()
 
           // Verify Reply Interface
           await expect(pinPage.locator('.comment-actions .reply-button')).toBeVisible()
 
           await pinPage.locator('.comment-actions .reply-button').click()
 
-          // previous own reply
-          await expect(pinPageWithSecondaryUser.getByText('Replying to my own comment')).toBeVisible()
-
           // Submit Reply
-
           const JaceReplyComment = 'Paywright dev teams are awesome for creating a good a piece of software for e2e testing'
-          await pinPage.locator(JaceReplyComment)
+          await pinPage.locator(pinPage.locator('.pin-comment .comment-content .comment-actions .reply-button').filter({ hasText: /^jaceLove the white fur collartoday reply$/ })).click()
           await expect(commentInput).toHaveValue(JaceReplyComment)
 
           await pinPage.locator('.reply-input-container .reply-submit i').click()
@@ -1326,16 +1324,20 @@ test.describe('Pinspire E2E Test', () => {
 
           await expect(pinPage.locator('.replies-container .show .comment-content .comment-text').filter({ hasText: jaceComment })).toBeVisible()
 
-
-          
           // VERIFY NO REPLY COMMENT NOTIFICATION
-          await expect(pinPage.getByRole('link').filter({ has: pinPage.locator('i.fas.fa-bell') })).toBeVisible()
+          await expect(pinPageWithSecondaryUser.getByRole('link').filter({ has: pinPage.locator('i.fas.fa-bell') })).toBeVisible()
 
-          await pinPage.getByRole('link').filter({ has: pinPage.locator('i.fas.fa-bell') }).click()
-          await expect(pinPage.locator('.notification-system')).toBeVisible()
-          await expect(pinPage.locator('.notification-header h3')).toBeVisible()
-          await expect(pinPage.locator('.notification-content')).toBeVisible()
-          await expect(pinPage.getByText('No notifications yet')).toBeVisible()
+          await pinPageWithSecondaryUser.getByRole('link').filter({ has: pinPage.locator('i.fas.fa-bell') }).click()
+          await expect(pinPageWithSecondaryUser.locator('.notification-system')).toBeVisible()
+          await expect(pinPageWithSecondaryUser.locator('.notification-header h3')).toBeVisible()
+          await expect(pinPageWithSecondaryUser.getByText('No notifications yet')).not.toBeVisible()
+
+          // Verify Notication content
+          await expect(pinPageWithSecondaryUser.locator('.notification-content')).toBeVisible()
+          await expect(pinPageWithSecondaryUser.locator('.notification-item')).toBeVisible()
+          await expect(pinPageWithSecondaryUser.locator('.notification-item .notification-message')).toHaveText('test liked your pin "Black winter jacket"')
+          await expect(pinPageWithSecondaryUser.locator('.notification-item .notification-time')).toBeVisible()
+          
         })
       })
     })

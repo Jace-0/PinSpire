@@ -239,5 +239,20 @@
     - Optimize babel loader configuration for JSX/JS processing
 
 |
+| 3 | 3 | flat threaded comment system with mentions
+
+    Implementation Details:
+    - Add recursive CTE query for infinite nested replies
+    - Implement @username mentions in comments and replies
+    - Maintain chronological ordering within reply threads
+    - Include like counts for all comments and replies
+    - Add depth tracking for visual thread hierarchy
+
+    Changes:
+    - Comment structure changed from nested to flat array
+    - Reply queries now use recursive CTE instead of joins
+    - fix bugs
+
+|
 
 | Total | null |

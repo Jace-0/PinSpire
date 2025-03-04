@@ -20,18 +20,13 @@ export const pinService = {
     return response.data
   },
 
-  addComment : async (pinId, content) => {
+  createComment : async (pinId, content) => {
     const response = await api.post(`/pin/${pinId}/comment`, content)
     return response.data
   },
 
   likePin : async (pinId) => {
     const response = await api.post(`/pin/${pinId}/like`)
-    return response.data
-  },
-
-  replyComment : async (commentId, content) => {
-    const response = await api.post(`/pin/comments/${commentId}/replies`, content )
     return response.data
   },
 

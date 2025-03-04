@@ -3,8 +3,6 @@ import { useNotifications } from '../../context/NotificationContext'
 const NotificationSystem = () => {
   const { notifications } = useNotifications()
 
-  console.log('Notification', notifications)
-
   return (
     <div className="notification-system">
       <div className={'notification-panel'}>

@@ -13,38 +13,7 @@ export const NotificationProvider = ({ children }) => {
   const lastProcessedTimestamp = useRef(null)
   const DEBOUNCE_TIME = 1000 // 1 second window to prevent duplicates
 
-  // Wait for WebSocket connection before subscribing
-  useEffect(() => {
-    let subscribed = false
-
-    const initializeNotifications = () => {
-    // Check if WebSocket is initialized
-      const ws = WebSocketManager.getInstance()
-
-      if (ws && isWebsocketConnected && !subscribed) {
-        const handleNotification = (message) => {
-          handleNewNotification(message.data)
-        }
-
-        WebSocketManager.subscribe('notification', handleNotification)
-        subscribed = true
-      } else {
-      // If not connected, retry after a short delay
-        setTimeout(initializeNotifications, 100)
-      }
-    }
-
-    if (isWebsocketConnected) {
-      initializeNotifications()
-    }
-
-    return () => {
-      subscribed = false
-    }
-  }, [isWebsocketConnected])
-
-
-  const handleNewNotification = (notification) => {
+  const handleNewNotification = useCallback((notification) => {
     const currentTimestamp = Date.now()
     // If this is a duplicate message within our time window, ignore it
     if (lastProcessedTimestamp.current &&
@@ -72,7 +41,39 @@ export const NotificationProvider = ({ children }) => {
       return newNotifications
     })
 
-  }
+  }, [])
+
+  // Wait for WebSocket connection before subscribing
+  useEffect(() => {
+    let subscribed = false
+
+    const initializeNotifications = () => {
+      // Check if WebSocket is initialized
+      const ws = WebSocketManager.getInstance()
+
+      if (ws && isWebsocketConnected && !subscribed) {
+        const handleNotification = (message) => {
+          handleNewNotification(message.data)
+        }
+
+        WebSocketManager.subscribe('notification', handleNotification)
+        subscribed = true
+      } else {
+        // If not connected, retry after a short delay
+        setTimeout(initializeNotifications, 100)
+      }
+    }
+
+    if (isWebsocketConnected) {
+      initializeNotifications()
+    }
+
+    return () => {
+      subscribed = false
+    }
+  }, [isWebsocketConnected, handleNewNotification])
+
+
 
   const formatNotification = (notification) => {
     let message = ''

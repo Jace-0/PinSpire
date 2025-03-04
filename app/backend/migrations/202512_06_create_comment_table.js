@@ -26,9 +26,24 @@ module.exports = {
         },
         onDelete: 'CASCADE'
       },
+      parent_id: {
+        type: DataTypes.UUID,
+        allowNull: true,
+        references: {
+          model: 'comments',
+          key: 'id'
+        },
+        onDelete: 'CASCADE',
+        comment: 'ID of parent comment if this is a reply'
+      },
       content: {
         type: DataTypes.TEXT,
         allowNull: false
+      },
+      mentioned_users: {
+        type: DataTypes.ARRAY(DataTypes.UUID),
+        defaultValue: [],
+        comment: 'Array of user IDs mentioned in the comment'
       },
       created_at: {
         type: DataTypes.DATE,
@@ -42,21 +57,14 @@ module.exports = {
       }
     })
 
-    // Add indexes for better query performance
-    await queryInterface.addIndex('comments', ['pin_id'], {
-      name: 'idx_comments_pin_id'
+    await queryInterface.addIndex('comments', ['mentioned_users'], {
+      using: 'gin',
+      name: 'idx_comment_mentioned_users'
     })
 
-    await queryInterface.addIndex('comments', ['user_id'], {
-      name: 'idx_comments_user_id'
-    })
   },
 
   down: async ({ context: queryInterface }) => {
-    // Remove indexes first
-    await queryInterface.removeIndex('comments', 'idx_comments_pin_id')
-    await queryInterface.removeIndex('comments', 'idx_comments_user_id')
-
     // Then drop the table
     await queryInterface.dropTable('comments')
   }

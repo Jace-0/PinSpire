@@ -1,16 +1,13 @@
 // context/PinContext.js
-import { createContext, useContext, useState } from 'react'
+import { createContext, useCallback, useContext, useState } from 'react'
 import { pinService } from '../services/pinService'
 const PinContext = createContext()
 
 export const PinProvider = ({ children }) => {
   const [pin, setPin] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [comment, setComment] = useState('')
-  const [replyComment, setReplyComment] = useState('')
-  const [commentId, setCommentId] = useState('')
 
-  const getPin = async (pinId) => {
+  const getPin = useCallback(async (pinId) => {
     try {
       const response = await pinService.getPinById(pinId)
       setPin(response.data)
@@ -19,20 +16,12 @@ export const PinProvider = ({ children }) => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const handleComment = async (e) => {
-    e.preventDefault()
-    if (!comment.trim()) return
-
-    try {
-      await pinService.addComment(pin.id, { content: comment })
-      setComment('')
-      // Refresh pin data
-      await getPin(pin.id)
-    } catch (error) {
-      console.error('Error adding comment:', error)
-    }
+  const handleComment = async (comment) => {
+    await pinService.createComment(pin.id, { content: comment })
+    // Refresh pin data
+    await getPin(pin.id)
   }
 
   const handleLike = async () => {
@@ -46,19 +35,17 @@ export const PinProvider = ({ children }) => {
     }
   }
 
-  const handleCommentReply = async () => {
+  const handleCommentReply = async (commentId, replyContent) => {
     try {
-      if (!commentId || !replyComment.trim()) return
+      if (!commentId || !replyContent.trim()) return
 
-      await pinService.replyComment(commentId, { content: replyComment })
-      setReplyComment('')
+      await pinService.createComment(pin.id, { content: replyContent, parentId: commentId })
       // Refresh pin data
       await getPin(pin.id)
     } catch (error) {
       console.error('Error adding comment:', error)
     }
   }
-
 
   const handleCommentLike = async (commentId) => {
     try {
@@ -73,15 +60,10 @@ export const PinProvider = ({ children }) => {
   const value = {
     pin,
     loading,
-    comment,
-    setComment,
     getPin,
     handleComment,
     handleLike,
-    replyComment,
-    setReplyComment,
     handleCommentReply,
-    setCommentId,
     handleCommentLike
   }
 

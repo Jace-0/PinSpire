@@ -57,7 +57,7 @@ const EditProfile = ({ user }) => {
         const formData = new FormData() // Create new FormData object
         formData.append('avatar', file) // Add file to FormData with field name 'avatar'
 
-        const response = await userService.updateAvatar(profile.id, formData)
+        const response = await userService.updateAvatar(formData)
 
         if (response.success) {
           setSnackbarMessage('Profile photo updated successfully')
@@ -89,7 +89,7 @@ const EditProfile = ({ user }) => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      const response = await userService.updateProfile(profile.id, formData)
+      const response = await userService.updateProfile(formData)
       if (response.success){
         setSnackbarMessage('Update successful!')
         setSnackbarSeverity('success')

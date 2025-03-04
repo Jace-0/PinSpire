@@ -1,11 +1,16 @@
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 // const webpack = require('webpack')
-const CopyWebpackPlugin = require('copy-webpack-plugin')
 const Dotenv = require('dotenv-webpack')
+const CopyWebpackPlugin = require('copy-webpack-plugin')
+// const TerserPlugin = require('terser-webpack-plugin')
+// const CssMinimizerPlugin = require('css-minimizer-webpack-plugin')
 
-const config = () => {
+const config = (env, argv) => {
+  const isProd = argv.mode ==='production'
+
   return {
+    mode: isProd ? 'production' : 'development',
     entry: './src/index.js',
     output: {
       path: path.resolve(__dirname, 'build'),
@@ -21,6 +26,13 @@ const config = () => {
       hot: true, // Enable hot module replacement
       historyApiFallback: true, // For React Router
       open: true, // Opens browser automatically
+      proxy: [
+        {
+          context: ['/api'],
+          target: 'http://localhost:3000',
+          changeOrigin: true,
+        }
+      ],
     },
     devtool: 'source-map',
     plugins: [

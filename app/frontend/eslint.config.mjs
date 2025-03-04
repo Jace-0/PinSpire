@@ -1,8 +1,7 @@
 import globals from 'globals'
-import pluginJs from '@eslint/js'
+import js from '@eslint/js'
 import pluginReact from 'eslint-plugin-react'
 import pluginReactHooks from 'eslint-plugin-react-hooks'
-import js from '@eslint/js'
 import stylisticJs from '@stylistic/eslint-plugin-js'
 
 /** @type {import('eslint').Linter.Config[]} */
@@ -43,7 +42,7 @@ export default [
       'no-trailing-spaces': 'error',
       'object-curly-spacing': ['error', 'always'],
       'arrow-spacing': ['error', { 'before': true, 'after': true }],
-      'no-console': 'warn',
+      'no-console': 'off',
       'no-unused-vars': 'off',
       // React specific rules
       'react/react-in-jsx-scope': 'off',

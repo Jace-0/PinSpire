@@ -5,7 +5,7 @@ const Board = require('./board')
 const Follower = require('./follower')
 const Comment = require('./comment')
 const Like = require('./likes')
-const CommentReply = require('./comment_reply')
+// const CommentReply = require('./comment_reply')
 const Chat = require('./chat')
 const Message = require('./message')
 
@@ -17,12 +17,12 @@ const models = {
   Follower: Follower.init(sequelize),
   Comment: Comment.init(sequelize),
   Like: Like.init(sequelize),
-  CommentReply: CommentReply.init(sequelize),
+  // CommentReply: CommentReply.init(sequelize),
   Chat: Chat.init(sequelize),
   Message: Message.init(sequelize)
 }
 
-// User and Pin associations
+/*  User and Pin associations */
 models.Pin.belongsTo(models.User, {
   foreignKey: 'user_id',
   as: 'user'
@@ -33,7 +33,15 @@ models.User.hasMany(models.Pin, {
   as: 'pins'
 })
 
-// Board associations
+models.Pin.hasMany(models.Like, {
+  foreignKey: 'likeable_id',
+  as: 'likes', // all likes on this pin
+  scope: {
+    likeable_type: 'pin'
+  }
+})
+
+/*  Board associations*/
 models.Board.belongsTo(models.User, {
   foreignKey: 'user_id',
   as: 'user'
@@ -49,7 +57,7 @@ models.User.hasMany(models.Board, {
   as: 'boards'
 })
 
-// Board and Pin many-to-many relationship
+/* Board and Pin many-to-many relationship */
 models.Board.belongsToMany(models.Pin, {
   through: 'board_pins',
   foreignKey: 'board_id',
@@ -65,7 +73,7 @@ models.Pin.belongsToMany(models.Board, {
 })
 
 
-// Followers/Following (Self-referential) associations
+/* Followers/Following (Self-referential) associations */
 models.User.belongsToMany(models.User, {
   through: models.Follower,
   as: 'followers',
@@ -81,7 +89,7 @@ models.User.belongsToMany(models.User, {
 })
 
 
-// Comment associations
+/* Comment association */
 models.Comment.belongsTo(models.Pin, {
   foreignKey: 'pin_id',
   as: 'pin'
@@ -102,8 +110,28 @@ models.User.hasMany(models.Comment, {
   as: 'comments'
 })
 
+// Self-referential association for replies
+models.Comment.belongsTo(models.Comment, {
+  as: 'parent',
+  foreignKey: 'parent_id'
+})
 
-// Likes associations
+models.Comment.belongsTo(models.Comment, {
+  as: 'replies',
+  foreignKey: 'parent_id'
+})
+
+models.Comment.hasMany(models.Like, {
+  foreignKey: 'likeable_id',
+  constraints: false,
+  scope: {
+    likeable_type: 'comment'
+  },
+  as: 'likes'
+})
+
+
+/* Likes associations */
 models.Like.belongsTo(models.User, {
   foreignKey: 'user_id',
   as: 'user'
@@ -118,68 +146,17 @@ models.Like.belongsTo(models.Pin, {
   foreignKey: 'likeable_id',
   as: 'likeable',
   constraints: false,
-//   scope: {
-//     likeable_type: 'pin'
-// }
 })
 
-models.Like.belongsTo(models.Comment, {
-  foreignKey: 'likeable_id',
-  as: 'comment', // comment that was liked
-})
-
-models.Like.belongsTo(models.CommentReply, {
-  foreignKey: 'likeable_id',
-  as: 'reply',
-})
-
-models.Pin.hasMany(models.Like, {
-  foreignKey: 'likeable_id',
-  as: 'likes', // all likes on this pin
-  scope: {
-    likeable_type: 'pin'
-  }
-})
 
 models.User.hasMany(models.Like, {
   foreignKey: 'user_id',
   as: 'likes', // all likes made by the user
 })
 
-models.Comment.hasMany(models.Like, {
-  foreignKey: 'likeable_id',
-  constraints: false,
-  scope: {
-    likeable_type: 'comment'
-  },
-  as: 'likes'
-})
-
-// Comment Replies
-models.CommentReply.hasMany(models.Like, {
-  foreignKey: 'likeable_id',
-  as: 'likes' // all likes on this reply
-})
-
-models.CommentReply.belongsTo(models.Comment, {
-  foreignKey: 'comment_id',
-  as: 'comment'
-})
-
-models.CommentReply.belongsTo(models.User, {
-  foreignKey: 'user_id',
-  as: 'user'
-})
-
-models.Comment.hasMany(models.CommentReply, {
-  foreignKey: 'comment_id',
-  as: 'replies'
-})
 
 
-
-//Chat and Message Association
-
+/* Chat and Message Association */
 models.Chat.hasMany(models.Message, {
   foreignKey: 'chat_id'
 })

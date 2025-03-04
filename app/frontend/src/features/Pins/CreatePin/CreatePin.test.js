@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from '../../../context/AuthContext'
 import { NotificationProvider } from '../../../context/NotificationContext'
+import { ChatProvider } from '../../../context/ChatContext'
+import { SnackbarNotificationProvider } from '../../../context/snackbarNotificationContext'
 import { pinService } from '../../../services/pinService'
 import CreatePin from './CreatePin'
 
@@ -47,9 +49,13 @@ describe('CreatePin', () => {
     return render(
       <BrowserRouter>
         <AuthProvider>
-          <NotificationProvider>
-            <CreatePin />
-          </NotificationProvider>
+          <SnackbarNotificationProvider>
+            <ChatProvider>
+              <NotificationProvider>
+                <CreatePin />
+              </NotificationProvider>
+            </ChatProvider>
+          </SnackbarNotificationProvider>
         </AuthProvider>
       </BrowserRouter>
     )

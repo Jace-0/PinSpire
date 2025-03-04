@@ -9,14 +9,14 @@ export const userService = {
     const response = await api.get(`/user/profile/username/${username}`)
     return response.data
   },
-  updateProfile: async (userId, data) => {
-    const response = await api.put(`/user/profile/settings/${userId}`, data)
+  updateProfile: async (data) => {
+    const response = await api.put('/user/profile/settings/', data)
     return response.data
   },
-  updateAvatar: async (userId, formData) => {
+  updateAvatar: async (formData) => {
     try {
       const response = await api.put(
-        `/user/profile/settings/${userId}/avatar`,
+        '/user/profile/settings/avatar',
         formData,
         {
           headers: {
