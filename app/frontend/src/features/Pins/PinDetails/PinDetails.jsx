@@ -58,6 +58,7 @@ const PinContentSection = () => {
     </div>)
 }
 
+/* Pin Actions Component - PinContentSection */
 const PinActions = () => {
   const { pin, handleLike } = usePin()
   const [ boards, setBoards ] = useState([])
@@ -238,7 +239,6 @@ const PinActions = () => {
     </div>
   )
 }
-
 
 /* User info Component - PinContentSection */
 const UserInfo = () => {
