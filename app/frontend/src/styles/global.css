@@ -1,3 +1,4 @@
+
 body {
     font-family: 'Roboto', sans-serif;
     margin: 0;
@@ -5,6 +6,9 @@ body {
     background-color: #fff;
   }
 
+.root {
+  min-height: 100vh
+}
 
   /* HOME PAGE */
 
@@ -437,7 +441,6 @@ body.home-page {
 }
 
 /* USER HOME PAGE */
-
 .u-home-container {
   position: relative;
   width: calc(100% - 60px);
@@ -526,6 +529,7 @@ body.home-page {
   flex-direction: column;
   width: 100%;
   margin-top: 10px;
+  overflow: hidden;
 }
 
 .tab-navigation {
@@ -560,7 +564,15 @@ body.home-page {
     margin-bottom: -1px;
   }
 
+.tab-headerP {
+  left: 10px;
+  position: relative;
+}
 
+.no-pins {
+  display: flex;
+  justify-content: center;
+}
 
   /* Content area */
   .tab-content {
@@ -576,7 +588,6 @@ body.home-page {
   display: grid;
   grid-template-columns: repeat(6, 1fr);  /* Exactly 6 columns */
   gap: 16px;
-  /* width: 100%; */
   min-width: 1000px; /* Ensures 5 columns at different zooms */
   max-width: 2000px; /* Prevents excessive stretching */
   margin: 0 auto;
@@ -623,6 +634,7 @@ body.home-page {
   align-items: center;
   justify-content: space-between;
   box-sizing: border-box;
+  z-index: 1;
 }
 
 .create-pin-header h1 {
@@ -651,12 +663,13 @@ body.home-page {
 
 /* CREATR PIN CONTENT */
 .content-container {
-  position: fixed;
+  position: absolute;
   width: calc(100% - 60px);
   top: 70px;
   left: 60px;
   flex: 1;
   display: flex;
+  min-height: 100vh;
 }
 
 .image-section {
@@ -664,11 +677,6 @@ body.home-page {
   display: flex;
   justify-content: center;
   align-items: center;
-  /* padding: 20px; */
-  /* padding-bottom: 60px; */
-  /* padding-left: 20px; */
-  z-index: 1;
-
 }
 
 .image-wrapper {
@@ -1043,6 +1051,228 @@ body.home-page {
   overflow-y: auto; /* Add vertical scrollbar when content overflows */
 }
 
+
+/* Pin Actions */
+.pin-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+
+/* Like button styles */
+
+.like-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pin-like-button {
+  background: #efefef;
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.like-count {
+  font-size: 16px;
+  font-weight: 400;
+  color: #111;
+}
+
+.pin-like-button:hover {
+  background: #E60023;
+}
+
+.pin-like-button i {
+  font-size: 20px;
+  color: #111;
+}
+
+.pin-like-button.liked i {
+  color: #e60023;
+}
+
+/* Download button styles */
+.download-action {
+  position: relative;
+}
+
+.download-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.download-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.download-button i {
+  color: #767676;
+  font-size: 20px;
+}
+
+/* Save button styles */
+.saved-pin {
+  position: relative;
+  margin-left: auto; /* Push to right side */
+}
+
+.board-selector-p {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.save-button-p {
+  background-color: #e60023;
+  color: white;
+  border: none;
+  border-radius: 24px;
+  padding: 12px 16px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.save-button-p:hover {
+  background-color: #ad081b;
+}
+
+.save-button-p.saved {
+  background-color: #111;
+}
+
+.save-button-p.saved:hover {
+  background-color: #333;
+}
+
+.board-selector-p i {
+  margin-left: 8px;
+  color: #767676;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.board-selector-p i:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Dropdown styles */
+
+.board-dropdown-p {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 300px;
+  max-height: 400px;
+  overflow-y: auto;
+  background-color: white;
+  border-radius: 16px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  padding: 12px 0;
+}
+
+.board-option-p {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.board-option-p:hover {
+  background-color: #f0f0f0;
+}
+
+.board-option-p.active {
+  background-color: #e9e9e9;
+}
+
+
+.board-thumbnail-p {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.board-thumbnail-p img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.board-option-p span {
+  font-size: 14px;
+  color: #333;
+}
+
+.board-option-p .pin-count-p {
+  margin-left: auto;
+  color: #767676;
+  font-size: 12px;
+}
+
+.loading-boards-p,
+.no-boards-p {
+  padding: 16px;
+  text-align: center;
+  color: #767676;
+}
+
+.create-board-btn-p {
+  margin-top: 8px;
+  background-color: #efefef;
+  color: #333;
+  border: none;
+  border-radius: 24px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.create-board-btn-p:hover {
+  background-color: #e0e0e0;
+}
+
+.create-board-btn-p i {
+  margin-right: 6px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 .user-info {
   display: flex;
   align-items: center;
@@ -1072,39 +1302,6 @@ body.home-page {
   gap: 12px;
 }
 
-.like-container {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.like-count {
-  font-size: 16px;
-  font-weight: 400;
-  color: #111;
-}
-
-.pin-like-button {
-  background: #efefef;
-  border: none;
-  border-radius: 50%;
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.pin-like-button:hover {
-  background: #E60023;
-}
-
-.pin-like-button i {
-  font-size: 20px;
-  color: #111;
-}
 
 
 
@@ -1381,7 +1578,7 @@ a, Link {
 
 
 /* User Home Page */
-
+.board-content,
 .home-container {
   position: relative;
   top: 78px;
@@ -1390,6 +1587,7 @@ a, Link {
   padding: 10px;
   z-index: 0;
   box-sizing: border-box;
+  min-height: 100vh;
 }
 
 
@@ -2008,4 +2206,419 @@ h3.not-empty {
 .send-button:disabled {
   background: #efefef;
   cursor: not-allowed;
+}
+
+
+/* BOARDS */
+
+.board-container {
+  width: 100%;
+  padding: 20px;
+}
+
+.tab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.tab-header h2 {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.create-board-button {
+  position: relative;
+  right: 40px
+}
+
+.board-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+}
+
+.create-board-button i {
+  font-size: 36px
+}
+
+.board-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+}
+
+/* Board Cards */
+.board-card {
+  position: relative;
+  height: 250px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.2s;
+}
+
+.board-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.board-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.board-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+}
+
+.board-info h3 {
+  color: white;
+  font-weight: 500;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.board-info p {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  margin: 4px 0 0;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.modal-content h3 {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #0077ff;
+  box-shadow: 0 0 0 2px rgba(0, 119, 255, 0.2);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.cancel-button {
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  color: #333;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.cancel-button:hover {
+  background-color: #f5f5f5;
+}
+
+.save-button {
+  padding: 8px 16px;
+  background-color: #e60023;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.save-button:hover {
+  background-color: #ad081b;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .board-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 992px) {
+  .board-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .board-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .board-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+
+
+
+
+
+
+/* Board Selector Styles */
+.board-selector-container {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.board-selector-container label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.board-selector {
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+}
+
+.selected-board {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: white;
+  transition: all 0.2s ease;
+}
+
+.selected-board:hover {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(0, 119, 255, 0.2);
+
+}
+
+.selected-board .placeholder {
+  color: #767676;
+}
+
+.selected-board i {
+  color: #767676;
+  font-size: 14px;
+}
+
+/* Dropdown Styles */
+.board-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 300px;
+  overflow-y: auto;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  padding: 8px 0;
+}
+
+/* Board Option Styles */
+.board-option {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  transition: background-color 0.2s ease;
+}
+
+.board-option:hover {
+  background-color: #f5f5f5;
+}
+
+.board-option.active {
+  background-color: #f0f0f0;
+}
+
+.board-thumbnail {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.board-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.board-option span {
+  flex-grow: 1;
+  font-weight: 500;
+  color: #333;
+}
+
+.board-option .pin-count {
+  flex-grow: 0;
+  color: #767676;
+  font-size: 12px;
+  margin-left: 8px;
+}
+
+/* Loading and Empty States */
+.loading-boards,
+.no-boards {
+  padding: 16px;
+  text-align: center;
+  color: #767676;
+}
+
+.create-board-btn {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 8px;
+  padding: 8px 16px;
+  background-color: #e60023;
+  color: white;
+  border: none;
+  border-radius: 24px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.create-board-btn:hover {
+  background-color: #d50c22;
+}
+
+.create-board-btn i {
+  margin-right: 8px;
+}
+
+/* Selected Board in Dropdown */
+.board-option.selected {
+  display: flex;
+  align-items: center;
+}
+
+.board-option.selected .board-thumbnail {
+  width: 32px;
+  height: 32px;
+}
+
+
+
+
+/* Board Page */
+
+/* .board-content {
+  position: relative;
+  width: calc(100% - 60px);
+  left: 70px;
+  top: 80px;
+} */
+
+.board-header {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 24px;
+}
+
+
+.board-header h1 {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.board-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.board-creator {
+  font-size: 14px;
+  font-weight: 400;
+  color: #5f5f5f;
+  margin: 0;
+}
+
+.username-link {
+  color: #0e2031;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+
+.pin-count {
+  font-size: 14px;
+  font-weight: 400;
+  color: #767676;
+  margin: 0;
+}
+
+.no-b-pins {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 200px;
+  margin: 40px 0;
+  text-align: center;
+  color: #767676;
+  font-size: 24px;
+  font-weight: 500;
+  border-radius: 8px;
 }

@@ -17,6 +17,7 @@ const authRoutes = require('./routes/auth.router')
 const userRoutes = require('./routes/user.router')
 const pinRoutes = require('./routes/pin.router')
 const chatRouter = require('./routes/chat.router')
+const boardRouter = require('./routes/board.router')
 
 const app = express()
 
@@ -49,6 +50,7 @@ app.use('/api/auth', authRoutes)
 app.use('/api/user', userRoutes)
 app.use('/api/pin', pinRoutes)
 app.use('/api/chat', chatRouter)
+app.use('/api/board', boardRouter)
 
 if (process.env.NODE_ENV === 'test') {
   const testRouter = require('./routes/test.router')

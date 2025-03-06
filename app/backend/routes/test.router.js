@@ -1,5 +1,5 @@
 const router = require('express').Router()
-const { User, Pin, Like, Comment, CommentReply, Follower, Chat, Message,  } = require('../models/index')
+const { User, Pin, Like, Comment, Follower, Chat, Message,  } = require('../models/index')
 const { sequelize } = require('../util/db')
 const redisClient = require('../util/redis')
 const logger = require('../util/logger')
@@ -21,7 +21,6 @@ router.post('/reset', async (request, response) => {
       Pin.destroy({ truncate: true, cascade: true }),
       Like.destroy({ truncate: true, cascade: true }),
       Comment.destroy({ truncate: true, cascade: true }),
-      CommentReply.destroy({ truncate: true, cascade: true }),
       Follower.destroy({ truncate: true, cascade: true }),
       Chat.destroy({ truncate: true, cascade: true }),
       Message.destroy({ truncate: true, cascade: true }),

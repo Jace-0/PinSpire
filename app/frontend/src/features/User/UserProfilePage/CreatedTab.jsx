@@ -30,14 +30,23 @@ const CreatedTab  = () => {
 
   if (loading) return <LoadingSpinner />
   if (error) return <div>Error loading pins: {error}</div>
-  if (!pins?.length) return <div>No pins created yet</div>
+  // if (!pins?.length) return <div>No pins created yet</div>
 
   return (
-    <div className="p-grid">
-      {pins.map((pin) => (
-        <PinCard key={pin.id} pin={pin} />
-      ))}
-    </div>
+    <>
+      <div className='tab-headerP'>
+        <h2>Your Created Pins</h2>
+      </div>
+
+      {!pins?.length && <div className='no-pins'>No pins created yet</div>}
+
+
+      <div className="p-grid">
+        {pins && pins.map((pin) => (
+          <PinCard key={pin.id} pin={pin} />
+        ))}
+      </div>
+    </>
   )
 }
 

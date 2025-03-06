@@ -20,6 +20,7 @@ import EditProfile from './features/User/UserProfilePage/EditProfile'
 import PinDetails from './features/Pins/PinDetails/PinDetails'
 import PinFeed from './features/User/UserHomePage/PinFeed'
 import ProfilePage from './features/User/UserProfilePage/ProfilePage'
+import Board from './features/Board/Board'
 
 
 const AppRoutes = () => {
@@ -92,6 +93,7 @@ const AppRoutes = () => {
         <Route path="/settings/profile" element={<EditProfile />} />
         <Route path="/pin-creation-tool" element={<CreatePin />} />
         <Route path="/pin/:id" element={<PinDetails />} />
+        <Route path="/:username/:boardName" element={<Board />} />
       </Route>
     </Routes>
   )

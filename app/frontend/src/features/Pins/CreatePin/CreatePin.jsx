@@ -18,7 +18,7 @@ const CreatePin = () => {
     title: '',
     description: '',
     link: '',
-    board: '',
+    boardId: '',
     image: null
   })
 
@@ -35,7 +35,7 @@ const CreatePin = () => {
       formData.append('title', pinData.title)
       formData.append('description', pinData.description)
       formData.append('link', pinData.link)
-      formData.append('board', pinData.board)
+      formData.append('boardId', pinData.boardId)
       formData.append('image', pinData.image)
 
       // for (let [key, value] of formData.entries()) {
@@ -51,9 +51,7 @@ const CreatePin = () => {
       if (response.success) {
         setLoading(false)
         showNotification('Pin created successfully', 'success')
-        // setTimeout(() => {
         navigate('/')
-        // }, 3000)
 
       }
     } catch (error) {
@@ -64,12 +62,14 @@ const CreatePin = () => {
 
 
   return (
-    <>
+    <div className='layout'>
       <Navigation />
       <Header onPublish={handlePublish} />
       <Content pinData={pinData} setPinData={setPinData} />
       {loading && <LoadingSpinner/>}
-    </>
+
+
+    </div>
   )
 }
 

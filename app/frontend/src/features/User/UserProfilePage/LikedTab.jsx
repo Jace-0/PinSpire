@@ -32,14 +32,21 @@ const LkedTab  = () => {
 
   if (loading) return <LoadingSpinner />
   if (error) return <div>Error loading pins: {error}</div>
-  if (!pins?.length) return <div>No pins liked yet</div>
+  // if (!pins?.length) return <div>No pins liked yet</div>
 
   return (
-    <div className="p-grid">
-      {pins.map((pin) => (
-        <PinCard key={pin.id} pin={pin.likeable} />
-      ))}
-    </div>
+    <>
+      <div className='tab-headerP'>
+        <h2 >Your Liked Pins</h2>
+      </div>
+      {!pins?.length && <div className='no-pins'>No pins created yet</div>}
+
+      <div className="p-grid">
+        {pins.map((pin) => (
+          <PinCard key={pin.id} pin={pin.likeable} />
+        ))}
+      </div>
+    </>
   )
 }
 

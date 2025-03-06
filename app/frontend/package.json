@@ -19,7 +19,8 @@
     "web-vitals": "^4.2.4"
   },
   "scripts": {
-    "start": "webpack serve --mode=development",
+    "start": "react-scripts start",
+    "start:webpack": "webpack serve --mode=development",
     "build": "webpack --mode=production",
     "eject": "react-scripts eject",
     "lint": "eslint . --config eslint.config.mjs",

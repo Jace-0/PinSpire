@@ -5,19 +5,19 @@ const Board = require('./board')
 const Follower = require('./follower')
 const Comment = require('./comment')
 const Like = require('./likes')
-// const CommentReply = require('./comment_reply')
 const Chat = require('./chat')
 const Message = require('./message')
+const BoardPin = require('./boardPin')
 
 // Initialize models
 const models = {
   User: User.init(sequelize),
   Pin: Pin.init(sequelize),
   Board: Board.init(sequelize),
+  BoardPin: BoardPin.init(sequelize),
   Follower: Follower.init(sequelize),
   Comment: Comment.init(sequelize),
   Like: Like.init(sequelize),
-  // CommentReply: CommentReply.init(sequelize),
   Chat: Chat.init(sequelize),
   Message: Message.init(sequelize)
 }
@@ -42,15 +42,12 @@ models.Pin.hasMany(models.Like, {
 })
 
 /*  Board associations*/
+// User-Board: One-to-many
 models.Board.belongsTo(models.User, {
   foreignKey: 'user_id',
   as: 'user'
 })
 
-models.Pin.belongsTo(models.Board, {
-  foreignKey: 'board_id',
-  as: 'board'
-})
 
 models.User.hasMany(models.Board, {
   foreignKey: 'user_id',
@@ -58,15 +55,16 @@ models.User.hasMany(models.Board, {
 })
 
 /* Board and Pin many-to-many relationship */
+// Board-Pin: Many-to-many
 models.Board.belongsToMany(models.Pin, {
-  through: 'board_pins',
+  through: models.BoardPin,
   foreignKey: 'board_id',
   otherKey: 'pin_id',
   as: 'pins'
 })
 
 models.Pin.belongsToMany(models.Board, {
-  through: 'board_pins',
+  through: models.BoardPin,
   foreignKey: 'pin_id',
   otherKey: 'board_id',
   as: 'boards'

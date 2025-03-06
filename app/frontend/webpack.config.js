@@ -19,21 +19,21 @@ const config = (env, argv) => {
     resolve: {
       extensions: ['.js', '.jsx']
     },
-    devServer: {
-      static: path.resolve(__dirname, 'build'),
-      compress: true,
-      port: 3001,
-      hot: true, // Enable hot module replacement
-      historyApiFallback: true, // For React Router
-      open: true, // Opens browser automatically
-      proxy: [
-        {
-          context: ['/api'],
-          target: 'http://localhost:3000',
-          changeOrigin: true,
-        }
-      ],
-    },
+    // devServer: {
+    //   static: path.resolve(__dirname, 'build'),
+    //   compress: true,
+    //   port: 3001,
+    //   hot: true, // Enable hot module replacement
+    //   historyApiFallback: true, // For React Router
+    //   open: true, // Opens browser automatically
+    //   proxy: [
+    //     {
+    //       context: ['/api'],
+    //       target: 'http://localhost:3000',
+    //       changeOrigin: true,
+    //     }
+    //   ],
+    // },
     devtool: 'source-map',
     plugins: [
       new HtmlWebpackPlugin({

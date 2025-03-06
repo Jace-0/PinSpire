@@ -3,7 +3,9 @@ const CACHE_KEYS = {
   user: (username) => `user:${username}`,
   userPins: (userId) => `user:${userId}:pins`,
   allPins : (cursor, limit) =>  `pins:${cursor || 'latest'}:${limit}`,
-  userLikedPins: (userId) => `user:${userId}:liked:pins`
+  userLikedPins: (userId) => `user:${userId}:liked:pins`,
+  userBoards : (userId) => `user:${userId}:boards`,
+  board: (boardId) => `board:${boardId}`
 }
 
 const CACHE_TTL = {
@@ -13,6 +15,8 @@ const CACHE_TTL = {
   RECENT_PINS: 1800,   // 30 minutes
   LIKED_PINS: 1600,
   ALL_PINS: 3600, // 1 hour
+  BOARDS: 3600,
+  BOARD: 3600
 }
 
 module.exports = {

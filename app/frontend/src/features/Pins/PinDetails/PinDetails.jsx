@@ -5,6 +5,8 @@ import { useEffect, useState, useRef, } from 'react'
 import { usePin } from '../../../context/PinContext'
 import { useParams, Link } from 'react-router-dom'
 import LoadingSpinner from '../../../components/common/LoadingSpinner'
+import { boardService } from '../../../services/boardService'
+import { useSnackbarNotification } from '../../../context/snackbarNotificationContext'
 
 const PinDetails = () => {
   const { id } = useParams()
@@ -34,7 +36,6 @@ const PinDetails = () => {
 /* Image Section Component */
 const PinImageSection = () => {
   const { pin }  = usePin()
-  console.log('PIN ', pin)
   return (
     <div className="pin-details-image-section">
       <img
@@ -47,19 +48,202 @@ const PinImageSection = () => {
 
 /* Pin Content section Component */
 const PinContentSection = () => {
+
   return (
     <div className="pin-details-content">
+      <PinActions/>
       <UserInfo/>
       <PinInfo />
       <PinCommentsSection/>
     </div>)
 }
 
+const PinActions = () => {
+  const { pin, handleLike } = usePin()
+  const [ boards, setBoards ] = useState([])
+  const [showDropdown, setShowDropdown] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const dropdownRef = useRef(null)
+  const [selectedBoardId, setSelectedBoardId] = useState('')
+  const { showNotification } = useSnackbarNotification()
+
+  useEffect(() => {
+    const fetchUserBoards = async () => {
+      setIsLoading(true)
+      try {
+        const response = await boardService.getUserBoards()
+        if (response.success) {
+          setBoards(response.boards)
+        }
+      } catch (err) {
+        console.error('Error fetching boards:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchUserBoards()
+  }, [])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
+
+  const handleBoardSelect = (boardId) => {
+    setSelectedBoardId(boardId)
+    setShowDropdown(false)
+    handleSavePin(boardId)
+  }
+
+
+  const handleSavePin = async (boardId) => {
+    try {
+      const response = await boardService.addPinToBoard({
+        boardId: boardId,
+        pinId: pin.id
+      })
+
+      if (response.success) {
+        showNotification('Pin saved to board successfully', 'success')
+      } else {
+        showNotification('Failed to save pin', 'error')
+      }
+    } catch (error) {
+      console.error('Error saving pin:', error)
+      showNotification('Error saving pin', 'error')
+    }
+  }
+
+  const handleDownload = async () => {
+    try {
+      // Fetch the image first to handle CORS
+      const response = await fetch(pin.image_url)
+      const blob = await response.blob()
+
+      // Create a blob URL
+      const blobUrl = URL.createObjectURL(blob)
+
+      // Download using the blob URL
+      const link = document.createElement('a')
+      link.href = blobUrl
+      link.download = pin.image_url.split('/').pop().split('?')[0] || `pin-${pin.id}.jpg`
+
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+
+      // Clean up the blob URL
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 100)
+
+
+      showNotification('Download started', 'success')
+    } catch (error) {
+      console.error('Error downloading image:', error)
+      showNotification('Failed to download image', 'error')
+    }
+  }
+  // Find the selected board
+  const selectedBoard = boards.find(b => b.id === selectedBoardId)
+
+  return (
+    <div className='pin-actions'>
+
+      <div className="like-container">
+        <button
+          className="pin-like-button"
+          onClick={handleLike}
+        >
+          <i className="fas fa-heart"></i>
+        </button>
+        <h2 className="like-count">{pin.like_count}</h2>
+      </div>
+
+      <div className='download-action'>
+        <button className='download-button' onClick={handleDownload}>
+          <i className="fas fa-download"></i>
+        </button>
+      </div>
+
+      <div className='saved-pin' ref={dropdownRef}>
+        <div className="board-selector-p">
+          <i
+            className={`fas fa-chevron-${showDropdown ? 'up' : 'down'}`}
+            onClick={() => setShowDropdown(!showDropdown)}
+          ></i>
+
+          <button
+            className={`save-button-p ${selectedBoard ? 'saved' : ''}`}
+            onClick={() => setShowDropdown(!showDropdown)}
+          >
+            {selectedBoard ? 'Saved' : 'Save'}
+          </button>
+
+          {showDropdown && (
+            <div className="board-dropdown-p">
+              {isLoading ? (
+                <div className="loading-boards-p">Loading boards...</div>
+              ) : boards.length > 0 ? (
+                <>
+                  {boards.map(board => (
+                    <div
+                      key={board.id}
+                      className={`board-option-p ${board.id === selectedBoardId ? 'active' : ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleBoardSelect(board.id)
+                      }}
+                    >
+                      <div className="board-thumbnail-p">
+                        <img
+                          src={board.cover_image_url}
+                          alt={board.name}
+                          onError={(e) => {
+                            e.target.onerror = null
+                            e.target.src = 'https://via.placeholder.com/50x50?text=Board'
+                          }}
+                        />
+                      </div>
+                      <span>{board.name}</span>
+                      <span className="pin-count-p">{board.savedCount || 0} pins</span>
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <div className="no-boards-p">
+                  <p>You don't have any boards yet.</p>
+                  <button
+                    className="create-board-btn-p"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                    // Handle create board action
+                    }}
+                  >
+                    <i className="fas fa-plus"></i> Create board
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+
 /* User info Component - PinContentSection */
 const UserInfo = () => {
-  const { pin, handleLike } = usePin()
+  const { pin } = usePin()
   const user = pin.user
-  console.log('USER,', user)
 
   return (
     <div className="user-info-container">
@@ -72,15 +256,6 @@ const UserInfo = () => {
         <Link to={`/profile/${user.username}`}>
           <h2 className='user-username'>{user.username}</h2>
         </Link>
-      </div>
-      <div className="like-container">
-        <button
-          className="pin-like-button"
-          onClick={handleLike}
-        >
-          <i className="fas fa-heart"></i>
-        </button>
-        <h2 className="like-count">{pin.like_count}</h2>
       </div>
     </div>
   )

@@ -2,7 +2,7 @@ const redisClient = require('../util/redis')
 // const logger = require('../util/logger')
 const { sequelize, Op } = require('../util/db')
 const { validatePinData } = require('../validators/pin.validator')
-const { Pin, Like, Comment, User } = require('../models')
+const { Pin, Like, Comment, User, Board } = require('../models')
 const { uploadPin } = require('../util/cloudinary')
 const { CACHE_KEYS, CACHE_TTL } = require('../util/cache_KEY_TTL')
 
@@ -288,6 +288,7 @@ const pinController = {
       const pinData = req.body
       const pinImage = req.file
 
+      console.log('PIN DATA', pinData)
       if (!pinImage) {
         return res.status(400).json({
           success: false,
@@ -306,13 +307,48 @@ const pinController = {
       }
 
       const pinUrl = await uploadPin(pinImage)
+      // delete pinData.boardId
 
+      // console.log('PIN DATA SA', pinData)
       // Create new pin
       const pin = await Pin.create({
         ...pinData,
         image_url: pinUrl,
         user_id: userId
       })
+
+
+      // Method 1: Using the association method (might bypass hooks)
+      // await board.addPin(pin)
+
+      // Method 2: Directly create the junction record to ensure hooks run
+      if (pinData.boardId){
+
+        console.log('ADD TO BOARD', pinData.boardId)
+        // Verify board belongs to user
+        const board = await Board.findOne({
+          where: { id: pinData.boardId, user_id: userId }
+        })
+
+        if (!board) {
+          return res.status(404).json({
+            success: false,
+            message: 'Board not found or unauthorized'
+          })
+        }
+
+        const BoardPin = sequelize.models.BoardPin
+        await BoardPin.create({
+          board_id: board.id,
+          pin_id: pin.id
+        })
+
+        await Promise.all([
+          redisClient.del(CACHE_KEYS.board(board.id)),
+          redisClient.del(CACHE_KEYS.userBoards(req.user.id))
+        ])
+      }
+
 
 
       // Find all pin feed cache keys
@@ -322,6 +358,7 @@ const pinController = {
       await Promise.all([
       // Clear user's pin list
         redisClient.del(CACHE_KEYS.userPins(req.user.id)),
+        // Board and Boards
         // Clear all feed caches
         ...feedKeys.map(key => redisClient.del(key))
       ])

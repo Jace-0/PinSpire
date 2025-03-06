@@ -1,5 +1,6 @@
 // Content.jsx
-import { useState, useRef } from 'react'
+import React, { useState, useRef , useEffect } from 'react'
+import { boardService } from '../../../services/boardService'
 const Content = ({ pinData, setPinData }) => {
   // File input reference
   const fileInputRef = useRef(null)
@@ -55,6 +56,54 @@ const Content = ({ pinData, setPinData }) => {
       }))
     }
   }
+
+  const [ boards, setBoards ] = useState([])
+  const [showDropdown, setShowDropdown] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const dropdownRef = useRef(null)
+
+  useEffect(() => {
+    const fetchUserBoards = async () => {
+      setIsLoading(true)
+      try {
+        const response = await boardService.getUserBoards()
+        if (response.success) {
+          setBoards(response.boards)
+        }
+      } catch (err) {
+        console.error('Error fetching boards:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchUserBoards()
+  }, [])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
+
+  const handleBoardSelect = (boardId) => {
+    setPinData(prevData => ({
+      ...prevData,
+      boardId: boardId
+    }))
+    setShowDropdown(false)
+  }
+
+  // Find the selected board name
+  const selectedBoard = boards.find(board => board.id === pinData.boardId)
 
 
   return (
@@ -142,16 +191,97 @@ const Content = ({ pinData, setPinData }) => {
             />
           </div>
 
-          <div className="form-group">
+          <div className="form-group board-selector-container" ref={dropdownRef}>
             <label htmlFor="board">Board</label>
+
+            <div
+              className="board-selector"
+              onClick={() => setShowDropdown(!showDropdown)}
+            >
+              <div className="selected-board">
+                {selectedBoard ? (
+                  <div className="board-option selected">
+                    <div className="board-thumbnail">
+                      <img
+                        src={selectedBoard.cover_image_url}
+                        alt={selectedBoard.name}
+                        onError={(e) => {
+                          e.target.onerror = null
+                          e.target.src = 'https://via.placeholder.com/50x50?text=Board'
+                        }}
+                      />
+                    </div>
+                    <span>{selectedBoard.name}</span>
+                  </div>
+                ) : (
+                  <span className="placeholder">Choose a board</span>
+                )}
+                <i className={`fas fa-chevron-${showDropdown ? 'up' : 'down'}`}></i>
+              </div>
+
+
+              {showDropdown && (
+                <div className="board-dropdown">
+                  {isLoading ? (
+                    <div className="loading-boards">Loading boards...</div>
+                  ) : boards.length > 0 ? (
+                    <>
+                      {boards.map(board => (
+                        <div
+                          key={board.id}
+                          className={`board-option ${board.id === pinData.boardId ? 'active' : ''}`}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleBoardSelect(board.id, board.name)
+                          }}
+                        >
+                          <div className="board-thumbnail">
+                            <img
+                              src={board.cover_image_url}
+                              alt={board.name}
+                              onError={(e) => {
+                                e.target.onerror = null
+                                e.target.src = 'https://via.placeholder.com/50x50?text=Board'
+                              }}
+                            />
+                          </div>
+                          <span>{board.name}</span>
+                          <span className="pin-count">{board.savedCount || 0} pins</span>
+                        </div>
+                      ))}
+                    </>
+                  ) : (
+                    <div className="no-boards">
+                      <p>You don't have any boards yet.</p>
+                      <button
+                        className="create-board-btn"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          // Handle create board action
+                        }}
+                      >
+                        <i className="fas fa-plus"></i> Create board
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Hidden select for form submission */}
             <select
               id="board"
               name="board"
-              value={pinData.board}
+              value={pinData.boardId}
               onChange={handleInputChange}
+              style={{ display: 'none' }}
             >
               <option value="">Choose a board</option>
-              {/* Add board options dynamically */}
+              {boards && boards.map(board => (
+                <option key={board.id} value={board.id}>
+                  {board.name}
+                </option>
+              ))}
             </select>
           </div>
 

@@ -21,6 +21,11 @@ module.exports = {
         type: DataTypes.STRING(100),
         allowNull: false
       },
+      cover_image_url: {
+        type: DataTypes.STRING(2048),
+        allowNull: true,
+        defaultValue: 'https://res.cloudinary.com/dafezeyjh/image/upload/v1741088708/Solid_Silver_Gray_a2uhza.jpg'
+      },
       is_private: {
         type: DataTypes.BOOLEAN,
         defaultValue: false
