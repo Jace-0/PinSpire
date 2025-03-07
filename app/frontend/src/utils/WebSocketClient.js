@@ -15,6 +15,12 @@ class WebSocketClient {
 
   connect() {
     const url = new URL(this.baseUrl)
+
+    // Check if we're on HTTPS and enforce WSS
+    if (window.location.protocol === 'https:' && url.protocol === 'ws:') {
+      url.protocol = 'wss:'
+    }
+
     url.searchParams.append('token', this.token)
 
     // native websocket in browser

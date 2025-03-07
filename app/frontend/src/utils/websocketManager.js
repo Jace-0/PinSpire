@@ -43,7 +43,6 @@ class WebSocketManager {
     }
     // Add handler to WebSocket client
     WebSocketManager.instance.on(type, handler)
-
   }
 
   static getInstance() {
