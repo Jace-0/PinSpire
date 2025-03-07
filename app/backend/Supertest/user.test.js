@@ -6,7 +6,7 @@
  */
 
 const logger = require('../util/logger')
-const { test, before, after, beforeEach, afterEach, describe } = require('node:test')
+const { test, before, after, describe } = require('node:test')
 const assert = require('node:assert')
 const path = require('path')
 const { sequelize } = require('../util/db')
@@ -32,7 +32,6 @@ const {
 
 
 let port
-console.log('FROM USER INTEGRATION')
 before(async () => {
   try {
     await sequelize.authenticate()

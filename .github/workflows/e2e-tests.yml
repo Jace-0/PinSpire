@@ -61,60 +61,77 @@ jobs:
           cache: "npm"
           cache-dependency-path: "./package-lock.json"
 
-      - name: Install backend dependencies
-        run: npm install
-        working-directory: ./app/backend
-
       - name: Install frontend dependencies
         run: npm install
         working-directory: ./app/frontend
 
-      - name: Build frontend and copy to backend
-        run: npm run build:ui
+      - name: Install backend dependencies
+        run: |
+          npm install
+          npm run build:ui
         working-directory: ./app/backend
 
-      # - name: Start backend server
-      #   run: npm run start:test &
-      #   working-directory: ./app/backend
-      #   env:
-      #     NODE_ENV: test
-      #     DATABASE_URL: postgres://postgres:postgres@localhost:5432/pinspire_test
-      #     REDIS_URL: redis://localhost:6379
-      #     JWT_SECRET: test-jwt-secret
-      #     PORT: 3001
+      - name: Start backend server
+        run: npm run start:test &
+        working-directory: ./app/backend
+        env:
+          NODE_ENV: test
+          TEST_POSTGRES_URL: postgres://postgres:postgres@localhost:5432/pinspire_test
+          TEST_REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-jwt-secret
+          PORT: 3000
 
-      # - name: Wait for backend to start
-      #   run: |
-      #     echo "Waiting for backend to start..."
-      #     timeout=60
-      #     while ! curl -s http://localhost:3001/api/health > /dev/null 2>&1; do
-      #       if [ $timeout -le 0 ]; then
-      #         echo "Backend failed to start"
-      #         exit 1
-      #       fi
-      #       timeout=$(($timeout - 1))
-      #       sleep 1
-      #     done
-      #     echo "Backend started successfully"
+      - name: Wait for backend to start
+        run: |
+          echo "Waiting for backend to start..."
+          timeout=60
+          while ! curl -s http://localhost:3000/api/health > /dev/null 2>&1; do
+            if [ $timeout -le 0 ]; then
+              echo "Backend failed to start"
+              exit 1
+            fi
+            timeout=$(($timeout - 1))
+            sleep 1
+          done
+          echo "Backend started successfully"
 
-      # - name: Install Playwright dependencies
-      #   run: |
-      #     npm install
-      #     npx playwright install --with-deps chromium
-      #   working-directory: ./app/e2e-tests
+      - name: Install Playwright dependencies
+        run: |
+          npm install
+          npx playwright install --with-deps chromium
+        working-directory: ./app/e2e-tests
 
-      # - name: Run E2E tests
-      #   run: npm run test:chrome
-      #   working-directory: ./app/e2e-tests
-      #   env:
-      #     BASE_URL: http://localhost:3001
+      - name: Run E2E tests
+        run: npm run test:chrome
+        working-directory: ./app/e2e-tests
+        env:
+          BASE_URL: http://localhost:3000
 
       - name: Deploy to Render
+        id: deploy
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && success() }}
         uses: johnbeynon/render-deploy-action@v0.0.8
         with:
           service-id: ${{ secrets.RENDER_SERVICE_ID }}
           api-key: ${{ secrets.RENDER_API_KEY }}
+        continue-on-error: true
+
+      - name: Notify on deployment
+        if: always()
+        uses: Ilshidur/action-discord@0c4b27844ba47cb1c7bee539c8eead5284ce9fa9
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          with:
+            args: |
+              🚀 **Deployment Status Update**
+              Repository: ${{ github.repository }}
+              Branch: ${{ github.ref_name }}
+              Status: ${{ steps.deploy.outcome == 'success' ? '✅ Succeeded' : '❌ Failed' }}
+              Environment: Production
+              Deployed by: ${{ github.actor }}
+              ${{ steps.deploy.outcome == 'success' 
+                ? '🎉 Application is now live!' 
+                : '⚠️ Please check deployment logs for details.' }}
 
   tag_release:
     needs: [e2e-tests] # This makes it wait for the first job

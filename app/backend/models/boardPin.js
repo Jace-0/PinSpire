@@ -1,3 +1,4 @@
+const logger = require('../util/logger')
 const { Model, DataTypes } = require('sequelize')
 
 class BoardPin extends Model {
@@ -52,7 +53,7 @@ class BoardPin extends Model {
             const Pin = sequelize.models.Pin
 
             if (!Board || !Pin) {
-              console.error('Board or Pin model not found in sequelize.models')
+              logger.error('Board or Pin model not found in sequelize.models')
               return
             }
 
@@ -73,7 +74,7 @@ class BoardPin extends Model {
               // console.log('Board cover image updated successfully')
             }
           } catch (error) {
-            console.error('Error updating board cover image after pin added:', error)
+            logger.error('Error updating board cover image after pin added:', error)
           }
         }
       }

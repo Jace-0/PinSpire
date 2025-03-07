@@ -1,0 +1,43 @@
+name: Health Check and Notifications
+on:
+  schedule:
+    # Runs every hour
+    - cron: "0 * * * *"
+
+jobs:
+  health_check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check application health
+        id: health_check # Adding an ID so we can reference this step
+        uses: jtalk/url-health-check-action@v4
+        with:
+          url: https://pinspire-fnsl.onrender.com/api/health
+          max-attempts: 3
+          retry-delay: 5s
+        continue-on-error: true
+
+      - name: Notify Health Check Success
+        if: steps.health_check.outcome == 'success'
+        uses: Ilshidur/action-discord@0c4b27844ba47cb1c7bee539c8eead5284ce9fa9
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        with:
+          args: |
+            ✅ Health Check Passed!
+            Application: https://pinspire-fnsl.onrender.com/api/health
+            Time: ${{ format(github.event.schedule, 'YYYY-MM-DD HH:mm:ss') }}
+            Status: Healthy
+
+      - name: Notify Health Check Failure
+        if: steps.health_check.outcome == 'failure'
+        uses: Ilshidur/action-discord@0c4b27844ba47cb1c7bee539c8eead5284ce9fa9
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        with:
+          args: |
+            🚨 ALERT: Health Check Failed!
+            Application: https://pinspire-fnsl.onrender.com/api/health
+            Time: ${{ format(github.event.schedule, 'YYYY-MM-DD HH:mm:ss') }}
+            Status: Unhealthy
+            Please investigate immediately!

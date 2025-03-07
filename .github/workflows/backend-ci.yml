@@ -68,6 +68,6 @@ jobs:
           npm run test ./app/backend/supertest/pin.test.js
         env:
           NODE_ENV: test
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/pinspire_test
-          REDIS_URL: redis://localhost:6379
+          TEST_POSTGRES_URL: postgres://postgres:postgres@localhost:5432/pinspire_test
+          TEST_REDIS_URL: redis://localhost:6379
           JWT_SECRET: ${{ secrets.JWT_SECRET || 'test-jwt-secret' }}

@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 /*
  Integration Tests: Pin Management, Social Interaction Features & Notifications
 Test Coverage:

@@ -288,7 +288,6 @@ const pinController = {
       const pinData = req.body
       const pinImage = req.file
 
-      console.log('PIN DATA', pinData)
       if (!pinImage) {
         return res.status(400).json({
           success: false,
@@ -309,7 +308,6 @@ const pinController = {
       const pinUrl = await uploadPin(pinImage)
       // delete pinData.boardId
 
-      // console.log('PIN DATA SA', pinData)
       // Create new pin
       const pin = await Pin.create({
         ...pinData,
@@ -324,7 +322,6 @@ const pinController = {
       // Method 2: Directly create the junction record to ensure hooks run
       if (pinData.boardId){
 
-        console.log('ADD TO BOARD', pinData.boardId)
         // Verify board belongs to user
         const board = await Board.findOne({
           where: { id: pinData.boardId, user_id: userId }
@@ -565,7 +562,6 @@ const pinController = {
       await redisClient.del(CACHE_KEYS.pin(pinId))
 
       if (parentId) {
-        // console.log('REPLY NOTIF WAS SENT')
         // Send Reply Notification
         const parentComment = await Comment.findByPk(parentId)
         if (parentComment && parentComment.user_id !== userId && req.app.ws) {
@@ -583,7 +579,6 @@ const pinController = {
         }
       } else {
         // Send Comment Notification
-        // console.log('COMMENT NOT WAS SENT')
         if ( pin.user_id && pin.user_id !== comment.user_id && req.app.ws) {
           //  the WebSocket server instance from app
           req.app.ws.sendNotification(pin.user_id, {

@@ -1,3 +1,4 @@
+const logger = require('../util/logger')
 const { Model, DataTypes } = require('sequelize')
 
 class Board extends Model {
@@ -87,7 +88,7 @@ class Board extends Model {
 
       return false
     } catch (error) {
-      console.error('Error in updateCoverImage:', error)
+      logger.error('Error in updateCoverImage:', error)
       return false
     }
   }
