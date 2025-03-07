@@ -64,8 +64,8 @@ jobs:
 
       - name: Run integration tests with Supertest
         run: |
-          npm run test ./app/backend/supertest/user.test.js
-          npm run test ./app/backend/supertest/pin.test.js
+          npm run test ./supertest/user.test.js
+          npm run test ./supertest/pin.test.js
         env:
           NODE_ENV: test
           TEST_POSTGRES_URL: postgres://postgres:postgres@localhost:5432/pinspire_test
