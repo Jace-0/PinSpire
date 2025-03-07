@@ -7,6 +7,12 @@ class WebSocketManager {
   static token = null
   static monitorInterval = null
 
+  static getWsUrl() {
+    return  process.env.NODE_ENV === 'production'
+      ? process.env.APP_WS_URL
+      : process.env.DEV_WS_URL
+  }
+
   static initialize(token) {
 
     // Don't reinitialize if instance exists with same token
@@ -19,9 +25,10 @@ class WebSocketManager {
       WebSocketManager.disconnect()
     }
 
+    const wsURL = this.getWsUrl()
     WebSocketManager.token = token
     if (!WebSocketManager.instance && token) {
-      WebSocketManager.instance = new WebSocketClient('ws://localhost:3000/', token)
+      WebSocketManager.instance = new WebSocketClient(wsURL, token)
 
       // Initialize connection
       WebSocketManager.instance.connect()
