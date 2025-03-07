@@ -1,0 +1,137 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "app/**"
+      - ".github/workflows/e2e-tests.yml"
+
+  pull_request:
+    branches: [main]
+    paths:
+      - "app/**"
+
+  # Run after backend and frontend CI complete successfully
+  workflow_run:
+    workflows: ["Backend CI", "Frontend CI"]
+    types:
+      - completed
+
+  # Allow manual triggering
+  workflow_dispatch:
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-20.04
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: pinspire_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:latest
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: "./package-lock.json"
+
+      - name: Install backend dependencies
+        run: npm install
+        working-directory: ./app/backend
+
+      - name: Install frontend dependencies
+        run: npm install
+        working-directory: ./app/frontend
+
+      - name: Build frontend and copy to backend
+        run: npm run build:ui
+        working-directory: ./app/backend
+
+      # - name: Start backend server
+      #   run: npm run start:test &
+      #   working-directory: ./app/backend
+      #   env:
+      #     NODE_ENV: test
+      #     DATABASE_URL: postgres://postgres:postgres@localhost:5432/pinspire_test
+      #     REDIS_URL: redis://localhost:6379
+      #     JWT_SECRET: test-jwt-secret
+      #     PORT: 3001
+
+      # - name: Wait for backend to start
+      #   run: |
+      #     echo "Waiting for backend to start..."
+      #     timeout=60
+      #     while ! curl -s http://localhost:3001/api/health > /dev/null 2>&1; do
+      #       if [ $timeout -le 0 ]; then
+      #         echo "Backend failed to start"
+      #         exit 1
+      #       fi
+      #       timeout=$(($timeout - 1))
+      #       sleep 1
+      #     done
+      #     echo "Backend started successfully"
+
+      # - name: Install Playwright dependencies
+      #   run: |
+      #     npm install
+      #     npx playwright install --with-deps chromium
+      #   working-directory: ./app/e2e-tests
+
+      # - name: Run E2E tests
+      #   run: npm run test:chrome
+      #   working-directory: ./app/e2e-tests
+      #   env:
+      #     BASE_URL: http://localhost:3001
+
+      - name: Deploy to Render
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && success() }}
+        uses: johnbeynon/render-deploy-action@v0.0.8
+        with:
+          service-id: ${{ secrets.RENDER_SERVICE_ID }}
+          api-key: ${{ secrets.RENDER_API_KEY }}
+
+  tag_release:
+    needs: [e2e-tests] # This makes it wait for the first job
+    runs-on: ubuntu-20.04
+    # Use the same condition for version tagging
+    if: ${{
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      !contains(join(github.event.commits.*.message, ' '), '#skip')}} # Only run on pushes to main
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: "0" # This ensures we get all git history for versioning
+
+      - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@f278d49d30cdd8775cc3e7dd00b5ee11686ee297
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BUMP: patch
+          WITH_V: true

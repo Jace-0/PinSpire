@@ -270,5 +270,14 @@
     This completes the core social saving functionality, allowing users to organize pins into collections.
 
 |
+| 7 | 2 | CICD setup
+
+    Implementation:
+     - Frontend CI
+     - Backend CI
+     - E2E-TEST CI
+     - discord Notification and version tag
+
+|
 
 | Total | null |

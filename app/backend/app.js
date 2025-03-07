@@ -6,6 +6,8 @@ const { PORT } = require('./util/config')
 const { connectToDatabase } = require('./util/db')
 const WebSocketServer = require('./util/websocket')
 const path = require('path')
+const redisClient = require('./util/redis')
+const { sequelize } = require('./util/db')
 
 const logger = require('./util/logger')
 
@@ -30,14 +32,25 @@ const wsServer = new WebSocketServer(server)
 // Make WebSocket server available to routes
 app.ws = wsServer
 
-
-app.use(cors())
+// process.env.FRONTEND_URL
+app.use(cors({
+  origin: true ,
+  credentials: true
+}))
 app.use(express.json())
 // app.use(sessionMiddleware) JWT
 app.use(middleware.requestLogger)
 
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok' })
+app.get('/api/health', async (req, res) => {
+  try {
+    // Optional: Check database connection
+    await sequelize.authenticate()
+    // Optional: Check Redis connection
+    await redisClient.ping()
+    res.status(200).json({ status: 'healthy' })
+  } catch (error) {
+    res.status(500).json({ status: 'unhealthy', error: error.message })
+  }
 })
 
 // Serve static frontend
