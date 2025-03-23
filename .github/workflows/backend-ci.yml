@@ -62,9 +62,16 @@ jobs:
       - name: Run linting
         run: npm run lint
 
+      - name: Initialize database
+        run: npm run db:init
+        env:
+          NODE_ENV: test
+          TEST_POSTGRES_URL: postgres://postgres:postgres@localhost:5432/pinspire_test
+          TEST_REDIS_URL: redis://localhost:6379
+          JWT_SECRET: ${{ secrets.JWT_SECRET || 'test-jwt-secret' }}
+
       - name: Run integration tests with Supertest
         run: npm run test:supertest
-
         env:
           NODE_ENV: test
           TEST_POSTGRES_URL: postgres://postgres:postgres@localhost:5432/pinspire_test
