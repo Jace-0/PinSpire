@@ -7,7 +7,7 @@
     "start": "cross-env NODE_ENV=production node start.js",
     "dev": "cross-env NODE_ENV=development nodemon start.js",
     "test": "cross-env NODE_ENV=test node ",
-    "test:supertest": "cross-env NODE_ENV=test node --test --test-concurrency=1 Supertest/*.test.js",
+    "test:supertest": "cross-env NODE_ENV=test node --test --test-concurrency=1 ",
     "start:test": "cross-env NODE_ENV=test nodemon start.js",
     "build:ui": "rm -rf build && cd ../frontend/ && npm run build && cp -r build ../backend",
     "build:ui:dev": "rm -rf build && cd ../frontend/ && npm run build:dev && cp -r build ../backend",
