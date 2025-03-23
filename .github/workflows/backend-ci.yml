@@ -63,9 +63,8 @@ jobs:
         run: npm run lint
 
       - name: Run integration tests with Supertest
-        run: |
-          npm run test ../backend/test-Supertest/user.test.js
-          npm run test ../backend/test-Supertest/pin.test.js
+        run: npm run test:supertest
+
         env:
           NODE_ENV: test
           TEST_POSTGRES_URL: postgres://postgres:postgres@localhost:5432/pinspire_test

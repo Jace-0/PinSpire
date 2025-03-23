@@ -1,16 +1,14 @@
 import { test as base, expect } from '@playwright/test'
-import { signUpUser, signUpNewUser } from './helper'
-const path = require('path')
-
+import { signUpUser } from './helper'
 
 // Store authenticated contexts
 let primaryUserContext
 let primaryUserPage
-let authData
+let primaryAuth
 
 let secondaryUserContext
 let secondaryUserPage
-// let secondaryAuthData
+let secondaryAuth
 
 // Create test fixture with authentication support
 export const test = base.extend({
@@ -30,26 +28,12 @@ export const test = base.extend({
 
         primaryUserPage.setDefaultTimeout(120000)  // 2 minutes for all operations
         primaryUserPage.setDefaultNavigationTimeout(800000)
-            
-        // Reset DB and create test user
-        const response = await primaryUserPage.request.post('http://localhost:3000/api/test/reset', {
-          timeout: 30000, // 30 seconds
-          failOnStatusCode: true
-        })
-
-        if (response.status() !==200){
-          throw new Error(`Database reset failed with status ${response.status()}`)
-        }
 
         await primaryUserPage.goto('/')
         await signUpUser(primaryUserPage)
 
-        await primaryUserPage.waitForURL('/')
-        await primaryUserPage.waitForLoadState('networkidle')
-
-
         // Get authentication data from sessionStorage
-        authData = await primaryUserPage.evaluate(() => {
+        primaryAuth = await primaryUserPage.evaluate(() => {
           return globalThis.sessionStorage.getItem('auth')
         })
 
@@ -62,21 +46,20 @@ export const test = base.extend({
           if (!globalThis.sessionStorage.getItem('auth')) {
             globalThis.sessionStorage.setItem('auth', storedAuth)
           }
-        }, authData)
-        
-        await primaryUserPage.waitForLoadState('networkidle')
+        }, primaryAuth)
       }
-      
+
       // Verify auth state
-      const isAuthenticated = await primaryUserPage.evaluate(() => {
+      const isPrimaryAuthenticated = await primaryUserPage.evaluate(() => {
         const auth = globalThis.sessionStorage.getItem('auth')
         return !!auth && JSON.parse(auth).accessToken !== undefined
       })
       
-      if (!isAuthenticated) {
+      if (!isPrimaryAuthenticated) {
         throw new Error('Authentication lost')
       }
 
+      await primaryUserPage.waitForLoadState('networkidle')
       await use(primaryUserPage)
         
     } catch (error) {
@@ -103,22 +86,16 @@ export const test = base.extend({
     await use(userProfilePage)
   },
 
-  newMessagePage: async ({ primaryUserPage }, use) => {
-    await primaryUserPage.getByRole('link').filter({ has: primaryUserPage.locator('i.fas.fa-comment-dots') }).click()
-    // Click new message button
-    await primaryUserPage.locator('.new-message-btn').click()
+  juliaUser: async ({ browser }, use) => {
+    const context = await browser.newContext()
+    let juliaPage = await context.newPage()
+    juliaPage.setDefaultTimeout(120000)
+    juliaPage.setDefaultNavigationTimeout(800000)
 
-    await expect(primaryUserPage.locator('.new-message-container')).toBeVisible()
-    await expect(primaryUserPage.locator('.messaging-header')).toHaveText('New Message')
+    await juliaPage.goto('/')
+    await signUpUser(juliaPage, 'julia@test.com', 'julia90')
+    await use(juliaPage)
 
-    await expect(primaryUserPage.locator('.back-button .fa-arrow-left')).toBeVisible()
-
-    await expect(primaryUserPage.locator('.search-container')).toBeVisible()
-    await expect(primaryUserPage.getByRole('textbox', { name: 'Find by username' })).toBeVisible()
-    await expect(primaryUserPage.locator('.search-container i')).toBeVisible()
-    await expect(primaryUserPage.locator('.search-container h3')).toHaveText('No result found')
-    await use(primaryUserPage)
-    
   },
 
   createPinPage: async ({ primaryUserPage }, use) => {
@@ -144,50 +121,73 @@ export const test = base.extend({
   },
 
   pinPage: async ({ primaryUserPage }, use) => {
-    await primaryUserPage.waitForLoadState('networkidle')
-
-
     // verify component
     await expect(primaryUserPage.getByTestId('header-search')).toBeVisible()
     await expect(primaryUserPage.getByTestId('sidebar-nav')).toBeVisible()
      
     await expect(primaryUserPage.locator('.home-container')).toBeVisible()
     
-
-    // Verify Created Pin is live
-    await expect(primaryUserPage.locator('.pin-card')).toBeVisible()
-    await expect(primaryUserPage.locator('.pin-card .pin-image-container')).toBeVisible()
-    await expect(primaryUserPage.locator('.pin-image-container .pin-image')).toBeVisible()
-    await expect(primaryUserPage.locator('.pin-image-container .pin-overlay .pin-title')).toHaveText('Black winter jacket')
-
-    // Verify user info
-    await expect(primaryUserPage.locator('.pin-card .pin-footer')).toBeVisible()
-    await expect(primaryUserPage.locator('.pin-card .pin-footer .user-avatar')).toBeVisible()
-    await expect(primaryUserPage.locator('.pin-card .pin-footer .user-name')).toBeVisible()
-
-    // click on image 
-    await primaryUserPage.locator('.pin-image-container .pin-image').click()
-    // await expect(primaryUserPage.getByTestId('loading-spinner')).toBeVisible()
+    // Filter Winter Jacket pin by (test) primary user
+    await expect(primaryUserPage.locator('.pins-grid')).toBeVisible()
+    await primaryUserPage.getByAltText('Black winter jacket').click() // find by image alt text
 
     // More specific regex pattern to match UUID format
     await expect(primaryUserPage.url()).toMatch(/\/pin\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/)
+    await primaryUserPage.waitForLoadState('networkidle')
 
-
-    // verify component
+    // verify Pin Details Page component
     await expect(primaryUserPage.getByTestId('header-search')).toBeVisible()
     await expect(primaryUserPage.getByTestId('sidebar-nav')).toBeVisible()
-
     await expect(primaryUserPage.locator('.pin-details-container')).toBeVisible()
-    await expect(primaryUserPage.locator('.pin-details-container .pin-details-wrapper')).toBeVisible()
 
     // PIN IMAGE SECTION
     await expect(primaryUserPage.locator('.pin-details-image-section .pin-main-image')).toBeVisible()
 
     // PIN CONTENT SECTION
     await expect(primaryUserPage.locator('.pin-details-content')).toBeVisible()
+
+    // Verify Like button
+    await expect(primaryUserPage.locator('.pin-actions .like-container button')).toBeVisible()
+    // await expect(primaryUserPage.locator('.like-container .like-count')).toHaveText('0')
+
+    // Verify download button 
+    await expect(primaryUserPage.locator('.pin-actions .download-action button')).toBeVisible()
+     
+    // Verify Save to Board 
+    await expect(primaryUserPage.locator('.pin-actions .saved-pin')).toBeVisible()
+    await expect(primaryUserPage.locator('.board-selector-p i')).toBeVisible()
+    await expect(primaryUserPage.locator('.board-selector-p button')).toBeVisible()
+     
+    // verify user info
+    await expect(primaryUserPage.locator('.user-info-container .user-details')).toBeVisible()
+    await expect(primaryUserPage.locator('.user-details .profile-image')).toBeVisible()
+    await expect(primaryUserPage.locator('.user-details .user-username')).toBeVisible()
+    await expect(primaryUserPage.locator('.user-details .user-username')).toHaveText('test')
+
+    // Verify Pin info
+    await expect(primaryUserPage.locator('.pin-info')).toBeVisible()
+    await expect(primaryUserPage.locator('.pin-info .pin-title-pin')).toBeVisible()
+    await expect(primaryUserPage.locator('.pin-info .pin-title-pin')).toHaveText('Black winter jacket')
+    const descriptionLocator = primaryUserPage.locator('.pin-info .pin-description')
+    await expect(descriptionLocator).toBeVisible()
+     
+    // Verify Comments section
+    await expect(primaryUserPage.locator('.pin-comments-section')).toBeVisible()
+    await expect(primaryUserPage.locator('.pin-comments-section .comments-header')).toBeVisible()
+    await expect(primaryUserPage.locator('.comments-header .comments-count')).toBeVisible()
+    // await expect(primaryUserPage.locator('.comments-header .comments-count')).toHaveText('0 comments')
+    await expect(primaryUserPage.locator('.comments-header .comments-toggle')).toBeVisible()
+
+    // PinCommentInput
+    await expect(primaryUserPage.locator('.pin-comment-input-wrapper')).toBeVisible()
+    await expect(primaryUserPage.locator('.pin-comment-input-wrapper .pin-comment-input')).toBeVisible()
+    await expect(primaryUserPage.locator('.pin-comment-input-wrapper .pin-comment-submit')).toBeVisible()
+    await expect(primaryUserPage.locator('.pin-comment-input-wrapper .pin-comment-submit i')).toBeVisible()
+
+    await expect(primaryUserPage.locator('.pin-details-container')).toBeVisible()
+    await expect(primaryUserPage.locator('.pin-details-container .pin-details-wrapper')).toBeVisible()
      
     await use(primaryUserPage)
-
   },
 
   // Secondary authenticated user fixture (for interaction testing)
@@ -197,31 +197,66 @@ export const test = base.extend({
         // Sign in only once and reuse the context
         secondaryUserContext = await browser.newContext()
         secondaryUserPage = await secondaryUserContext.newPage()
-
         secondaryUserPage.setDefaultTimeout(120000)
         secondaryUserPage.setDefaultNavigationTimeout(800000)
-            
-        // Reset DB and create test user
-        // await page.request.post('http://localhost:3000/api/testing/reset')
+
         await secondaryUserPage.goto('/')
-        // await secondaryUserPage.waitForLoadState('networkidle')
-        await signUpNewUser(secondaryUserPage, 'jace@test.com', 'jace000')
+        await signUpUser(secondaryUserPage, 'jace@test.com', 'jace00')
+
+        // Get authentication data from sessionStorage
+        secondaryAuth = await secondaryUserPage.evaluate(() => {
+          return globalThis.sessionStorage.getItem('auth')
+        })
 
       } else {
         // Reuse existing page
         await secondaryUserPage.goto('/')
-        // await secondaryUserPage.waitForLoadState('networkidle')
+
+        // Ensure auth data is still present
+        await secondaryUserPage.evaluate((storedAuth) => {
+          if (!globalThis.sessionStorage.getItem('auth')) {
+            globalThis.sessionStorage.setItem('auth', storedAuth)
+          }
+        }, secondaryAuth)
+      }
+
+      // Verify auth state
+      const isSecondaryAuthenticated = await secondaryUserPage.evaluate(() => {
+        const auth = globalThis.sessionStorage.getItem('auth')
+        return !!auth && JSON.parse(auth).accessToken !== undefined
+      })
+      
+      if (!isSecondaryAuthenticated) {
+        throw new Error('Authentication lost')
       }
 
       await secondaryUserPage.waitForLoadState('networkidle')
-
       await use(secondaryUserPage)
-  
 
     } catch (error) {
       console.error('Secondary user authentication failed:', error)
       throw error
     }
+  },
+
+  secondaryCreatePinPage: async ({ secondaryUserPage }, use) => {
+    await expect(secondaryUserPage.getByRole('link').filter({ has: secondaryUserPage.locator('i.fas.fa-plus') })).toBeVisible()
+    await secondaryUserPage.getByRole('link').filter({ has: secondaryUserPage.locator('i.fas.fa-plus') }).click()
+    await expect(secondaryUserPage).toHaveURL('/pin-creation-tool')
+
+    // Header section verification
+    const header = secondaryUserPage.locator('.create-pin-header')
+    await expect(header).toBeVisible()
+    await expect(header.locator('h1')).toHaveText('Create Pin')
+    await expect(header.locator('.publish-button')).toBeVisible()
+
+    // Side nav verification
+    await expect(secondaryUserPage.getByTestId('sidebar-nav')).toBeVisible()
+
+    // Pin creation tool container
+    await expect(secondaryUserPage.locator('.content-container')).toBeVisible()
+    await use(secondaryUserPage)
+
   },
 
   pinPageWithSecondaryUser: async ({ secondaryUserPage }, use) => {
@@ -234,10 +269,14 @@ export const test = base.extend({
     
         
     await secondaryUserPage.locator('.pins-grid').waitFor({ state: 'visible'})
-    await expect(secondaryUserPage.locator('.pins-grid .pin-card')).toBeVisible()
+    await expect(secondaryUserPage
+      .locator('.pins-grid .pin-card')
+      .filter({ has: secondaryUserPage.getByText('Black winter jackettest') })
+    ).toBeVisible()
+    
     await expect(secondaryUserPage.getByText('Black winter jacket')).toBeVisible()
     await secondaryUserPage.getByText('Black winter jacket').click()
-    await expect(primaryUserPage.url()).toMatch(/\/pin\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/)
+    expect(primaryUserPage.url()).toMatch(/\/pin\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/)
 
     // await secondaryUserPage.getByTestId('loading-spinner').waitFor({ state: 'visible'})
 
@@ -256,8 +295,18 @@ export const test = base.extend({
      
     await use(secondaryUserPage)
   }
+})
 
-
+test.beforeAll(async ({ request }) => {
+  // Reset DB and create test user
+  const response = await request.post('http://localhost:3000/api/test/reset', {
+    timeout: 30000, // 30 seconds
+    failOnStatusCode: true
+  })
+  
+  if (response.status() !==200){
+    throw new Error(`Database reset failed with status ${response.status()}`)
+  }
 })
 
 // Cleanup contexts after all tests
@@ -271,5 +320,6 @@ test.afterAll(async () => {
     secondaryUserContext = null
   }
 })
+
 
 export { expect }

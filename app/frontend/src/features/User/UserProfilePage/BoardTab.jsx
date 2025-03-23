@@ -93,7 +93,7 @@ const BoardTab = () => {
                 Cancel
               </button>
               <button
-                className="save-button"
+                className="save-button-b"
                 onClick={handleCreateBoard}
               >
                 Save

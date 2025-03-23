@@ -1,4 +1,4 @@
-const redisClient = require('../util/redis')
+const { redisClient } = require('../util/redis')
 // const logger = require('../util/logger')
 const { sequelize } = require('../util/db')
 const { Board, BoardPin, Pin, User } = require('../models')

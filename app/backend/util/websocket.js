@@ -1,16 +1,17 @@
 const WebSocket = require('ws')
 const jwt = require('jsonwebtoken')
-const redisClient = require('../util/redis')
+const { redisClient } = require('../util/redis')
 const { sequelize, Op } = require('../util/db')
 const { Chat, Message } = require('../models')
 
 const logger = require('./logger')
 
 class WebSocketServer {
-  constructor(server) {
+  constructor(httpServer) {
     // Initialize WebSocket server attached to HTTP server
-    this.wss = new WebSocket.Server({ server })
+    this.wss = new WebSocket.Server({ server: httpServer })
     this.clients = new Map()
+    this.heartbeatInterval = null
     this.init()
   }
 
@@ -77,7 +78,6 @@ class WebSocketServer {
     return jwt.verify(token, process.env.JWT_SECRET)
   }
 
-
   extractToken(request) {
     // Get token from query string
     const queryString = new URL(request.url, 'ws://localhost').searchParams
@@ -88,7 +88,6 @@ class WebSocketServer {
     // const headerToken = request.headers['sec-websocket-protocol'];
     // return headerToken?.replace('Bearer ', '');
   }
-
 
   setupClientHandlers(ws) {
     // Handle incoming messages
@@ -119,7 +118,7 @@ class WebSocketServer {
 
   setupHeartbeat() {
   // Check client connections every 30 seconds
-    setInterval(() => {
+    this.heartbeatInterval = setInterval(() => {
       this.clients.forEach((clientData, ws) => {
         if (!clientData.isAlive) {
           this.clients.delete(ws)
@@ -209,8 +208,6 @@ class WebSocketServer {
       return newMessage
     })
 
-
-
     // Send WebSocket message
     await this.sendChatMessage(
       {
@@ -219,8 +216,6 @@ class WebSocketServer {
       },
       message
     )
-
-
   }
 
   // Utility method to broadcast to all connected clients
@@ -260,6 +255,59 @@ class WebSocketServer {
     }
   }
 
+  // Close specific client connection
+  closeClient(ws) {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.terminate()
+      this.clients.delete(ws)
+    }
+  }
+
+  // Close all client connections
+  closeAllClients() {
+    const clientsArray = Array.from(this.clients.keys())
+    clientsArray.forEach(ws => {
+      ws.terminate()
+    })
+    this.clients.clear()
+  }
+
+
+  // Shutdown WebSocket server
+  async shutdown() {
+    try {
+      // 1. Clear the heartbeat interval
+      if (this.heartbeatInterval) {
+        clearInterval(this.heartbeatInterval)
+        this.heartbeatInterval = null
+      }
+
+      // 2. Close all client connections
+      this.closeAllClients()
+
+
+      // 4. Close server with shorter timeout
+      return new Promise((resolve) => {
+        const closeTimeout = setTimeout(() => {
+          logger.warn('WebSocket server force closed')
+          resolve()
+        }, 1000) // Reduced timeout to 1 second
+
+        this.wss.close(() => {
+          clearTimeout(closeTimeout)
+          logger.info('WebSocket server closed successfully')
+          resolve()
+        })
+      })
+
+    } catch (error) {
+      logger.error('Error during WebSocket shutdown:', error)
+      // Force cleanup and resolve
+      this.wss.clients.forEach(ws => ws.terminate())
+      this.clients.clear()
+      return Promise.resolve()
+    }
+  }
 }
 
 

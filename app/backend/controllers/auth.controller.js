@@ -1,7 +1,7 @@
 // controllers/auth.controller.js
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
-const redisClient = require('../util/redis')
+const { redisClient } = require('../util/redis')
 // const logger = require('../util/logger')
 const User = require('../models/user')
 const { generateInitialAvatar } = require('../util/cloudinary')

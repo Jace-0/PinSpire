@@ -1,5 +1,5 @@
 // controllers/user.controller.js
-const redisClient = require('../util/redis')
+const { redisClient } = require('../util/redis')
 // const logger = require('../util/logger')
 
 const { uploadProfileImg } = require('../util/cloudinary')

@@ -9,7 +9,7 @@ if (process.env.NODE_ENV === 'production') {
   DATABASE_URL =  process.env.POSTGRES_URL
 }
 if (process.env.NODE_ENV === 'development') {
-  REDIS_URL = process.env.REDIS_URL
+  REDIS_URL = process.env.TEST_REDIS_URL
   DATABASE_URL =  process.env.TEST_POSTGRES_URL
 }
 

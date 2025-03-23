@@ -57,7 +57,7 @@ const originalWarn = console.warn
 beforeAll(() => {
   console.error = (...args) => {
     // Check if args[0] is a string before using includes
-    if (typeof args[0] === 'string' && args[0].includes('Warning:')) return
+    if (typeof args[0] === 'string' && args[0].includes('Error:')) return
     originalError.call(console, ...args)
   }
   console.warn = (...args) => {

@@ -3,7 +3,7 @@ import { authService } from './auth.service'
 
 const BASE_URL = process.env.NODE_ENV === 'production'
   ? process.env.APP_API_URL
-  : process.env.DEV_API_URL
+  : 'http://localhost:3000/api'
 
 // Main API instance for authenticated routes
 const api = axios.create({

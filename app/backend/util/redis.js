@@ -2,7 +2,6 @@ const Redis = require('redis')
 const { REDIS_URL } = require('./config')
 const logger = require('./logger')
 
-
 const redisClient = Redis.createClient({
   url: REDIS_URL,
   legacyMode: false,
@@ -12,9 +11,37 @@ const redisClient = Redis.createClient({
   }
 })
 
-redisClient.connect().catch(logger.error)
+// redisClient.connect().catch(logger.error)
 
 redisClient.on('error', (err) => logger.error('Redis Client Error', err))
 redisClient.on('connect', () => logger.info('Redis Client Connected'))
+redisClient.on('end', () => logger.info('Redis Client Disconnected'))
 
-module.exports = redisClient
+const connectRedis = async () => {
+  if (!redisClient.isReady) {
+    try {
+      await redisClient.connect()
+    } catch (error) {
+      logger.error('Redis connection error:', error)
+      throw error
+    }
+  }
+}
+
+const disconnectRedis = async () => {
+  if (redisClient.isReady) {
+    try {
+      await redisClient.quit()
+      logger.info('Redis disconnected successfully')
+    } catch (error) {
+      logger.error('Redis disconnect error:', error)
+      throw error
+    }
+  }
+}
+
+module.exports = {
+  connectRedis,
+  disconnectRedis,
+  redisClient
+}

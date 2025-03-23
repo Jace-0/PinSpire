@@ -71,9 +71,6 @@ describe('LoginForm', () => {
     //   expect(mockNavigate).toHaveBeenCalledWith('/', expect.any(Object))
     // })
 
-
-
-
     // Fast-forward timer to trigger navigation
     // await new Promise((r) => setTimeout(r, 1000))
     // await act(async () => {

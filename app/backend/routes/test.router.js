@@ -1,41 +1,43 @@
-const router = require('express').Router()
-const { User, Pin, Like, Comment, Follower, Chat, Message,  } = require('../models/index')
-const { sequelize } = require('../util/db')
-const redisClient = require('../util/redis')
-const logger = require('../util/logger')
-const bcrypt = require('bcrypt')
 const path = require('path')
-const csv = require('csv-parser')
 const fs = require('fs')
+
+const router = require('express').Router()
+const bcrypt = require('bcrypt')
+const csv = require('csv-parser')
+
+const { User, Pin, Like, Comment, Follower, Chat, Message, Board, BoardPin  } = require('../models/index')
+const { redisClient } = require('../util/redis')
+const logger = require('../util/logger')
 const { uploadPin, clearFolder } = require('../util/cloudinary')
-
-
 
 router.post('/reset', async (request, response) => {
   logger.info('Start Cleanup')
   try {
-    await sequelize.query('SET session_replication_role = replica')
 
-    await Promise.all([
-      User.destroy({ truncate: true, cascade: true }),
-      Pin.destroy({ truncate: true, cascade: true }),
-      Like.destroy({ truncate: true, cascade: true }),
-      Comment.destroy({ truncate: true, cascade: true }),
-      Follower.destroy({ truncate: true, cascade: true }),
-      Chat.destroy({ truncate: true, cascade: true }),
-      Message.destroy({ truncate: true, cascade: true }),
-    ])
+    const options = {
+      where: {},
+      truncate: true,
+      cascade: true,
+      restartIdentity: true
+    }
 
-    await sequelize.query('SET session_replication_role = default')
+    await Message.destroy(options)
+    await Like.destroy(options)
+    await Comment.destroy(options)
+    await BoardPin.destroy(options)
+    await Follower.destroy(options)
+    await Chat.destroy(options)
+    await Pin.destroy(options)
+    await Board.destroy(options)
+    await User.destroy(options)
 
-    // Clear Redis cache
+    // // Clear Redis cache
     await redisClient.FLUSHALL()
 
     // Cloudinary cleanup
     const folders = ['pins', 'avatars', 'avatars/defaults']
     await clearFolder(folders)
 
-    logger.info('Cleanup Successfull')
     response.status(200).end()
 
   }catch(error) {
@@ -43,8 +45,7 @@ router.post('/reset', async (request, response) => {
     response.status(500).json({ error: 'Cleanup failed' })
   }
 
-}
-)
+})
 
 
 router.post('/upload-from-csv', async (request, response) => {
@@ -125,7 +126,5 @@ router.post('/upload-from-csv', async (request, response) => {
     response.status(500).json({ error: 'Failed to create pins from CSV' })
   }
 })
-
-
 
 module.exports = router

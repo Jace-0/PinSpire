@@ -1,10 +1,24 @@
 const supertest = require('supertest')
-const { app, server } = require('../app')
-const api = supertest(app)
+const Server = require('../server')
+const server = new Server()
+const expressApp = server.getApp()
+const api = supertest(expressApp)
+
+
 const baseApi = '/api'
 
 // Authentication API Tests
 const authApi = `${baseApi}/auth`
+
+const health = () => {
+  return api
+    .get('/api/health')
+}
+const reset = () => {
+  return api
+    .post('/api/test/reset')
+}
+
 const createUser = (userData) => {
   return  api
     .post(`${authApi}/signup`)
@@ -99,15 +113,14 @@ const likeComment = (commentId) => {
 }
 
 
-const replyComment = (commentId) => {
-  return api
-    .post(`${pinApi}/comments/${commentId}/replies`)
-}
+
 
 module.exports = {
-  app,
   api,
+  baseApi,
   server,
+  expressApp,
+  health,
   createUser,
   loginUser,
   refreshToken,
@@ -123,6 +136,5 @@ module.exports = {
   likePin,
   commentPin,
   likeComment,
-  replyComment
-
+  reset
 }

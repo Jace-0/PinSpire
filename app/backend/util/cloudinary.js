@@ -102,6 +102,7 @@ const clearFolder = async (folders) => {
     logger.info('CLEARED CLOUDINARY', result)
     logger.info('Cloudinary storage cleared successfully')
 
+    return result
   } catch (error) {
     logger.error(`Failed to clear folder ${folders}:`, error)
     throw new Error('Folder cleanup failed')

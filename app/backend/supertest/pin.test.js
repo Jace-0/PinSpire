@@ -12,17 +12,26 @@ Test Coverage:
        - Adding comments
        - Editing comments
        - Nested replies
-
  */
+
+/* TEST NOTE:
+These tests are intentionally not isolated from each other. They run in sequence and depend on the state created by previous tests. This approach was chosen to avoid cleaning up the database between each test, which improves test execution speed. However, this means:
+
+1. Tests must be run in the specified order
+2. Test failures may cascade (a failure in an early test may cause later tests to fail)
+3. Debugging individual tests may require running preceding tests first
+
+TODO: Consider refactoring to use isolated tests with proper setup/teardown if test maintenance becomes difficult.
+*/
 
 const logger = require('../util/logger')
 const { test, before, after, describe } = require('node:test')
 const assert = require('node:assert')
 const path = require('path')
-const { sequelize } = require('../util/db')
-const { User, Pin, Like, Comment, CommentReply } = require('../models/index')
-const redisClient = require('../util/redis')
+const { Like, Comment } = require('../models/index')
 const WebSocket = require('ws')
+const { sequelize } = require('../util/db')
+
 
 const {
   server,
@@ -31,33 +40,128 @@ const {
   likePin,
   commentPin,
   likeComment,
-  replyComment
+  reset
 } = require('./test_helper')
 
 
-let port
-// console.log('FROM PIN INTEGRATION')
+const testUsers = {
+  JACE: {
+    email: 'jace@test.com',
+    password: 'Test123!@#2',
+    username: 'jace',
+    dob: '2001-01-01'
+  },
+  MATTI: {
+    email: 'matti@tes.com',
+    password: 'secret',
+    username: 'matti',
+    dob: '2001-01-02'
+  }
+}
 
+let wsServer
+let JACE, JACE_TOKENS
+let MATTI, MATTI_TOKENS
+let testPin
+let jaceNotificationPayload
+let jaceWsClient
+let mattiNotificationPayload
+let mattiWsClient
 
 
 /* PIN INTEGRATION TEST  */
 describe('Pin Test', () => {
-
   before(async () => {
     try {
+      // Start the actual server for WebSocket testing
+      wsServer = await server.start(0) // Port 0 for random available port
+      const port = wsServer.address().port
+
       await sequelize.authenticate()
-      logger.info('Test database connected')
-      port = server.listen().address().port
 
-      // Cleanup database
-      await sequelize.query('SET session_replication_role = replica')
 
-      await Promise.all([
-        User.destroy({ truncate: true, cascade: true }),
-        Pin.destroy({ truncate: true, cascade: true })
+      // await connectRedis() // Connect Redis
+      await reset() // Clean Database
+
+
+      // Create test user (JACE)
+      const userJace = await createUser(testUsers.JACE)
+        .expect(201)
+        .expect('Content-Type', /application\/json/)
+
+      JACE = userJace.body.user
+      JACE_TOKENS = {
+        accessToken: userJace.body.accessToken,
+        refreshToken: userJace.body.refreshToken
+      }
+
+      // Create test user that will perform like, comment, like comment and comment reply operations (Matti Luukkainen)
+      const userMatti = await createUser(testUsers.MATTI)
+        .expect(201)
+
+      MATTI = userMatti.body.user
+      MATTI_TOKENS = {
+        accessToken: userMatti.body.accessToken,
+        refreshToken: userMatti.body.refreshToken
+      }
+
+      // Initialize WebSocket client for user (JACE)
+      jaceWsClient = new WebSocket(
+        `ws://localhost:${port}?token=${JACE_TOKENS.accessToken}`
+      )
+
+      // Initialize WebSocket client for user (MATTI)
+      mattiWsClient = new WebSocket(
+        `ws://localhost:${port}?token=${MATTI_TOKENS.accessToken}`
+      )
+
+      // WebSocket connection handling...
+      await Promise.race([
+        new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error('WebSocket connection timeout'))
+          }, 5000)
+
+          let connectedClients = 0
+          const checkBothConnected = () => {
+            connectedClients++
+            if (connectedClients === 2) {
+              logger.info('Both clients connected')
+              clearTimeout(timeout)
+              resolve()
+            }
+          }
+
+          jaceWsClient.on('open', checkBothConnected)
+          mattiWsClient.on('open', checkBothConnected)
+
+          jaceWsClient.on('error', (error) => {
+            clearTimeout(timeout)
+            reject(error)
+          })
+
+          mattiWsClient.on('error', (error) => {
+            clearTimeout(timeout)
+            reject(error)
+          })
+        }),
+
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('WebSocket connection timeout')), 5000)
+        )
       ])
 
-      await sequelize.query('SET session_replication_role = default')
+      // Message handlers
+      jaceWsClient.on('message', (data) => {
+        logger.info('Jace Received notification:', data.toString())
+        jaceNotificationPayload = JSON.parse(data)
+      })
+
+      mattiWsClient.on('message', (data) => {
+        logger.info('Matti Received notification:', data.toString())
+        mattiNotificationPayload = JSON.parse(data)
+      })
+
     } catch (error) {
       logger.error('Database connection failed:', error)
       throw error
@@ -67,134 +171,15 @@ describe('Pin Test', () => {
   after(async () => {
     try {
       await sequelize.close()
-      await redisClient.quit()
-      logger.info('Test database connection closed')
-      // await Promise.all([
-      //   User.destroy({ truncate: true, cascade: true }),
-      //   Pin.destroy({ truncate: true, cascade: true })
-      // ])
-      logger.info('Cleaned databased')
+
+      // Stop the server
+      await server.stop()
+
+      // logger.info(server.getWebSocketStatus())
     } catch (error) {
       logger.error('Error closing database:', error)
       throw error
     }
-  })
-
-  const testUsers = {
-    JACE: {
-      email: 'jace@test.com',
-      password: 'Test123!@#',
-      username: 'jace',
-      dob: '2001-01-01'
-    },
-    MATTI: {
-      email: 'matti@test.com',
-      password: 'secret',
-      username: 'matti',
-      dob: '2001-01-02'
-    }
-  }
-
-  let JACE, JACE_TOKENS
-  let MATTI, MATTI_TOKENS
-  let testPin
-  let jaceNotificationPayload
-  let jaceWsClient
-  let mattiNotificationPayload
-  let mattiWsClient
-
-  before(async () => {
-    // Create test user (JACE)
-    const response = await createUser(testUsers.JACE)
-      .expect(201)
-      .expect('Content-Type', /application\/json/)
-
-    JACE = response.body.user
-    JACE_TOKENS = {
-      accessToken: response.body.accessToken,
-      refreshToken: response.body.refreshToken
-    }
-
-    // Create test user that will perform like, comment, like comment and comment reply operations (Matti Luukkainen)
-    const user = await createUser(testUsers.MATTI)
-      .expect(201)
-
-    MATTI = user.body.user
-    MATTI_TOKENS = {
-      accessToken: user.body.accessToken,
-      refreshToken: user.body.refreshToken
-    }
-
-    // Initialize WebSocket client for user (JACE)
-    jaceWsClient = new WebSocket(
-      `ws://localhost:${port}?token=${JACE_TOKENS.accessToken}`
-    )
-
-    // Initialize WebSocket client for user (MATTI)
-    mattiWsClient = new WebSocket(
-      `ws://localhost:${port}?token=${MATTI_TOKENS.accessToken}`
-    )
-
-
-
-    // Wait for WebSocket connection with proper error handling
-    await new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        reject(new Error('WebSocket connection timeout'))
-      }, 5000)
-
-      jaceWsClient.on('open', () => {
-        clearTimeout(timeout)
-        logger.info(' jaceWsClient connected successfully')
-        resolve()
-      })
-      mattiWsClient.on('open', () => {
-        clearTimeout(timeout)
-        logger.info('mattiWsClient connected successfully')
-        resolve()
-      })
-
-      jaceWsClient.on('error', (error) => {
-        clearTimeout(timeout)
-        logger.error('jaceWsClient connection error:', error)
-        reject(error)
-      })
-      mattiWsClient.on('error', (error) => {
-        clearTimeout(timeout)
-        logger.error('mattiWsClient connection error:', error)
-        reject(error)
-      })
-
-      // Listen for notifications
-      jaceWsClient.on('message', (data) => {
-        logger.info('Jace Received notification:', data.toString())
-        jaceNotificationPayload  = JSON.parse(data)
-      })
-
-      mattiWsClient.on('message', (data) => {
-        logger.info('Matti Received notification:', data.toString())
-        mattiNotificationPayload  = JSON.parse(data)
-      })
-    })
-
-  })
-
-
-  after(async () => {
-    // Clean up WebSocket connection
-    if (jaceWsClient?.readyState === WebSocket.OPEN && mattiWsClient?.readyState === WebSocket.OPEN) {
-      await new Promise(resolve => {
-        jaceWsClient.on('close', resolve)
-        jaceWsClient.close()
-        mattiWsClient.on('close', resolve)
-        mattiWsClient.close()
-      })
-    }
-    logger.info('PAYLOAD BEFORE CLEANUP', jaceNotificationPayload)
-    // Reset notification
-    jaceNotificationPayload  = null
-    logger.info('PAYLOAD AFTER CLEANUP', jaceNotificationPayload)
-
   })
 
 
@@ -206,6 +191,7 @@ describe('Pin Test', () => {
     external_url : 'https://nl.pinterest.com/pin/2181499815227379/',
     image_url: testImagePath
   }
+
   describe('Create pin Tests', () => {
     test('POST /api/pin - should create a new pin successfully', async () => {
       const response = await createPin()
@@ -246,9 +232,7 @@ describe('Pin Test', () => {
 
     })
 
-
     test('POST /api/pin - should fail without image', async () => {
-
       const response = await createPin()
         .set('Authorization', `Bearer ${JACE_TOKENS.accessToken}`)
         .field('title', testPinInfo.title)
@@ -260,7 +244,6 @@ describe('Pin Test', () => {
       assert.strictEqual(response.body.success, false)
       assert.strictEqual(response.body.message, 'Pin image is required')
     })
-
 
     test('POST /api/pin - should fail with invalid data', async () => {
 
@@ -280,7 +263,6 @@ describe('Pin Test', () => {
       assert.strictEqual(errors[0].message, 'Title cannot be empty' )
       assert.strictEqual(errors[1].message, 'Invalid source URL format' )
     })
-
 
     test('POST /api/pins - should handle invalid image format', async () => {
       const testTextPath = path.join(__dirname, 'test-files/test.txt')
@@ -407,16 +389,8 @@ describe('Pin Test', () => {
         .send(commentData)
         .expect(201)
 
-      mattiComment = response.body.data
-
       assert.strictEqual(response.body.success, true)
       assert.strictEqual(response.body.message, 'Comment added')
-
-      assert.deepStrictEqual(mattiComment.content, commentData.content)
-      // Verify user info
-      assert.deepStrictEqual(mattiComment.user.id, MATTI.id)
-      assert.deepStrictEqual(mattiComment.user.username, MATTI.username)
-
 
       // Wait for notification with timeout
       await new Promise((resolve, reject) => {
@@ -433,11 +407,14 @@ describe('Pin Test', () => {
         }, 100)
       })
 
+      // console.log('JaceNotification', JSON.stringify(jaceNotificationPayload, null, 2))
+
       // Verify notification payload
       assert.ok(jaceNotificationPayload , 'Should receive notification')
       assert.strictEqual(jaceNotificationPayload.type, 'notification')
       assert.strictEqual(jaceNotificationPayload.data.data.type, 'Comment') // Comment action
       assert.strictEqual(jaceNotificationPayload.data.data.content.username, MATTI.username, ' User name that performed action' )
+      assert.strictEqual(jaceNotificationPayload.data.data.content.comment, commentData.content)
 
       // Verify comment was created in database
       const comment = await Comment.findOne({
@@ -448,6 +425,8 @@ describe('Pin Test', () => {
         }
       })
 
+      // console.log('COMMENT', JSON.stringify(comment, null, 2))
+      mattiComment = comment.dataValues
       assert.ok(comment)
     })
 
@@ -588,21 +567,19 @@ describe('Pin Test', () => {
 
   describe('Reply Comment Tests', () => {
 
-    test('POST /api/comment/:commentId/replies - should add reply successfully and comment owner should recieve Comment Reply Notification through websocket in real-time', async () => {
+    test('POST /api/comment/:id/comment - should add reply successfully and comment owner should recieve Comment Reply Notification through websocket in real-time', async () => {
       const replyData = {
-        content: 'Thank you matti'
+        content: 'Thank you matti',
+        parentId: mattiComment.id
       }
 
-      const commentId = mattiComment.id
-      const response = await replyComment(commentId)
+      const response = await commentPin(testPin.id)
         .set('Authorization', `Bearer ${JACE_TOKENS.accessToken}`)
         .send(replyData)
         .expect(201)
 
       assert.strictEqual(response.body.success, true)
-      assert.strictEqual(response.body.message, 'Reply added successfully')
-      assert.strictEqual(response.body.data.content, replyData.content)
-      assert.strictEqual(response.body.data.user.id, JACE.id)
+      assert.strictEqual(response.body.message, 'Comment added')
 
 
       // Wait for notification with timeout
@@ -620,47 +597,44 @@ describe('Pin Test', () => {
         }, 100)
       })
 
-      logger.info('NOTIFICATION PAYLOAD 3', mattiNotificationPayload.type)
-      logger.info('NOTICATION 3', mattiNotificationPayload.data.data.type )
-      logger.info('NOTICATION 3', mattiNotificationPayload.data.data.content )
       // Verify notification payload
       assert.ok(mattiNotificationPayload , 'Should receive notification')
       assert.strictEqual(mattiNotificationPayload.type, 'notification')
-      assert.strictEqual(mattiNotificationPayload.data.data.type, 'ReplyComment') //  action
+      assert.strictEqual(mattiNotificationPayload.data.data.type, 'Reply') //  action
       assert.strictEqual(mattiNotificationPayload.data.data.content.username, JACE.username, ' User name that performed action' )
       assert.strictEqual(mattiNotificationPayload.data.data.content.pinId, testPin.id, 'Pin Id should match' )
 
       // Verify reply was created in database
-      const reply = await CommentReply.findOne({
+      const reply = await Comment.findOne({
         where: {
-          comment_id: mattiComment.id,
+          parent_id: mattiComment.id,
           user_id: JACE.id,
           content: replyData.content
         }
       })
       assert.ok(reply)
     })
-    test('POST /api/comment/:commentId/replies - should fail with empty content', async () => {
+    test('POST /api/comment/:id/comment - should fail with empty content', async () => {
       const replyData = {
         content: ''
       }
 
-      const response = await replyComment(mattiComment.id)
+      const response = await commentPin(mattiComment.id)
         .set('Authorization', `Bearer ${JACE_TOKENS.accessToken}`)
         .send(replyData)
         .expect(400)
 
       assert.strictEqual(response.body.success, false)
-      assert.strictEqual(response.body.message, 'Reply content is required')
+      assert.strictEqual(response.body.message, 'Comment content is required')
     })
 
-    test('POST /api/comment/:commentId/replies - should fail with non-existent comment', async () => {
+    test('POST /api/comment/:id/comment - should fail with non-existent comment', async () => {
       const nonExistentCommentId = 99999
       const replyData = {
         content: 'Hey Mat'
       }
 
-      const response = await replyComment(nonExistentCommentId)
+      const response = await commentPin(nonExistentCommentId)
         .set('Authorization', `Bearer ${JACE_TOKENS.accessToken}`)
         .send(replyData)
         .expect(400)
@@ -669,12 +643,12 @@ describe('Pin Test', () => {
       assert.strictEqual(response.body.type, 'INVALID_ID', )
     })
 
-    test('POST /api/comment/:commentId/replies - should fail without authentication', async () => {
+    test('POST /api/comment/:id/comment - should fail without authentication', async () => {
       const replyData = {
         content: 'Hey Mat'
       }
 
-      const response = await replyComment(mattiComment.id)
+      const response = await commentPin(mattiComment.id)
         .send(replyData)
         .expect(401)
 

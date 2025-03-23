@@ -121,17 +121,15 @@ jobs:
         uses: Ilshidur/action-discord@0c4b27844ba47cb1c7bee539c8eead5284ce9fa9
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          with:
-            args: |
-              🚀 **Deployment Status Update**
-              Repository: ${{ github.repository }}
-              Branch: ${{ github.ref_name }}
-              Status: ${{ steps.deploy.outcome == 'success' ? '✅ Succeeded' : '❌ Failed' }}
-              Environment: Production
-              Deployed by: ${{ github.actor }}
-              ${{ steps.deploy.outcome == 'success' 
-                ? '🎉 Application is now live!' 
-                : '⚠️ Please check deployment logs for details.' }}
+        with:
+          args: |
+            🚀 **Deployment Status Update**
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Status: ${{ (steps.deploy.outcome == 'success') && '✅ Succeeded' || '❌ Failed' }}
+            Environment: Production
+            Deployed by: ${{ github.actor }}
+            ${{ (steps.deploy.outcome == 'success') && '🎉 Application is now live!' || '⚠️ Please check deployment logs for details.' }}
 
   tag_release:
     needs: [e2e-tests] # This makes it wait for the first job

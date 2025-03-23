@@ -48,9 +48,9 @@ const ProfileSection = ({ isOwnProfile, profile, updateProfile }) => {
 
       const response = await handleFollowing(profileId)
       await updateProfile()
-      setSnackbarMessage(`${response.message} ${ profile.username}`)
-      setSnackbarSeverity('success')
-      setOpenSnackbar(true)
+      // setSnackbarMessage(`${response.message} ${ profile.username}`)
+      // setSnackbarSeverity('success')
+      // setOpenSnackbar(true)
       // setIsFollowed(!isFollowed)
     } catch (error) {
       setSnackbarMessage(error.message)

@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "playwright test",
-    "test:chrome": "playwright test -- --project chromium",
+    "test:chrome": "playwright test --project chromium",
     "test:ui": "playwright test --ui",
     "test:report": "playwright show-report",
     "lint": "eslint .",

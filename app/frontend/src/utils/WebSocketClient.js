@@ -14,15 +14,20 @@ class WebSocketClient {
   }
 
   connect() {
-    const url = new URL(this.baseUrl)
 
+    let url
+    if (process.env.NODE_ENV === 'production') {
+      url = new URL(this.baseUrl)
+    } else {
+      // Development mode - use localhost
+      url = new URL('ws://localhost:3000/ws')
+    }
     // Check if we're on HTTPS and enforce WSS
     if (window.location.protocol === 'https:' && url.protocol === 'ws:') {
       url.protocol = 'wss:'
     }
 
     url.searchParams.append('token', this.token)
-
     // native websocket in browser
     this.ws = new WebSocket(url.toString())
 

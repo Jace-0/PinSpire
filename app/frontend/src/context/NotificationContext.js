@@ -90,8 +90,8 @@ export const NotificationProvider = ({ children }) => {
       message = `${notification.data.content.username} started following you`
       break
 
-    case 'ReplyComment':
-      message = `${notification.data.content.username} replied to your comment: "${notification.data.content.CommentReply}"`
+    case 'Reply':
+      message = `${notification.data.content.username} replied to your comment: "${notification.data.content.comment}"`
       break
 
     case 'LikeComment':

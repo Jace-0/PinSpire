@@ -39,7 +39,7 @@ const LkedTab  = () => {
       <div className='tab-headerP'>
         <h2 >Your Liked Pins</h2>
       </div>
-      {!pins?.length && <div className='no-pins'>No pins created yet</div>}
+      {!pins?.length && <div className='no-pins'>No pins liked yet</div>}
 
       <div className="p-grid">
         {pins.map((pin) => (

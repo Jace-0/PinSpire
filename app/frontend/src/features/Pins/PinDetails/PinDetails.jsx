@@ -155,6 +155,19 @@ const PinActions = () => {
   // Find the selected board
   const selectedBoard = boards.find(b => b.id === selectedBoardId)
 
+
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [newBoardName, setNewBoardName] = useState('')
+
+  const handleCreateBoard = async () => {
+    if (newBoardName.trim()) {
+      const newBoard =  await boardService.createBoard(newBoardName)
+      setBoards([...boards, newBoard?.board])
+      setNewBoardName('')
+      setShowCreateModal(false)
+    }
+  }
+
   return (
     <div className='pin-actions'>
 
@@ -223,12 +236,9 @@ const PinActions = () => {
                   <p>You don't have any boards yet.</p>
                   <button
                     className="create-board-btn-p"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                    // Handle create board action
-                    }}
+                    onClick={() => setShowCreateModal(true)}
                   >
-                    <i className="fas fa-plus"></i> Create board
+                    <i className="fas fa-plus"></i>Create board
                   </button>
                 </div>
               )}
@@ -236,6 +246,43 @@ const PinActions = () => {
           )}
         </div>
       </div>
+
+      {/* Create Board Modal */}
+      {showCreateModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Create new board</h3>
+
+            <div className="form-group">
+              <label htmlFor="boardName">
+                Board name
+              </label>
+              <input
+                type="text"
+                id="boardName"
+                value={newBoardName}
+                onChange={(e) => setNewBoardName(e.target.value)}
+                placeholder="Enter board name"
+              />
+            </div>
+
+            <div className="modal-actions">
+              <button
+                className="cancel-button"
+                onClick={() => setShowCreateModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="save-button-b"
+                onClick={handleCreateBoard}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

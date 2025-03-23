@@ -5,7 +5,7 @@ const signUpUser = async (page, email = 'test@pinspire.com', password = 'test01'
   await page.getByRole('textbox', { name: 'Password' }).fill(password)
   await page.getByRole('textbox', { name: 'Date' }).fill('2001-02-13')
   await page.getByRole('button', { name: 'Sign Up'}).click()
-  // await expect(page.getByText('SignUp successful!')).toBeVisible()
+  await expect(page.getByText('SignUp successful!')).toBeVisible()
 
   // Wait for navigation with explicit timeout
   await page.waitForURL('/',  { timeout: 8000 }),
@@ -13,9 +13,6 @@ const signUpUser = async (page, email = 'test@pinspire.com', password = 'test01'
   await page.waitForLoadState('networkidle')
 }
 
-const signUpNewUser = async ( page, email, password) => {
-  return signUpUser(page, email, password)
-}
 
 const loginUser = async (page, email = 'test@pinspire.com', password = 'test01') => {
   await page.getByRole('link', { name: 'Log in', exact: true }).click()
@@ -29,6 +26,5 @@ const loginUser = async (page, email = 'test@pinspire.com', password = 'test01')
 
 export {
   signUpUser, 
-  loginUser,
-  signUpNewUser
+  loginUser
 }
