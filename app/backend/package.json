@@ -6,7 +6,7 @@
   "scripts": {
     "start": "cross-env NODE_ENV=production node start.js",
     "dev": "cross-env NODE_ENV=development nodemon start.js",
-    "test": "cross-env NODE_ENV=test node ",
+    "test": "cross-env NODE_ENV=test node start.js",
     "test:supertest": "cross-env NODE_ENV=test node --test --test-concurrency=1 ",
     "db:init": "cross-env NODE_ENV=test node scripts/init-db.js",
     "start:test": "cross-env NODE_ENV=test nodemon start.js",

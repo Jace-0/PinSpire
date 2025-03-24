@@ -8,16 +8,11 @@ if (process.env.NODE_ENV === 'production') {
   REDIS_URL = process.env.RENDER_REDIS_URL
   DATABASE_URL =  process.env.POSTGRES_URL
 }
-if (process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
   REDIS_URL = process.env.TEST_REDIS_URL
   DATABASE_URL =  process.env.TEST_POSTGRES_URL
 }
 
-if (process.env.NODE_ENV === 'test') {
-  REDIS_URL = process.env.TEST_REDIS_URL
-  DATABASE_URL =  process.env.TEST_POSTGRES_URL
-
-}
 
 module.exports = {
   DATABASE_URL,

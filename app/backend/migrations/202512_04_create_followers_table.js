@@ -10,7 +10,8 @@ module.exports = {
           model: 'users',
           key: 'id'
         },
-        onDelete: 'CASCADE'
+        onDelete: 'CASCADE',
+        primaryKey: true
       },
       following_id: {
         type: DataTypes.UUID,
@@ -19,7 +20,8 @@ module.exports = {
           model: 'users',
           key: 'id'
         },
-        onDelete: 'CASCADE'
+        onDelete: 'CASCADE',
+        primaryKey: true
       },
       created_at: {
         type: DataTypes.DATE,
@@ -28,12 +30,12 @@ module.exports = {
       }
     })
 
-    // Add composite primary key
-    await queryInterface.addConstraint('followers', {
-      fields: ['follower_id', 'following_id'],
-      type: 'primary key',
-      name: 'followers_pkey'
-    })
+    // // Add composite primary key
+    // await queryInterface.addConstraint('followers', {
+    //   fields: ['follower_id', 'following_id'],
+    //   type: 'primary key',
+    //   name: 'followers_pkey'
+    // })
   },
 
   down: async ({ context: queryInterface }) => {

@@ -77,3 +77,6 @@ jobs:
           TEST_POSTGRES_URL: postgres://postgres:postgres@localhost:5432/pinspire_test
           TEST_REDIS_URL: redis://localhost:6379
           JWT_SECRET: ${{ secrets.JWT_SECRET || 'test-jwt-secret' }}
+          TEST_CLOUDINARY_CLOUD_NAME: ${{ secrets.TEST_CLOUDINARY_CLOUD_NAME}}
+          TEST_CLOUDINARY_API_KEY: ${{ secrets.TEST_CLOUDINARY_API_KEY}}
+          TEST_CLOUDINARY_API_SECRET: ${{ secrets.TEST_CLOUDINARY_API_SECRET}}

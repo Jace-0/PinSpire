@@ -11,7 +11,8 @@ module.exports = {
           model: 'boards',
           key: 'id'
         },
-        onDelete: 'CASCADE'
+        onDelete: 'CASCADE',
+        PrimaryKey: true
       },
       pin_id: {
         type: DataTypes.UUID,
@@ -20,7 +21,8 @@ module.exports = {
           model: 'pins',
           key: 'id'
         },
-        onDelete: 'CASCADE'
+        onDelete: 'CASCADE',
+        PrimaryKey: true
       },
       created_at: {
         type: DataTypes.DATE,
@@ -29,12 +31,12 @@ module.exports = {
       }
     })
 
-    // Add composite primary key
-    await queryInterface.addConstraint('board_pins', {
-      fields: ['board_id', 'pin_id'],
-      type: 'primary key',
-      name: 'board_pins_pkey'
-    })
+    // // Add composite primary key
+    // await queryInterface.addConstraint('board_pins', {
+    //   fields: ['board_id', 'pin_id'],
+    //   type: 'primary key',
+    //   name: 'board_pins_pkey'
+    // })
   },
 
   down: async ({ context: queryInterface }) => {
