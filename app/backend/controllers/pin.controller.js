@@ -728,11 +728,13 @@ const pinController = {
       }
 
       // Create new like
-      await Like.create({
+      const LL =  await Like.create({
         user_id: userId,
         likeable_id: commentId,
         likeable_type: 'comment'
       })
+
+      console.log('COMMENT', JSON.stringify(LL, null, 2))
 
       // Notification to the Comment owner
       if (comment.user_id && comment.user_id !== userId && req.app.ws) {
