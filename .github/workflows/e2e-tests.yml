@@ -125,6 +125,23 @@ jobs:
           npx playwright install --with-deps chromium
         working-directory: ./app/e2e-tests
 
+      - name: Setup test files
+        run: |
+          echo "Setting up test files directory..."
+          # Create the directory if it doesn't exist
+          mkdir -p ./app/e2e-tests/tests/test-files
+
+          # Copy all test images from your repository
+          cp -r ./app/e2e-tests/tests/test-files/* ./app/e2e-tests/tests/test-files/
+
+          echo "Verifying copied files:"
+          ls -la ./app/e2e-tests/tests/test-files/
+
+          # Optional: Check file permissions
+          chmod 644 ./app/e2e-tests/tests/test-files/*
+
+          echo "Test files prepared successfully"
+
       - name: Run E2E tests
         run: npm run test:chrome
         working-directory: ./app/e2e-tests
