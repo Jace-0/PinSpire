@@ -127,20 +127,41 @@ jobs:
 
       - name: Setup test files
         run: |
-          echo "Setting up test files directory..."
-          # Create the directory if it doesn't exist
-          mkdir -p ./app/e2e-tests/tests/test-files
+          echo "Verifying test files directory..."
 
-          # Copy all test images from your repository
-          cp -r ./app/e2e-tests/tests/test-files/* ./app/e2e-tests/tests/test-files/
+          # Check if directory exists
+          if [ ! -d "./app/e2e-tests/tests/test-files" ]; then
+            echo "Error: Test files directory not found!"
+            ls -la ./app/e2e-tests/tests/
+            exit 1
+          fi
 
-          echo "Verifying copied files:"
+          echo "Current test files:"
           ls -la ./app/e2e-tests/tests/test-files/
 
-          # Optional: Check file permissions
-          chmod 644 ./app/e2e-tests/tests/test-files/*
+          # Ensure correct case sensitivity in filenames
+          # List all your expected test files
+          expected_files=(
+            "Jacket.jpeg"
+            "Shot48.00000.png"
+            "braids.jpeg"
+            "profile.jpeg"
+          )
 
-          echo "Test files prepared successfully"
+          # Check each file
+          for file in "${expected_files[@]}"; do
+            if [ ! -f "./app/e2e-tests/tests/test-files/$file" ]; then
+              echo "Warning: File $file not found!"
+              echo "Available files:"
+              ls -la ./app/e2e-tests/tests/test-files/
+              exit 1
+            fi
+          done
+
+          # Set proper permissions
+          chmod 644 ./app/e2e-tests/tests/test-files/* || true
+
+          echo "Test files verified successfully"
 
       - name: Run E2E tests
         run: npm run test:chrome
