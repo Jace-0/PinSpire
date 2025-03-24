@@ -679,7 +679,7 @@ test.describe('Pinspire E2E Test', () => {
 
         test('Create pin with image upload and details - NOT ADDED TO BOARD', async ({ createPinPage }) => {
 
-          const testImagePath = path.join(__dirname, './test-files/jacket.jpeg')
+          const testImagePath = path.join(__dirname, './test-files/Jacket.jpeg')
           const pinDetails = {
             title: 'Black winter jacket',
             description: 'Premium black winter jacket featuring water-resistant material, thermal insulation, and sleek modern design. Perfect for extreme weather conditions while maintaining a sophisticated urban look.',
