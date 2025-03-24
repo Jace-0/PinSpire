@@ -10,7 +10,7 @@ class WebSocketManager {
   static getWsUrl() {
     return  process.env.NODE_ENV === 'production'
       ? process.env.APP_WS_URL
-      : process.env.DEV_WS_URL
+      : process.env.REACT_APP_WS_URL
   }
 
   static initialize(token) {

@@ -315,7 +315,6 @@ const pinController = {
         user_id: userId
       })
 
-
       // Method 1: Using the association method (might bypass hooks)
       // await board.addPin(pin)
 
@@ -694,7 +693,6 @@ const pinController = {
       const userId = req.user.id
       const commentId = req.params.commentId
 
-
       // Check if comment exists
       const comment = await Comment.findByPk(commentId)
       if (!comment) {
@@ -728,13 +726,12 @@ const pinController = {
       }
 
       // Create new like
-      const LL =  await Like.create({
+      await Like.create({
         user_id: userId,
         likeable_id: commentId,
         likeable_type: 'comment'
       })
 
-      console.log('COMMENT', JSON.stringify(LL, null, 2))
 
       // Notification to the Comment owner
       if (comment.user_id && comment.user_id !== userId && req.app.ws) {
