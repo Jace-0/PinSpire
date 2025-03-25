@@ -90,7 +90,7 @@ jobs:
         with:
           args: |
             🎉 App is LIVE!
-            Application: https://pinspire-fnsl.onrender.com/api/health
+            Application: https://pinspire-fnsl.onrender.com/
             Time: ${{ format(github.event.schedule, 'YYYY-MM-DD HH:mm:ss') }}
             Status: LIVE
 
@@ -102,7 +102,7 @@ jobs:
         with:
           args: |
             🚨 ALERT: System OFFLINE!
-            Application: https://pinspire-fnsl.onrender.com/api/health
+            Application: https://pinspire-fnsl.onrender.com/
             Time: ${{ format(github.event.schedule, 'YYYY-MM-DD HH:mm:ss') }}
             Status: OFFLINE
             Please investigate immediately!
