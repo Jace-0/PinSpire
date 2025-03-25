@@ -1,8 +1,7 @@
 name: Health Check and Notifications
 on:
   schedule:
-    # Runs every hour
-    - cron: "0 * * * *"
+    - cron: "*/15 * * * *" # Runs every 15 minutes
   workflow_dispatch: # Allows manual triggering
   push:
     branches: [main] # Runs on pushes to main branch
@@ -46,4 +45,61 @@ jobs:
             Application: https://pinspire-fnsl.onrender.com/api/health
             Time: ${{ format(github.event.schedule, 'YYYY-MM-DD HH:mm:ss') }}
             Status: Unhealthy
+            Please investigate immediately!
+
+  keep_alive:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: "./e2e-test/backend/package-lock.json"
+
+      - name: Install dependencies
+        run: |
+          npm install
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run health check
+        run: npm run health-check
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            health-check-screenshot.png
+
+      - name: Notify Live Check Success
+        if: steps.keep_alive.outcome == 'success'
+        uses: Ilshidur/action-discord@0c4b27844ba47cb1c7bee539c8eead5284ce9fa9
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        with:
+          args: |
+            🎉 App is LIVE!
+            Application: https://pinspire-fnsl.onrender.com/api/health
+            Time: ${{ format(github.event.schedule, 'YYYY-MM-DD HH:mm:ss') }}
+            Status: LIVE
+
+      - name: Notify Live Check Failure
+        if: steps.keep_alive.outcome == 'failure'
+        uses: Ilshidur/action-discord@0c4b27844ba47cb1c7bee539c8eead5284ce9fa9
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        with:
+          args: |
+            🚨 ALERT: System OFFLINE!
+            Application: https://pinspire-fnsl.onrender.com/api/health
+            Time: ${{ format(github.event.schedule, 'YYYY-MM-DD HH:mm:ss') }}
+            Status: OFFLINE
             Please investigate immediately!

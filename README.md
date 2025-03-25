@@ -6,6 +6,8 @@ A full-stack Pinterest clone built with modern web technologies. This project wa
 
 - Hosted on Render: [Pinspire Live](https://pinspire-fnsl.onrender.com/)
 
+<img src="documentation/assets/image.png">
+
 ## Documentation
 
 - [Features Overview](documentation/requirement_specification.md)

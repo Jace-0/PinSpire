@@ -4,14 +4,14 @@ on:
   push:
     branches: [main]
     paths:
-      - "app/**"
-      - ".github/workflows/e2e-tests.yml"
+      - "e2e-test/**"
+      - ".github/workflows/e2e-test.yml"
 
   pull_request:
     branches: [main]
     paths:
-      - "app/**"
-      - ".github/workflows/e2e-tests.yml"
+      - "e2e-test/**"
+      - ".github/workflows/e2e-test.yml"
 
   # Run after backend and frontend CI complete successfully
   workflow_run:
@@ -23,7 +23,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  e2e-tests:
+  e2e-test:
     runs-on: ubuntu-20.04
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
 
@@ -117,27 +117,27 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
-          cache-dependency-path: "./app/e2e-tests/package-lock.json"
+          cache-dependency-path: "./app/e2e-test/package-lock.json"
 
       - name: Install Playwright dependencies
         run: |
           npm install
           npx playwright install --with-deps chromium
-        working-directory: ./app/e2e-tests
+        working-directory: ./app/e2e-test
 
       - name: Setup test files
         run: |
           echo "Verifying test files directory..."
 
           # Check if directory exists
-          if [ ! -d "./app/e2e-tests/tests/test-files" ]; then
+          if [ ! -d "./app/e2e-test/tests/test-files" ]; then
             echo "Error: Test files directory not found!"
-            ls -la ./app/e2e-tests/tests/
+            ls -la ./app/e2e-test/tests/
             exit 1
           fi
 
           echo "Current test files:"
-          ls -la ./app/e2e-tests/tests/test-files/
+          ls -la ./app/e2e-test/tests/test-files/
 
           # Ensure correct case sensitivity in filenames
           # List all your expected test files
@@ -150,22 +150,22 @@ jobs:
 
           # Check each file
           for file in "${expected_files[@]}"; do
-            if [ ! -f "./app/e2e-tests/tests/test-files/$file" ]; then
+            if [ ! -f "./app/e2e-test/tests/test-files/$file" ]; then
               echo "Warning: File $file not found!"
               echo "Available files:"
-              ls -la ./app/e2e-tests/tests/test-files/
+              ls -la ./app/e2e-test/tests/test-files/
               exit 1
             fi
           done
 
           # Set proper permissions
-          chmod 644 ./app/e2e-tests/tests/test-files/* || true
+          chmod 644 ./app/e2e-test/tests/test-files/* || true
 
           echo "Test files verified successfully"
 
       - name: Run E2E tests
         run: npm run test:chrome
-        working-directory: ./app/e2e-tests
+        working-directory: ./app/e2e-test
         env:
           BASE_URL: http://localhost:3000
 
@@ -174,7 +174,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
-          path: ./app/e2e-tests/playwright-report/
+          path: ./app/e2e-test/playwright-report/
           retention-days: 30
 
       # Deployment
@@ -210,7 +210,7 @@ jobs:
           pkill -f "npm run start:test" || true
 
   tag_release:
-    needs: [e2e-tests] # This makes it wait for the first job
+    needs: [e2e-test] # This makes it wait for the first job
     runs-on: ubuntu-20.04
     # Use the same condition for version tagging
     if: ${{
