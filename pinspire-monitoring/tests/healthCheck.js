@@ -2,6 +2,8 @@
 const { chromium } = require('playwright')
 require('dotenv').config() // Optional: for loading environment variables
 const { expect } = require('@playwright/test')
+const path = require('path')
+const fs = require('fs')
 
 const runHealthCheck = async () => {
   const browser = await chromium.launch()
@@ -39,9 +41,18 @@ const runHealthCheck = async () => {
     await expect(page.locator('.card').filter({ hasText: 'Our bathroom' })).toBeVisible()
     await expect(page.locator('.card').filter({ hasText: 'Serve my drinks in '})).toBeVisible()
     
+    // Create screenshot directory if it doesn't exist
+    const screenshotDir = path.join(__dirname, '../screenshot')
+    if (!fs.existsSync(screenshotDir)) {
+      fs.mkdirSync(screenshotDir, { recursive: true })
+    }
+
+    const screenshotPath = path.join(screenshotDir, 'health-check-screenshot.png')
+    console.log('Screenshot will be saved to:', screenshotPath)
+
     // Take a screenshot
     await page.screenshot({ 
-      path: 'health-check-screenshot.png',
+      path: screenshotPath,
       fullPage: true 
     })
     

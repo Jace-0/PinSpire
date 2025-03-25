@@ -71,16 +71,16 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run health check
+        id: keep_alive
         run: npm run health-check
 
-      - name: Upload test results
+      - name: Upload screenshot
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
-          path: |
-            playwright-report/
-            health-check-screenshot.png
+          name: health-check-screenshot
+          path: pinspire-monitoring/screenshot/*.png
+          retention-days: 7
 
       - name: Notify Live Check Success
         if: steps.keep_alive.outcome == 'success'
