@@ -49,6 +49,9 @@ jobs:
 
   keep_alive:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./e2e-test
 
     steps:
       - uses: actions/checkout@v4
