@@ -51,7 +51,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./e2e-test
+        working-directory: ./pinspire-monitoring
 
     steps:
       - uses: actions/checkout@v4
@@ -61,7 +61,7 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
-          cache-dependency-path: "./e2e-test/package-lock.json"
+          cache-dependency-path: "./pinspire-monitoring/package-lock.json"
 
       - name: Install dependencies
         run: |
